@@ -18,6 +18,7 @@
 	</form>
 
 	<div id="Preview" style="margin: 10px; padding: 10px; border: 1px solid red;"></div>
+	<div id="Log" style="margin: 10px; padding: 10px; border: 1px solid green; font-size: 11px"></div>
 
 	<script type="text/javascript">
 		$('#MyForm input').change(function (){
@@ -62,10 +63,11 @@
 				data: {
 				    'num': 10,
 				    'str': "foo",
-				    'input': input,
+				    'input[]': input,
 					'files[]': files
 				},
-				success: function (res){
+				success: function (result){
+					document.getElementById('Log').innerHTML = '<pre>'+result+'</pre>';
 				}
 			});
 			/**/

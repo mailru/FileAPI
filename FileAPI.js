@@ -309,15 +309,16 @@
 						} else {
 							// Build POST query
 							api.each(data, function (value, name){
-								_data += '--'+boundary;
 								if( isArray(value) ){
-									api.each(value, function (item){ _data += _part(name, item); });
+									api.each(value, function (item){
+										_data += '--' + boundary + _part(name, item);
+									});
 								} else {
-									_data += _part(name, value);
+									_data += '--' + boundary + _part(name, value);
 								}
 							});
 
-							_data += boundary +'--';
+							_data += '--'+ boundary +'--';
 
 							xhr.send = xhr.sendAsBinary || (function (_send){
 								return function (str){
