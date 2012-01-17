@@ -5,23 +5,23 @@
 * iframe `all`
 
 ### Descriptions
-* FileAPI.support`:Boolean`
-* FileAPI.canvas`:Boolean`
-* FileAPI.each(obj`:Object|Array`, fn`:function`, context`:Mixed`)
-* FileAPI.extend(dst`:Object`, src`:Object`)`:Object`
-* FileAPI.isFile(file`:Mixed`)`:Boolean`
-* FileAPI.toImage(elem`:Image|Canvas`)`:Image`
-* FileAPI.toDataURL(elem`:Image|Canvas`)`:String`
-* FileAPI.toBinaryString(val`:String|Image|Canvas`)`:String`
-* FileAPI.readAsImage(file`:File|Image|Canvas`, callback`:function`)
-* FileAPI.readAsDataURL(file`:File|Image|Canvas`, callback`:function`)
-* FileAPI.readAsBinaryString(file`:File|Image|Canvas`, callback`:function`)
-* FileAPI.upload(options`:Object`)`:TransportObject`
-* FileAPI.reset(input`:Element`)`:CloneElement`
-* FileAPI.crop(elem`:Image|Canvas`, sx`:Number`, sy`:Number`, width`:Number`, height`:Number`)`:Canvas`
-* FileAPI.rotate(elem`:Image|Canvas`, deg`:Number`)`:Canvas`
-* FileAPI.resize(elem`:Image|Canvas`, width`:Number`, height`:Number`)`:Canvas`
-* FileAPI.resizeByMax(elem`:Image|Canvas`, max`:Number`)`:Canvas`
+* FileAPI.`support:Boolean`
+* FileAPI.`canvas:Boolean`
+* FileAPI.each(`obj:Object|Array`, `fn:function`, `context:Mixed`)
+* FileAPI.extend(`dst:Object`, `src:Object`):Object`
+* FileAPI.isFile(`file:Mixed`):Boolean`
+* FileAPI.toImage(`elem:Image|Canvas`):Image`
+* FileAPI.toDataURL(`elem:Image|Canvas`):String`
+* FileAPI.toBinaryString(`val:String|Image|Canvas`):String`
+* FileAPI.readAsImage(`file:File|Image|Canvas`, `callback:function`)
+* FileAPI.readAsDataURL(`file:File|Image|Canvas`, `callback:function`)
+* FileAPI.readAsBinaryString(`file:File|Image|Canvas`, `callback:function`)
+* FileAPI.upload(`options:Object`):TransportObject`
+* FileAPI.reset(`input:Element`):CloneElement`
+* FileAPI.crop(`elem:Image|Canvas`, `sx:Number`, `sy:Number`, `width:Number`, `height:Number`):Canvas`
+* FileAPI.rotate(`elem:Image|Canvas`, `deg:Number`):Canvas`
+* FileAPI.resize(`elem:Image|Canvas`, `width:Number`, `height:Number`):Canvas`
+* FileAPI.resizeByMax(`elem:Image|Canvas`, `max:Number`):Canvas`
 
 
 ### Examples
