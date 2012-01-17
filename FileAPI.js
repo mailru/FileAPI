@@ -204,7 +204,19 @@
 					boundary = '_'+(+new Date +''+ ++gid),
 
 					_total = 0,
-					_loaded = 0
+					_loaded = 0,
+					_xhr = {
+						status: 0,
+						statusText: 0,
+						readyState: 0,
+						getResponseHeader: function (){},
+						getAllResponseHeaders: function (){ return {} },
+						abort: function (text){
+							_xhr.statusText = text || 'abort';
+							_done(0, _xhr);
+						}
+
+					}
 				;
 
 
@@ -257,13 +269,24 @@
 
 				_ready();
 
+				return  _xhr;
+
 
 				function _ready(){
-					if( _loaded++ < _total ) return;
+					if( _loaded++ < _total || _xhr.statusText == 'abort' ) return;
 
 					var _data = (useFD ? new FormData : ''), xhr = support ? new XMLHttpRequest : null;
 
 					if( xhr ){
+						_xhr.getResponseHeader      = function (name){ return xhr.getResponseHeader(name); };
+						_xhr.getAllResponseHeaders  = function (){ return xhr.getAllResponseHeaders(); };
+
+						_xhr.abort = function (text){
+							_xhr.statusText = text || 'abort';
+							xhr.abort(text);
+							_done(0, _xhr);
+						};
+
 						if( useFD ){
 							// use FormData
 							api.each(data, function (value, name){
@@ -303,10 +326,29 @@
 						});
 
 						xhr.onreadystatechange = function (){
+							_xhr.status     = xhr.status;
+							_xhr.statusText = xhr.statusText;
+							_xhr.readyState = xhr.readyState;
+
 							if( xhr.readyState == 4 ){
+								for( var k in { '': 1, 'XML': 1, 'Text': 1 } ) _xhr['response'+k]  = xhr['response'+k];
 								xhr.onreadystatechange = null;
-								_done(xhr.status, xhr);
+								_done(_xhr.status, _xhr);
 							}
+						};
+
+						_xhr.abort = function (text){
+							_xhr.statusText = text || 'abort';
+							var transport = xhr.getElementsByName('iframe')[0];
+							if( transport ){
+								try {
+									if( transport.stop ) transport.stop();
+									else if( transport.contentWindow.stop ) transport.contentWindow.stop();
+									else transport.contentWindow.document.execCommand('Stop');
+								}
+								catch (er) {}
+							}
+							_done(0, _xhr);
 						};
 
 						xhr.send(_data);
@@ -339,13 +381,12 @@
 
 						// Setup jsonp
 						window[boundary] = function (status, result){
-							if( status != 200 ){
-								(options.error || api.F)(error, { statusText: result });
-							} else {
-								(options.success || api.F)(result);
-							}
-							(options.complete || api.F)(error, { responseText: result });
+							_xhr.status         = status;
+							_xhr.statusText     = status == 200 ? 'success' : 'error';
+							_xhr.readyState     = 4;
+							_xhr.responseText   = result;
 
+							_done(status, _xhr);
 							window[boundary] = null;
 							delete window[boundary];
 						};
@@ -358,11 +399,13 @@
 
 				function _done(status, xhr){
 					if( status == 200 ){
+						xhr.statusText = 'success';
 						(options.success || api.F)(xhr.responseText, xhr.statusText, xhr);
 					} else {
-						(options.error || api.F)(status, xhr);
+						xhr.statusText = 'error';
+						(options.error || api.F)(xhr, xhr.statusText);
 					}
-					(options.complete || api.F)(status, xhr);
+					(options.complete || api.F)(xhr, xhr.statusText);
 				}
 			},
 

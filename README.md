@@ -16,7 +16,7 @@
 * FileAPI.readAsImage(file`:File|Image|Canvas`, callback`:function`)
 * FileAPI.readAsDataURL(file`:File|Image|Canvas`, callback`:function`)
 * FileAPI.readAsBinaryString(file`:File|Image|Canvas`, callback`:function`)
-* FileAPI.upload(options`:Object`)
+* FileAPI.upload(options`:Object`)`:TransportObject`
 * FileAPI.reset(input`:Element`)`:CloneElement`
 * FileAPI.crop(elem`:Image|Canvas`, sx`:Number`, sy`:Number`, width`:Number`, height`:Number`)`:Canvas`
 * FileAPI.rotate(elem`:Image|Canvas`, deg`:Number`)`:Canvas`
@@ -84,8 +84,8 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 			}
 		},
 		success: function (result/*:String*/){},
-		error: function (status, xhr){},
-		complete: function (){}
+		error: function (status, xhr/*:TransportObject*/){},
+		complete: function (xhr/*:TransportObject*/, statusText/*:String*/){}
 	});
 }, true);
 ```
@@ -108,6 +108,22 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 	lengthComputable: Boolean,
 	loaded: Number,
 	total: Number
+}
+```
+
+
+### TransportObject
+```js
+{
+	status: Number,
+	statusText: Number,
+	readyState: Number,
+	response: Blob,
+	responseXML: XML,
+	responseText: String,
+	getResponseHeader: function (name/*:String*/)/*:String*/{},
+	getAllResponseHeaders: function ()/*:Object*/{},
+	abort: function (){}
 }
 ```
 
