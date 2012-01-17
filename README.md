@@ -1,4 +1,4 @@
-# FileAPI — a set of tools for working with files.
+# FileAPI â€” a set of tools for working with files.
 
 ## Support
 * full `FF 3.6+, Chrome 13+, Safari 6+, Opera 11.6+`
@@ -135,7 +135,7 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 <script type="text/javascript">
 (function (ctx, name){
 	if( ctx[name] ){
-		ctx[name](<?=$statusCode/*200 — OK*/?>, <?=$resultOrStatusText?>);
+		ctx[name](<?=$statusCode/*200 â€” OK*/?>, <?=$resultOrStatusText?>);
 	}
 })(this, <?=$_POST['callback']?>);
 </script>
