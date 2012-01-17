@@ -1,8 +1,10 @@
 # FileAPI — a set of tools for working with files.
 
 ## Support
-* full `FF 3.6+, Chrome 13+, Safari 6+, Opera 11.6+`
-* iframe `all`
+* full `FF 3.6+, Chrome 10+, Safari 6+, Opera 11.6+, IE 10+`
+* cross-domain `FF 3.6+, Chrome 10+, Stafari 6+, IE 10+`
+* iframe-transport `all`
+
 
 ### Descriptions
 * FileAPI.`support:Boolean`

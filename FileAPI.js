@@ -320,13 +320,6 @@
 
 							_data += '--'+ boundary +'--';
 
-							xhr.send = xhr.sendAsBinary || (function (_send){
-								return function (str){
-									var bytes = Array.prototype.map.call(str, function(c){ return c.charCodeAt(0) & 0xff; });
-									_send.call(this, new Uint8Array(bytes).buffer);
-								};
-							})(xhr.send);
-
 							headers['Content-Type'] = 'multipart/form-data; boundary='+ boundary;
 						}
 
@@ -362,7 +355,7 @@
 							_done(0, _xhr);
 						};
 
-						xhr.send(_data);
+						_send(xhr, _data);
 					}
 					else {
 						// old browsers
@@ -507,5 +500,17 @@
 		input.name  = name;
 		input.value = value;
 		if( parent ) parent.appendChild(input);
+	}
+
+	function _send(xhr, data){
+		if( FormData && data instanceof FormData ){
+			xhr.send(data);
+		} else if( xhr.sendAsBinary ){
+			xhr.sendAsBinary(data)
+		} else {
+			var bytes = Array.prototype.map.call(data, function(c){ return c.charCodeAt(0) & 0xff; });
+			xhr.send(new Uint8Array(bytes).buffer);
+
+		}
 	}
 })(this);

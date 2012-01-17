@@ -1,3 +1,21 @@
+<?php
+	header('Access-Control-Allow-Origin: '. $_SERVER['HTTP_ORIGIN']);
+	header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+	header('Access-Control-Allow-Headers: Origin, X-Requested-With');
+
+	if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
+		exit;
+	}
+
+	if( strtoupper($_SERVER['REQUEST_METHOD']) == 'POST' ){
+		header('Access-Control-Allow-Origin: *');
+
+		var_dump($_REQUEST);
+		var_dump($_FILES);
+
+		exit;
+	}
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -18,7 +36,7 @@
 	</form>
 
 	<div id="Preview" style="margin: 10px; padding: 10px; border: 1px solid red;"></div>
-	<div id="Log" style="margin: 10px; padding: 10px; border: 1px solid green; font-size: 11px"></div>
+	<div id="Log" style="margin: 10px; padding: 10px; border: 1px solid green;"></div>
 
 	<script type="text/javascript">
 		$('#MyForm input').change(function (){
@@ -59,7 +77,7 @@
 
 			/**/
 			FileAPI.upload({
-				url: 'http://rubaxa.org/labs/fileapi.php',
+				url: 'FileAPI.php',
 				data: {
 				    'num': 10,
 				    'str': "foo",
@@ -67,7 +85,7 @@
 					'files[]': files
 				},
 				success: function (result){
-					document.getElementById('Log').innerHTML = '<pre>'+result+'</pre>';
+					document.getElementById('Log').innerHTML = '<pre style="font-size: 11px;">'+result+'</pre>';
 				}
 			});
 			/**/
