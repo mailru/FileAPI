@@ -90,6 +90,28 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 }, true);
 ```
 
+### File object (https://developer.mozilla.org/en/DOM/File)
+```js
+{
+	name: 'fileName',
+	type: 'mime-type',
+	size: 'fileSize'
+}
+```
+
+
+### Event object
+```js
+{
+	type:   'abort|error|progress|load',
+	result: '...',
+	lengthComputable: Boolean,
+	loaded: Number,
+	total: Number
+}
+```
+
+
 ### Cross-Domain upload-controller headers
 ```php
 <?
@@ -108,18 +130,6 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 ```
 
 
-### Event object
-```js
-{
-	type:   'abort|error|progress|load',
-	result: '...',
-	lengthComputable: Boolean,
-	loaded: Number,
-	total: Number
-}
-```
-
-
 ### iframe
 #### POST-query
 ```
@@ -134,9 +144,9 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 ```php
 <script type="text/javascript">
 (function (ctx, name){
-	if( ctx[name] ){
+	if( ctx && ctx[name] ){
 		ctx[name](<?=$statusCode/*200 — OK*/?>, <?=$resultOrStatusText?>);
 	}
-})(this, <?=$_POST['callback']?>);
+})(this.parent, <?=$_POST['callback']?>);
 </script>
 ```
