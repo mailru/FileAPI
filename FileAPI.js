@@ -2,9 +2,11 @@
  * FileAPI — a set of tools for working with files
  * @author  RubaXa  <trash@rubaxa.org>
  */
-(function (window){
+(function (window, undef){
+	/** @namespace window.webkitURL */
 	var
 		gid = 1,
+		URL = window.URL && window.URL.createObjectURL && window.URL || window.webkitURL,
 		File = window.File,
 		FileReader = window.FileReader,
 		FormData = window.FormData,
@@ -158,31 +160,39 @@
 			 */
 			readAsImage: function (file, fn){
 				if( api.isFile(file) ){
-					api.readAsDataURL(file, function (evt){
-						if( evt.type == 'load' ){
-							api.readAsImage(evt.result, fn);
-						} else if( evt != 'progress' ){
-							_fire(fn, evt);
-						}
-					});
+					if( URL ){
+						/** @namespace URL.createObjectURL */
+						var data = URL.createObjectURL(file);
+						if( data === undef ) _fire(fn, 'error');
+						else api.readAsImage(data, fn);
+					} else {
+						api.readAsDataURL(file, function (evt){
+							if( evt.type == 'load' ){
+								api.readAsImage(evt.result, fn);
+							} else if( evt != 'progress' ){
+								_fire(fn, evt);
+							}
+						});
+					}
 				}
 				else {
 					if( _rimg.test(file.nodeName) ){
 						_fire(fn, 'load', file);
+						return;
 					} else if( _rcanvas.test(file.nodeName) ){
 						file    = api.toDataURL(file);
-					} else {
-						// Created image
-						var img = new Image;
-						img.src = file;
-						if( img.complete ){
-							_fire(fn, 'load', img);
-						} else {
-							_one(img, 'error abort load', function (evt){
-								_fire(fn, evt, evt.type == 'load' ? evt.target: null);
-							});
-						}
 					}
+
+					// Created image
+					var img = new Image;
+					img.src = file;
+					_one(img, 'error abort load', function (evt){
+						if( evt.type == 'load' && URL ){
+							/** @namespace URL.revokeObjectURL */
+							URL.revokeObjectURL(evt.target.src);
+						}
+						_fire(fn, evt, evt.type == 'load' ? evt.target : null);
+					});
 				}
 			},
 

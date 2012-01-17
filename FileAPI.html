@@ -28,20 +28,26 @@
 					if( evt.type == 'load' ){
 						var size = FileAPI.toBinaryString(evt.result).length;
 						console[(file.size == size ? 'info' : 'error')]('FileAPI.readAsDataURL ... OK')
+					} else {
+						console.log('readAsDataURL:', evt.type);
 					}
 				});
 
 				FileAPI.readAsBinaryString(file, function (evt){
 					if( evt.type == 'load' ){
 						console[(file.size == evt.result.length ? 'info' : 'error')]('FileAPI.readAsBinaryString ... OK')
+					} else {
+						console.log('readAsBinaryString:', evt.type);
 					}
 				});
 
 				FileAPI.readAsImage(file, function (evt){
 					if( evt.type == 'load' ){
-						var canvas = evt.result;
+						var canvas = evt.result; // ImageElement
 
-						canvas = FileAPI.crop(canvas, 0, 0, 500, 500);
+						if( canvas.width > 400 && canvas.height > 400 )
+							canvas = FileAPI.crop(canvas, 0, 0, 400, 400);
+
 						canvas = FileAPI.resizeByMax(canvas, 300);
 						canvas = FileAPI.rotate(canvas, 90);
 
@@ -50,6 +56,7 @@
 				});
 			});
 
+			/**/
 			FileAPI.upload({
 				url: 'http://rubaxa.org/labs/fileapi.php',
 				data: {
@@ -61,6 +68,7 @@
 				success: function (res){
 				}
 			});
+			/**/
 
 			FileAPI.reset(input);
 		});
