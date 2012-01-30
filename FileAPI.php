@@ -24,13 +24,15 @@
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js" type="text/javascript"></script>
 	<script src="./FileAPI.js" type="text/javascript"></script>
 	<script src="./FileAPI.image.js" type="text/javascript"></script>
+	<script src="./FileAPI.flash.js" type="text/javascript"></script>
 
 </head>
 <body>
+	<div id="__FileAPI__"></div>
 
 	<form id="MyForm">
-		<div>one: <input value="" type="file" name="one" /></div>
-		<div>multiple: <input value="" type="file" name="mutiple" multiple="multiple" /></div>
+		<div>one: <span style="position: relative"><input value="" type="file" name="one" /></span></div>
+		<div>multiple: <span style="position: relative"><input value="" type="file" name="multiple" multiple="multiple" /></span></div>
 	</form>
 
 	<div id="Preview" style="margin: 10px; padding: 10px; border: 1px solid red;"></div>
@@ -58,17 +60,22 @@
 					}
 				});
 
-				FileAPI.readAsImage(file, function (evt){
+				if( /image/.test(file.type) ) FileAPI.readAsImage(file, function (evt){
 					if( evt.type == 'load' ){
 						var canvas = evt.result; // ImageElement
 
-						if( canvas.width > 400 && canvas.height > 400 )
-							canvas = FileAPI.crop(canvas, 0, 0, 400, 400);
+						if( canvas.width > 400 && canvas.height > 400 ){
+							canvas  = FileAPI.crop(canvas, 0, 0, 400, 400);
+						}
 
-						canvas = FileAPI.resizeByMax(canvas, 300);
-						canvas = FileAPI.rotate(canvas, 90);
+						canvas  = FileAPI.resizeByMax(canvas, 300);
+						canvas  = FileAPI.rotate(canvas, 90);
 
-						$(canvas).prependTo('#Preview');
+						$(canvas)
+							.prependTo('#Preview')
+							.css({ opacity: 0 })
+							.animate({ opacity: 1 }, 'fast')
+						;
 					}
 				});
 			});
@@ -90,7 +97,41 @@
 
 			FileAPI.reset(input);
 		});
-		
+
+
+		FileAPI.load('./html5.png', function (evt){
+			if( evt.type == 'load' ){
+				var file = evt.result;
+				$(new Image)
+					.attr({ src: file.dataURL, title: file.name +' ('+ file.type +', '+ file.size +')' })
+					.appendTo('#Preview')
+					.css({ opacity: 0 })
+					.animate({ opacity: 1 }, 'fast')
+				;
+			}
+		});
+
+
+		if( FileAPI.native ) && FileAPI.onselect(function (files, node){
+
+			FileAPI.each(files, function (file){
+
+				if( /image/.test(file.type) ){
+					FileAPI.readAsImage(file, function (evt){
+						if( evt.type == 'load' ){
+							var canvas = evt.result;
+							$(canvas)
+								.prependTo('#Preview')
+								.css({ opacity: 0 })
+								.animate({ opacity: 1 }, 'fast')
+							;
+						}
+					});
+				}
+
+			});
+
+		});
 	</script>
 
 </body>

@@ -19,6 +19,7 @@
 * FileAPI.readAsDataURL(`file:File|Image|Canvas`, `callback:function`)
 * FileAPI.readAsBinaryString(`file:File|Image|Canvas`, `callback:function`)
 * FileAPI.upload(`options:Object`)`:TransportObject`
+* FileAPI.load(`url:String`, `fn:Function`)`:XMLHttpRequest`
 * FileAPI.reset(`input:Element`)`:CloneInputElement`
 * FileAPI.crop(`elem:Image|Canvas`, `sx:Number`, `sy:Number`, `width:Number`, `height:Number`)`:Canvas`
 * FileAPI.rotate(`elem:Image|Canvas`, `deg:Number`)`:Canvas`
@@ -87,10 +88,23 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 		},
 		success: function (result/*:String*/){},
 		error: function (status, xhr/*:TransportObject*/){},
+		progress: function (loaded/*:Number*/, total/*:Number*/, xhr/*:TransportObject*/){}
 		complete: function (xhr/*:TransportObject*/, statusText/*:String*/){}
 	});
 }, true);
+
+
+FileAPI.load('./html5.png', function (evt){
+	if( evt.type == 'load' ){
+		var file = evt.result;
+		$(new Image)
+			.attr({ src: evt.result.dataURL, title: file.name +' ('+ file.type +', '+ file.size +')' })
+			.appendTo('#Preview')
+		;
+	}
+});
 ```
+
 
 ### File object (https://developer.mozilla.org/en/DOM/File)
 ```js
@@ -114,6 +128,23 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 ```
 
 
+### Event object (FileAPI.load)
+```js
+{
+	type:   'error|progress|load',
+	result: {
+		name: String,
+		type: String,
+		size: Number,
+		dataURL: String
+	},
+	lengthComputable: Boolean,
+	loaded: Number,
+	total: Number
+}
+```
+
+
 ### TransportObject
 ```js
 {
@@ -123,6 +154,7 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 	response: Blob,
 	responseXML: XML,
 	responseText: String,
+	responseBody: String,
 	getResponseHeader: function (name/*:String*/)/*:String*/{},
 	getAllResponseHeaders: function ()/*:Object*/{},
 	abort: function (){}
