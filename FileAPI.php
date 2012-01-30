@@ -112,7 +112,7 @@
 		});
 
 
-		if( FileAPI.native ) && FileAPI.onselect(function (files, node){
+		if( !FileAPI.support ) FileAPI.onselect(function (files, node){
 
 			FileAPI.each(files, function (file){
 
