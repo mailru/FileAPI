@@ -27,7 +27,12 @@
 
 			support: support,
 
-			event: { on: _on, off: _off, one: _one, fix: _fixEvent },
+			event: {
+				  on: _on
+				, off: _off
+				, one: _one
+				, fix: _fixEvent
+			},
 
 			F: function (a){ return  a; },
 
@@ -228,6 +233,7 @@
 						'X-Requested-With': 'XMLHttpRequest',
 						'Accept': 'text/plain, */*; q=0.01'
 					}, options.header),
+
 					boundary = '_'+(+new Date +''+ ++gid),
 
 					_total = 0,
@@ -242,7 +248,6 @@
 							_xhr.statusText = text || 'abort';
 							_done(0, _xhr);
 						}
-
 					}
 				;
 
@@ -318,7 +323,9 @@
 							// use FormData
 							api.each(data, function (value, name){
 								if( isArray(value) ){
-									api.each(value, function (item){ _data.append(name, item); });
+									api.each(value, function (item){
+										_data.append(name, item);
+									});
 								} else {
 									_data.append(name, value);
 								}
@@ -473,7 +480,7 @@
 				        xhr.overrideMimeType('text/plain; charset=x-user-defined');
 					}
 
-					_on(xhr, 'progress', function (/** Event */evt){
+					_on(xhr, 'progress', function (/**Event*/evt){
 						/** @namespace evt.lengthComputable */
 						if( evt.lengthComputable ){
 							fn({ type: evt.type, loaded: evt.loaded, total: evt.total }, xhr);
@@ -666,7 +673,9 @@
 		if( node.nodeName == 'INPUT' && node.type == 'file' && !node.__FileAPIOnSel ){
 			node.__FileAPIOnSel  = 1;
 			_on(node, 'change', function (){
-				api.each(_onSel, function (fn){ fn(node.files, node); });
+				api.each(_onSel, function (fn){
+					fn(node.files, node);
+				});
 			});
 		}
 	});

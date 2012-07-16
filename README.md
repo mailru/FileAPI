@@ -29,7 +29,7 @@
 
 ### Examples
 ```js
-document.getElementById('FileInputId').addEventListener('change', function (evt){
+FileAPI.event.on(document.getElementById('FileInputId'), 'change', function (evt){
 	var input   = evt.target;
 	var files   = input.files;
 
@@ -91,7 +91,7 @@ document.getElementById('FileInputId').addEventListener('change', function (evt)
 		progress: function (loaded/*:Number*/, total/*:Number*/, xhr/*:TransportObject*/){}
 		complete: function (xhr/*:TransportObject*/, statusText/*:String*/){}
 	});
-}, true);
+});
 
 
 FileAPI.load('./html5.png', function (evt){
