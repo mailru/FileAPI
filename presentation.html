@@ -9,9 +9,8 @@
 	<link rel="stylesheet" href="http://lab.hakim.se/reveal-js/css/reset.css">
 	<link rel="stylesheet" href="http://lab.hakim.se/reveal-js/css/main.css">
 	<link rel="stylesheet" href="http://lab.hakim.se/reveal-js/css/print.css" type="text/css" media="print">
-	<link rel="stylesheet" href="http://lab.hakim.se/reveal-js/css/theme/default.css">
-	<link rel="stylesheet" href="http://lab.hakim.se/reveal-js/lib/css/zenburn.css">
 
+	<link rel="stylesheet" href="http://lab.hakim.se/reveal-js/lib/css/zenburn.css">
 	<style>
 		.reveal .slides h2,
 		.reveal .slides h3 {
@@ -30,20 +29,6 @@
 		pre code {
 			margin-top: 100px;
 		}
-
-		.list {
-			color: rgba(255,255,255,.3);
-		}
-			.list__item {
-				color: #fff;
-			}
-
-		.api__name {
-			color: #E241D9;
-		}
-		.api__args {
-			color: #ccc;
-		}
 	</style>
 </head>
 <body>
@@ -53,29 +38,29 @@
 		<div class="slides">
 			<section>
 				<section>
-					<h1 style="margin: 160px 0 0; font-size: 280px">File API</h1>
+					<h2 style="margin-top: 80px;">Загрузка файлов<br/>на<br/>сервер</h2>
 				</section>
 
 				<section>
-					<h3>Требования</h3>
-					<ul class="list" style="margin-top: 20px">
-						<li><span class="list__item">Выбор некольких файлов для загрузки</span></li>
-						<li><span class="list__item">Получение информации о файле (название, размер и mime-тип)</span></li>
-						<li><span class="list__item">Создать preview изображения до загрузки</span></li>
-						<li><span class="list__item">Ресайз, кроп и поворот на клиенте</span></li>
-						<li><span class="list__item">Загрузка всего, что получилось на сервер (cross-domain request)</span></li>
-						<li><span class="list__item">Не зависеть от сторонних библиотек (по возможности)</span></li>
+					<h3>Задачи, которые нужно решить</h3>
+					<ul style="margin-top: 20px">
+						<li>Выбирать несколько файлов для загрузки</li>
+						<li>Получать информацию о файле (название, размер и mime-тип)</li>
+						<li>Создать preview изображения до загрузки</li>
+						<li>Ресайз, кроп и поворот на клиенте</li>
+						<li>Загрузка всего, что получилось на сервер (cross-domain request)</li>
+						<li>Не зависеть от сторонних библиотек (по возможности)</li>
 					</ul>
 				</section>
 
 				<section>
-					<h3>Поддержка FileAPI на 2012 год</h3>
-					<div id="Browsers" style="margin-top: 80px; height: 350px;"></div>
+					<h3>Бразуеры, которые поддерживают FileAPI и их распространенность на 2012 год</h3>
+					<div id="Browsers" style="margin-top: 40px; height: 350px;"></div>
 				</section>
 
 				<section>
-					<h3>Получение списка файлов</h3>
-					<pre style="margin-top: 100px; font-size: 24px"><code class="html" contenteditable>&lt;input id="file" type="file" multiple />
+					<h3>Вот так выглядит получение списка файлов на html5</h3>
+					<pre style="margin-top: 100px;"><code class="html" contenteditable>&lt;input id="file" type="file" multiple />
 &lt;script>​
     var inputFile = document.getElementById('file');
 
@@ -88,7 +73,7 @@
 
 				<section>
 					<h3>То, что получилось</h3>
-					<pre style="margin-top: 100px; font-size: 22px;"><code class="html">&lt;span style="position: relative">
+					<pre style="margin-top: 100px;"><code class="html">&lt;span style="position: relative">
     &lt;input id="file" type="file" multiple />
 &lt;/span>
 &lt;script>​
@@ -102,8 +87,8 @@
 				</section>
 
 				<section>
-					<h3>Передача списка файлов из Flash</h3>
-					<pre style="font-size: 30px;"><code class="js">Flash --> jsCallback([​{
+					<h3>Передача списка файлов от Flash в js</h3>
+					<pre><code class="js">Flash --> jsFunc([​{
     uid: '...', // уникальный идетификатор
     name: '...', // название файла
     type: 'image/jpeg', // mime-type
@@ -116,7 +101,7 @@
 				<section>
 					<h3>Фильтрация</h3>
 					<div xclass="fragment">
-						<pre style="font-size: 24px;"><code class="js">FileAPI.filterFiles(files, function (file, info){
+						<pre><code class="js">FileAPI.filterFiles(files, function (file, info){
     // Функция филтрации
     if( /image/.test(file.type) && info ){
         return info.width > 120 && info.height > 120;
@@ -130,16 +115,16 @@
 				</section>
 
 				<section>
-					<h3>Создание preview</h3>
-					<ul style="margin-top: 60px" class="list">
-						<li><span class="list__item"><span class="api__name">FileReader</span> — позволяет асинхронно прочесть содержимое файла</span></li>
-						<li><span class="list__item"><span class="api__name">URL.createObjectURL</span><span class="api__args">(file)</span> — создает ссылку, указывающую на файл</span></li>
+					<h3>Создание preview для изображения</h3>
+					<ul>
+						<li>FileReader — позволяет асинхронно прочесть содержимое файла</li>
+						<li>URL.createObjectURL(file) — создает ссылку, указывающую на файл</li>
 					</ul>
 				</section>
 
 				<section>
 					<h3>FileReader</h3>
-					<pre style="font-size: 28px;"><code style="margin-top: 50px" class="js">function readAsImage(file, callback){
+					<pre><code class="js">function readAsImage(file, callback){
     var Reader = new FileReader;
     Reader.onload = function (evt){
         var img = new Image;
@@ -154,7 +139,7 @@
 
 				<section>
 					<h3>URL.createObjectURL</h3>
-					<pre style="font-size: 30px;"><code class="js">function readAsImage(file, callback){
+					<pre><code class="js">function readAsImage(file, callback){
     var img = new Image;
     img.onload = function (){
         URL.revokeObjectURL(file);
@@ -166,32 +151,38 @@
 
 				<section>
 					<h3>Создание preview через API</h3>
-					<pre style="font-size: 28px"><code style="margin-top: 60px" class="js">FileAPI.Image(imageFile)
-    .preview(120, 120)
-    .get(function (err, img/**HTMLImage*/){
-        if( err ){
-            // обработка ошибки
-        } else {
-            document.body.appendChild(img);
-        }
-    })
-;</code></pre>
+					<pre><code class="js">var imageFiles = FileAPI.filter(files, function (file){
+    return /image/i.test(file.type);
+});
+
+FileAPI.each(imageFiles, function (imageFile){
+    FileAPI.Image(imageFile)
+        .preview(120, 120)
+        .get(function (err, img/**HTMLImage*/){
+            if( err ){
+                // обработка ошибки
+            } else {
+                document.body.appendChild(img);
+            }
+        })
+    ;
+});</code></pre>
 				</section>
 
 				<section>
-					<h3>FileAPI.Image</h3>
-					<ul class="list" style="margin-top: 50px">
-						<li><span class="list__item"><span class="api__name">crop</span><span class="api__args">(x, y, width, height)</span> — кадрирование</span></li>
-						<li><span class="list__item"><span class="api__name">resize</span><span class="api__args">(width[, height])</span> — масштабирование</span></li>
-						<li><span class="list__item"><span class="api__name">rotate</span><span class="api__args">(deg)</span> — поворот</span></li>
-						<li><span class="list__item"><span class="api__name">preview</span><span class="api__args">(width[, height])</span> — автоматически кадрирует и масштабирует</span></li>
-						<li><span class="list__item"><span class="api__name">get</span><span class="api__args">(callback)</span> — получить итоговое изображение</span></li>
+					<h3>Класс FileAPI.Image</h3>
+					<ul style="margin-top: 50px">
+						<li>crop(x, y, width, height) — кадрирование</li>
+						<li>resize(width, height) — масштабирование</li>
+						<li>rotate(deg) — поворот</li>
+						<li>preview(width, height) — автоматически кадрирует и масштабирует</li>
+						<li>get(callback) — получить итоговое изображение</li>
 					</ul>
 				</section>
 
 				<section>
 					<h3>&laquo;Матрица&raquo; трансформации</h3>
-					<pre style="font-size: 24px"><code class="js">{
+					<pre><code class="js">{
     // параметры фрагмента оригинального изображения
     sx: Number,
     sy: Number,
@@ -207,26 +198,26 @@
 				</section>
 
 				<section>
-					<h3>Взаимодействие со флешом</h3>
-					<pre style="font-size: 28px;"><code class="js">flash.cmd('imageTransform', {
-   id: '...', // uniq file id
-   transform: {}, // "matrix"
-   callback: 'FileAPI.Flash._fn.__UNIQ_NAME__'
+					<h3>Публичный метод для взаимодействия со флешом</h3>
+					<pre><code class="js">flash.cmd('imageTransform', {
+    id: '...', // uniq file id
+    transform: {}, // "matrix"
+    callback: 'FileAPI.Flash._fn.__UNIQ_NAME__'
 });​​​​</code></pre>
 				</section>
 
 				<section>
-					<h3>Объект параметров</h3>
-					<ul style="margin-top: 60px;" class="list">
-						<li><span class="list__item"><span class="api__name">id</span> — уникальный идентификатор файла, по которому флешка определяет, для какого файла, ей нужно выполнить ту или иную команду.</span></li>
-						<li><span class="list__item"><span class="api__name">transform</span> — это та самая &laquo;матрица&raquo; трансформации</span></li>
-						<li><span class="list__item"><span class="api__name">callback</span> — название функции, которую вызовет флеш, по завершению</span></li>
+					<h3>???</h3>
+					<ul>
+						<li>id — уникальный идентификатор файла, по которому флешка определяет, для какого файла, ей нужно выполнить ту или иную команду.</li>
+						<li>transform — это та самая &laquo;матрица&raquo; трансформации</li>
+						<li>callback — название функции, которую вызовет флеш, по завершению</li>
 					</ul>
 				</section>
 
 				<section>
 					<h3>Загрузка файлов</h3>
-					<pre style="font-size: 23px"><code style="margin-top: 30px;" class="js">var xhr = ​FileAPI.upload({
+					<pre><code style="margin-top: 30px;" class="js">var xhr = ​FileAPI.upload({
     url: '...',
     data: { foo: 'bar' },
     headers: { 'Session-Id': '...' },
@@ -250,43 +241,43 @@
 
 				<section>
 					<h3>Параметры загрузки</h3>
-					<ul class="list">
-						<li><span class="list__item"><span class="api__name">url</span> — куда загружаем</span></li>
-						<li><span class="list__item"><span class="api__name">data</span> — дополнительная POST-data</span></li>
-						<li><span class="list__item"><span class="api__name">headers</span> — дополнительные заголовки запроса (в данном случае id сессии)</span></li>
-						<li><span class="list__item"><span class="api__name">files</span> — это объект, у которого “key” название POST-параметра, а значение файл(ы)</span></li>
-						<li><span class="list__item"><span class="api__name">imageTransform</span> — правила трансформации для картинок, max — не более, min — не менее, заданных размеров</span></li>
+					<ul>
+						<li>url — куда загружаем</li>
+						<li>data — дополнительная POST-data</li>
+						<li>headers — дополнительные заголовки запроса (в данном случае id сессии)</li>
+						<li>files — это объект, у которого “key” название POST-параметра, а значение файл(ы)</li>
+						<li>imageTransform — правила трансформации для картинок, max — не более, min — не менее, заданных размеров</li>
 					</ul>
 				</section>
 
 				<section>
 					<h3>События загрузки</h3>
-					<ul class="list" style="margin-top: 30px">
-						<li><span class="list__item"><span class="api__name">upload</span><span class="api__args">(xhr)</span> — будет вызван перед началом загрузки всех файлов</span></li>
-						<li><span class="list__item"><span class="api__name">fileupload</span><span class="api__args">(xhr)</span> — перед загрузкой каждого файла</span></li>
-						<li><span class="list__item"><span class="api__name">fileprogress</span><span class="api__args">(evt)</span> — прогресс загрузки текущего файла</span></li>
-						<li><span class="list__item"><span class="api__name">filecomplete</span><span class="api__args">(status, xhr)</span> — завершение загрузки файла</span></li>
-						<li><span class="list__item"><span class="api__name">progress</span><span class="api__args">(evt)</span> — общий процесс загрузки</span></li>
-						<li><span class="list__item"><span class="api__name">complete</span><span class="api__args">(status, xhr)</span> — завершение загрузки всех файлов</span></li>
+					<ul style="margin-top: 30px">
+						<li>upload(xhr) — будет вызван перед началом загрузки всех файлов</li>
+						<li>fileupload(xhr) — перед загрузкой каждого файла</li>
+						<li>fileprogress(evt) — прогресс загрузки текущего файла</li>
+						<li>filecomplete(status, xhr) — завершение загрузки файла</li>
+						<li>progress(evt) — общий процесс загрузки</li>
+						<li>complete(status, xhr) — завершение загрузки всех файлов</li>
 					</ul>
 				</section>
 
 				<section>
 					<h3>Описание объекта xhr</h3>
-					<ul class="list" style="margin-top: 30px">
-						<li><span class="list__item"><span class="api__name">status</span> — HTTP status code</span></li>
-						<li><span class="list__item"><span class="api__name">statusText</span> — HTTP status text</span></li>
-						<li><span class="list__item"><span class="api__name">responseText</span> — ответ сервера</span></li>
-						<li><span class="list__item"><span class="api__name">getResponseHeader</span><span class="api__args">(name)</span> — получить заголовок ответа сервера</span></li>
-						<li><span class="list__item"><span class="api__name">getAllResponseHeaders</span><span class="api__args">()</span> — получить все заголовки</span></li>
-						<li><span class="list__item"><span class="api__name">abort</span><span class="api__args">()</span> — отменить загрузку</span></li>
+					<ul style="margin-top: 30px">
+						<li>status — HTTP status code</li>
+						<li>statusText — HTTP status text</li>
+						<li>responseText — ответ сервера</li>
+						<li>getResponseHeader(name) — получить заголовок ответа сервера</li>
+						<li>getAllResponseHeaders() — получить все заголовки</li>
+						<li>abort() — отменить загрузку</li>
 					</ul>
 				</section>
 
 
 				<section>
 					<h3>IFrame: FileAPI.getFiles</h3>
-					<pre style="font-size: 30px;"><code class="js">[{
+					<pre><code class="js">[{
     name: '...', // название файла
     type: '...', // тип или расширение
     input: fileInput // ссылка на инпут
@@ -295,30 +286,32 @@
 
 				<section>
 					<h3>IFrame-транспорт</h3>
-					<pre><code style="margin-top: 30px" class="html">&lt;form target="__UNIQ__" action="..." method="post" enctype="multipart/form-data">
+					<pre><code class="html">&lt;form target="__UNIQ__" action="..." method="post" enctype="multipart/form-data">
     &lt;iframe name="__UNIQ__">&lt;/iframe>
     &lt;input name="jsonp" value="parent.FileAPI.Flash._fn.fileapi123" type="hidden"/>
     &lt;input name="foo" value="bar" type="hidden"/>
 &lt;/form></code></pre>
-					<div class="fragment">
-						<h3 style="margin-top: 70px">Подписка на событие</h3>
-						<pre><code style="margin-top: 40px" class="js">FileAPI.event.on(inputFile, 'change', function (evt){
+				</section>
+
+				<section>
+					<h3>Подписка на события</h3>
+					<pre><code class="js">FileAPI.event.on(inputFile, 'change', function (evt){
     // ...
-});​</code></pre></div>
+});​</code></pre>
 				</section>
 
 				<section>
 					<h3>Выводы</h3>
 					<div>
-
+						
 					</div>
 				</section>
 
 				<section>
 					<h3>В ролях</h3>
-					<ul class="list">
-						<li><span class="list__item">FileAPI — a set of tools for working with files (https://github.com/RubaXa/FileAPI)</span></li>
-						<li><span class="list__item">reveal.js — HTML5 Presentation Tool (https://github.com/hakimel/reveal.js)</span></li>
+					<ul>
+						<li>FileAPI — a set of tools for working with files (https://github.com/RubaXa/FileAPI)</li>
+						<li>reveal.js — HTML5 Presentation Tool (https://github.com/hakimel/reveal.js)</li>
 					</ul>
 				</section>
 
