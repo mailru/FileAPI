@@ -78,8 +78,8 @@
 	<script src="./FileAPI.html5.js" type="text/javascript"></script>
 	<script src="./FileAPI.XHR.js" type="text/javascript"></script>
 	<script src="./FileAPI.Form.js" type="text/javascript"></script>
-	<script src="./FileAPI.image.js" type="text/javascript"></script>
-	<script src="./FileAPI.flash.js" type="text/javascript"></script>
+	<script src="./FileAPI.Image.js" type="text/javascript"></script>
+	<script src="./FileAPI.Flash.js" type="text/javascript"></script>
 
 </head>
 <body>
