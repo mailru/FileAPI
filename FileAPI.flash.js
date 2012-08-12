@@ -62,7 +62,7 @@
 					flash.ready = api.F;
 					flash.patch();
 
-					api.each(_mime, function (val, key){ _rmime[key] = new RegExp('('+val+')', 'i'); });
+					api.each(_mime, function (val, key){ _rmime[key] = new RegExp('('+val+')$', 'i'); });
 					api.event.on(document, 'mouseover', flash.mouseover);
 					api.event.on(document, 'mousedown', function (evt){
 						if( flash.mouseover(evt) ){
