@@ -15,12 +15,12 @@
 	<style>
 		.reveal .slides h2,
 		.reveal .slides h3 {
-			font-family: arial,sans-serif;
+			font-family: helvetica;
 			text-transform: none;
 		}
 		.reveal .slides section {
 			font-size: 35px;
-			font-family: arial,sans-serif;
+			font-family: helvetica;
 			line-height: 170%;
 		}
 		pre .xml .css, pre .xml .javascript, pre .xml .vbscript, pre .tex .formula {
@@ -39,10 +39,14 @@
 			}
 
 		.api__name {
-			color: #E241D9;
+			color: #fff;
+			font-weight: bold;
 		}
 		.api__args {
 			color: #ccc;
+		}
+		.api__descr {
+			color: #eee;
 		}
 	</style>
 </head>
@@ -132,8 +136,8 @@
 				<section>
 					<h3>Создание preview</h3>
 					<ul style="margin-top: 60px" class="list">
-						<li><span class="list__item"><span class="api__name">FileReader</span> — позволяет асинхронно прочесть содержимое файла</span></li>
-						<li><span class="list__item"><span class="api__name">URL.createObjectURL</span><span class="api__args">(file)</span> — создает ссылку, указывающую на файл</span></li>
+						<li><span class="list__item"><span class="api__name">FileReader</span><span class="api__descr"> — позволяет асинхронно прочесть содержимое файла</span></span></li>
+						<li><span class="list__item"><span class="api__name">URL.createObjectURL</span><span class="api__args">(file)</span><span class="api__descr"> — создает ссылку, указывающую на файл</span></span></li>
 					</ul>
 				</section>
 
@@ -181,11 +185,11 @@
 				<section>
 					<h3>FileAPI.Image</h3>
 					<ul class="list" style="margin-top: 50px">
-						<li><span class="list__item"><span class="api__name">crop</span><span class="api__args">(x, y, width, height)</span> — кадрирование</span></li>
-						<li><span class="list__item"><span class="api__name">resize</span><span class="api__args">(width[, height])</span> — масштабирование</span></li>
-						<li><span class="list__item"><span class="api__name">rotate</span><span class="api__args">(deg)</span> — поворот</span></li>
-						<li><span class="list__item"><span class="api__name">preview</span><span class="api__args">(width[, height])</span> — автоматически кадрирует и масштабирует</span></li>
-						<li><span class="list__item"><span class="api__name">get</span><span class="api__args">(callback)</span> — получить итоговое изображение</span></li>
+						<li><span class="list__item"><span class="api__name">crop</span><span class="api__args">(x, y, width, height)</span><span class="api__descr"> — кадрирование</span></span></li>
+						<li><span class="list__item"><span class="api__name">resize</span><span class="api__args">(width[, height])</span><span class="api__descr"> — масштабирование</span></span></li>
+						<li><span class="list__item"><span class="api__name">rotate</span><span class="api__args">(deg)</span><span class="api__descr"> — поворот</span></span></li>
+						<li><span class="list__item"><span class="api__name">preview</span><span class="api__args">(width[, height])</span><span class="api__descr"> — автоматически кадрирует и масштабирует</span></span></li>
+						<li><span class="list__item"><span class="api__name">get</span><span class="api__args">(callback)</span><span class="api__descr"> — получить итоговое изображение</span></span></li>
 					</ul>
 				</section>
 
@@ -218,9 +222,9 @@
 				<section>
 					<h3>Объект параметров</h3>
 					<ul style="margin-top: 60px;" class="list">
-						<li><span class="list__item"><span class="api__name">id</span> — уникальный идентификатор файла, по которому флешка определяет, для какого файла, ей нужно выполнить ту или иную команду.</span></li>
-						<li><span class="list__item"><span class="api__name">transform</span> — это та самая &laquo;матрица&raquo; трансформации</span></li>
-						<li><span class="list__item"><span class="api__name">callback</span> — название функции, которую вызовет флеш, по завершению</span></li>
+						<li><span class="list__item"><span class="api__name">id</span><span class="api__descr"> — уникальный идентификатор файла, по которому флешка определяет, для какого файла, ей нужно выполнить ту или иную команду.</span></span></li>
+						<li><span class="list__item"><span class="api__name">transform</span><span class="api__descr"> — это та самая &laquo;матрица&raquo; трансформации</span></span></li>
+						<li><span class="list__item"><span class="api__name">callback</span><span class="api__descr"> — название функции, которую вызовет флеш, по завершению</span></span></li>
 					</ul>
 				</section>
 
@@ -251,35 +255,35 @@
 				<section>
 					<h3>Параметры загрузки</h3>
 					<ul class="list">
-						<li><span class="list__item"><span class="api__name">url</span> — куда загружаем</span></li>
-						<li><span class="list__item"><span class="api__name">data</span> — дополнительная POST-data</span></li>
-						<li><span class="list__item"><span class="api__name">headers</span> — дополнительные заголовки запроса (в данном случае id сессии)</span></li>
-						<li><span class="list__item"><span class="api__name">files</span> — это объект, у которого “key” название POST-параметра, а значение файл(ы)</span></li>
-						<li><span class="list__item"><span class="api__name">imageTransform</span> — правила трансформации для картинок, max — не более, min — не менее, заданных размеров</span></li>
+						<li><span class="list__item"><span class="api__name">url</span><span class="api__descr"> — куда загружаем</span></span></li>
+						<li><span class="list__item"><span class="api__name">data</span><span class="api__descr"> — дополнительная POST-data</span></span></li>
+						<li><span class="list__item"><span class="api__name">headers</span><span class="api__descr"> — дополнительные заголовки запроса (в данном случае id сессии)</span></span></li>
+						<li><span class="list__item"><span class="api__name">files</span><span class="api__descr"> — это объект, у которого “key” название POST-параметра, а значение файл(ы)</span></span></li>
+						<li><span class="list__item"><span class="api__name">imageTransform</span><span class="api__descr"> — правила трансформации для картинок, max — не более, min — не менее, заданных размеров</span></span></li>
 					</ul>
 				</section>
 
 				<section>
 					<h3>События загрузки</h3>
 					<ul class="list" style="margin-top: 30px">
-						<li><span class="list__item"><span class="api__name">upload</span><span class="api__args">(xhr)</span> — будет вызван перед началом загрузки всех файлов</span></li>
-						<li><span class="list__item"><span class="api__name">fileupload</span><span class="api__args">(xhr)</span> — перед загрузкой каждого файла</span></li>
-						<li><span class="list__item"><span class="api__name">fileprogress</span><span class="api__args">(evt)</span> — прогресс загрузки текущего файла</span></li>
-						<li><span class="list__item"><span class="api__name">filecomplete</span><span class="api__args">(status, xhr)</span> — завершение загрузки файла</span></li>
-						<li><span class="list__item"><span class="api__name">progress</span><span class="api__args">(evt)</span> — общий процесс загрузки</span></li>
-						<li><span class="list__item"><span class="api__name">complete</span><span class="api__args">(status, xhr)</span> — завершение загрузки всех файлов</span></li>
+						<li><span class="list__item"><span class="api__name">upload</span><span class="api__args">(xhr)</span><span class="api__descr"> — будет вызван перед началом загрузки всех файлов</span></span></li>
+						<li><span class="list__item"><span class="api__name">fileupload</span><span class="api__args">(xhr)</span><span class="api__descr"> — перед загрузкой каждого файла</span></span></li>
+						<li><span class="list__item"><span class="api__name">fileprogress</span><span class="api__args">(evt)</span><span class="api__descr"> — прогресс загрузки текущего файла</span></span></li>
+						<li><span class="list__item"><span class="api__name">filecomplete</span><span class="api__args">(status, xhr)</span><span class="api__descr"> — завершение загрузки файла</span></span></li>
+						<li><span class="list__item"><span class="api__name">progress</span><span class="api__args">(evt)</span><span class="api__descr"> — общий процесс загрузки</span></span></li>
+						<li><span class="list__item"><span class="api__name">complete</span><span class="api__args">(status, xhr)</span><span class="api__descr"> — завершение всей загрузки</span></span></li>
 					</ul>
 				</section>
 
 				<section>
 					<h3>Описание объекта xhr</h3>
 					<ul class="list" style="margin-top: 30px">
-						<li><span class="list__item"><span class="api__name">status</span> — HTTP status code</span></li>
-						<li><span class="list__item"><span class="api__name">statusText</span> — HTTP status text</span></li>
-						<li><span class="list__item"><span class="api__name">responseText</span> — ответ сервера</span></li>
-						<li><span class="list__item"><span class="api__name">getResponseHeader</span><span class="api__args">(name)</span> — получить заголовок ответа сервера</span></li>
-						<li><span class="list__item"><span class="api__name">getAllResponseHeaders</span><span class="api__args">()</span> — получить все заголовки</span></li>
-						<li><span class="list__item"><span class="api__name">abort</span><span class="api__args">()</span> — отменить загрузку</span></li>
+						<li><span class="list__item"><span class="api__name">status</span><span class="api__descr"> — HTTP status code</span></span></li>
+						<li><span class="list__item"><span class="api__name">statusText</span><span class="api__descr"> — HTTP status text</span></span></li>
+						<li><span class="list__item"><span class="api__name">responseText</span><span class="api__descr"> — ответ сервера</span></span></li>
+						<li><span class="list__item"><span class="api__name">getResponseHeader</span><span class="api__args">(name)</span><span class="api__descr"> — получить заголовок ответа сервера</span></span></li>
+						<li><span class="list__item"><span class="api__name">getAllResponseHeaders</span><span class="api__args">()</span><span class="api__descr"> — получить все заголовки</span></span></li>
+						<li><span class="list__item"><span class="api__name">abort</span><span class="api__args">()</span><span class="api__descr"> — отменить загрузку</span></span></li>
 					</ul>
 				</section>
 
@@ -316,9 +320,9 @@
 
 				<section>
 					<h3>В ролях</h3>
-					<ul class="list">
-						<li><span class="list__item">FileAPI — a set of tools for working with files (https://github.com/RubaXa/FileAPI)</span></li>
-						<li><span class="list__item">reveal.js — HTML5 Presentation Tool (https://github.com/hakimel/reveal.js)</span></li>
+					<ul style="margin-top: 50px" class="list">
+						<li><span class="list__item"><span class="api__name">FileAPI</span><span class="api__descr"> — a set of tools for working with files (https://github.com/RubaXa/FileAPI)</span></span></li>
+						<li style="margin-top: 30px"><span class="list__item"><span class="api__name">reveal.js</span><span class="api__descr"> — HTML5 Presentation Tool (https://github.com/hakimel/reveal.js)</span></span></li>
 					</ul>
 				</section>
 
@@ -326,6 +330,7 @@
 		</div>
 	</div>
 
+	<script src="http://lab.hakim.se/reveal-js/lib/js/head.min.js"></script>
 	<script src="https://raw.github.com/hakimel/reveal.js/master/js/reveal.js"></script>
 	<script src="http://lab.hakim.se/reveal-js/lib/js/classList.js"></script>
 	<script src="http://lab.hakim.se/reveal-js/lib/js/highlight.js"></script>
