@@ -79,6 +79,7 @@ FileAPI.event.on(userFiles, 'change', function (evt){
 
 
 ### API
+* FileAPI.getFiles(`source:HTMLInput|Event`)`:Array`
 * FileAPI.getFileInfo(`file:File`, `callback:function`)
 * FileAPI.readAsImage(`file:File`, `callback:function`)
 * FileAPI.readAsDataURL(`file:File`, `callback:function`)
@@ -108,84 +109,6 @@ FileAPI.event.on(userFiles, 'change', function (evt){
 * FileAPI.resize(`elem:Image|Canvas`, `width:Number`, `height:Number`)`:Canvas`
 * FileAPI.resizeByMax(`elem:Image|Canvas`, `max:Number`)`:Canvas`
 
-
-### Examples
-```js
-FileAPI.event.on(document.getElementById('FileInputId'), 'change', function (evt){
-	var input   = evt.target;
-	var files   = input.files;
-
-	FileAPI.each(files, function (file){
-
-		FileAPI.readAsDataURL(file, function (evt){
-			if( evt.type == 'load' ){
-				evt.result; // dataURL
-			} else {
-				// read error
-			}
-		});
-
-
-		FileAPI.readAsBinaryString(file, function (evt){
-			if( evt.type == 'load' ){
-				evt.result; // BinaryString
-			} else {
-				// read error
-			}
-		});
-
-
-		if( /image/.test(file.type) ){
-			FileAPI.readAsImage(file, function (evt){
-				if( evt.type == 'load' ){
-					var image   = evt.result; // ImageElement
-					var canvas  = FileAPI.resizeByMax(image, 300); // CanvasElement
-					canvas      = FileAPI.rotate(canvas, 90);
-
-					document.getElementById('PreviewImages').appendChild(canvas);
-				} else {
-					// error
-				}
-			});
-		}
-	});
-
-
-	FileAPI.upload({
-		url: '...', // upload url
-		headers: { }, // custom headers
-		data: {
-			"foo": "bar",
-			"num": 1234,
-			"input": input,
-			"files[]": files,
-			"images[]": {
-				name: "my-image-0.png",
-				data: "...BinaryString..."
-			},
-			"images[]": {
-				name: "my-image-1.png",
-				data: document.getElementById('MyImageId')
-			}
-		},
-		success: function (result/*:String*/){},
-		error: function (status, xhr/*:TransportObject*/){},
-		progress: function (loaded/*:Number*/, total/*:Number*/, xhr/*:TransportObject*/){}
-		complete: function (xhr/*:TransportObject*/, statusText/*:String*/){}
-	});
-});
-
-
-FileAPI.load('./html5.png', function (evt){
-	if( evt.type == 'load' ){
-		var file = evt.result;
-		$(new Image)
-			.attr({ src: evt.result.dataURL, title: file.name +' ('+ file.type +', '+ file.size +')' })
-			.appendTo('#Preview')
-		;
-	}
-});
-```
 
 
 ### File object (https://developer.mozilla.org/en/DOM/File)
