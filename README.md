@@ -242,8 +242,8 @@ var xhr = FileAPI.upload({
 		// progress file uploading
 		var filePercent = evt.loaded/evt.total*100;
 	},
-	filecomplete: function (status, xhr){
-		if( status == 'ok' ){
+	filecomplete: function (err, xhr){
+		if( !err ){
 			var response = xhr.responseText;
 		}
 	},
@@ -251,8 +251,8 @@ var xhr = FileAPI.upload({
 		// total progress uploading
 		var totalPercent = evt.loaded/evt.total*100;
 	},
-	complete: function (status, xhr){
-		if( status == 'ok' ){
+	complete: function (err, xhr){
+		if( !err ){
 			// Congratulations, the uploading was successful!
 		}
 	}
