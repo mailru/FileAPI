@@ -1,5 +1,6 @@
 /**!
  * FileAPI — a set of tools for working with files
+ *
  * @author  RubaXa  <trash@rubaxa.org>
- * @build	canvas-to-blob FileAPI.html FileAPI.Image FileAPI.Form FileAPI.XHR FileAPI.Flash
+ * @build	lib/canvas-to-blob lib/FileAPI.html lib/FileAPI.Image lib/FileAPI.Form lib/FileAPI.XHR lib/FileAPI.Flash
  */
