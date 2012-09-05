@@ -1,5 +1,10 @@
 # FileAPI — a set of tools for working with files.
 
+Support
+ * Upload files: all browsers
+ * Multiupload: all browsers that support HTML or flash
+ * Working with Images: IE8+, FF, Chrome, Opera, Safari
+
 
 ## Example
 ```html
