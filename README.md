@@ -8,7 +8,7 @@ Support
 
 ## Example
 ```html
-<span style="position: relative;">
+<span class="js-fileapi-wrapper" style="position: relative;">
 	<input id="user-files" type="file" multiple />
 </span>
 
@@ -112,6 +112,7 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.support.`html5:Boolean`
 * FileAPI.support.`flash:Boolean`
 * FileAPI.support.`canvas:Boolean`
+* FileAPI.support.`dataURI:Boolean`
 * FileAPI.each(`obj:Object|Array`, `fn:function`, `context:Mixed`)
 * FileAPI.extend(`dst:Object`, `src:Object`)`:Object`
 * FileAPI.filter(`list:Array`, `iterator:Function`)`:Array`
