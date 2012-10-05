@@ -249,7 +249,7 @@
 
 					/* Upload file */
 					var xhr = FileAPI.upload({
-						url: '//www.local.git/FileAPI/index.php',
+						url: 'index.php',
 						data: {
 							  num: 10
 							, str: "foo"
@@ -299,7 +299,11 @@
 							FileAPI.log('filecomplete:', err, xhr);
 
 							if( !err ){
-								var result = FileAPI.parseJSON(xhr.responseText);
+								try {
+									var result = FileAPI.parseJSON(xhr.responseText);
+								} catch (er){
+									FileAPI.log('PARSE ERROR:', er.message);
+								}
 
 								FileAPI.each(result.images, function (dataURL, name){
 									$('<div/>')
@@ -309,13 +313,13 @@
 										.appendTo('body')
 									;
 								});
-								document.getElementById('Log').innerHTML += '<pre style="font-size: 11px;">'+result.data+'</pre>';
+								document.getElementById('Log').innerHTML += '<pre style="font-size: 11px;">'+xhr.responseText+'</pre>';
 							}
 						},
 
 						progress: function (){ FileAPI.log('progress:', arguments) },
-						complete: function (status, xhr){
-							FileAPI.log('complete:', status, xhr);
+						complete: function (err, xhr){
+							FileAPI.log('complete:', err, xhr);
 						}
 					});
 					/**/
