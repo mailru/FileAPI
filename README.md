@@ -1,14 +1,16 @@
 # FileAPI — a set of tools for working with files.
 
+
 Support
- * Upload files: all browsers
+ * Upload one file: all browsers
  * Multiupload: all browsers that support HTML or flash
- * Working with Images: IE8+, FF, Chrome, Opera, Safari
+ * Working with Images: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 5.4+
+
 
 
 ## Example
 ```html
-<span style="position: relative;">
+<span class="js-fileapi-wrapper" style="position: relative;">
 	<input id="user-files" type="file" multiple />
 </span>
 
@@ -112,6 +114,7 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.support.`html5:Boolean`
 * FileAPI.support.`flash:Boolean`
 * FileAPI.support.`canvas:Boolean`
+* FileAPI.support.`dataURI:Boolean`
 * FileAPI.each(`obj:Object|Array`, `fn:function`, `context:Mixed`)
 * FileAPI.extend(`dst:Object`, `src:Object`)`:Object`
 * FileAPI.filter(`list:Array`, `iterator:Function`)`:Array`
@@ -320,6 +323,7 @@ var xhr = FileAPI.upload({
 	&callback=...
 ```
 
+
 #### POST-response
 ```php
 <script type="text/javascript">
@@ -330,3 +334,4 @@ var xhr = FileAPI.upload({
 })(this.parent, '<?=$_POST['callback']?>');
 </script>
 ```
+

@@ -71,6 +71,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>FileAPI :: TEST</title>
 
+	<script>var FileAPI = { debug: true };</script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 
 	<script src="./FileAPI.js" type="text/javascript"></script>
@@ -88,9 +89,9 @@
 		}
 
 		.b-button {
-			zoom: 1;
 			display: inline-block;
 			*display: inline;
+			*zoom: 1;
 			position: relative;
 			overflow: hidden;
 			cursor: pointer;
@@ -120,8 +121,8 @@
 				cursor: pointer;
 				opacity: 0;
 				filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);
-				top: -40px;
-				left: -100px;
+				top: -10px;
+				right: -40px;
 				font-size: 50px;
 				position: absolute;
 			}
@@ -131,23 +132,23 @@
 <body>
 	<div style="margin: 50px;">
 
-		<div class="b-button">
+		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">Upload one file</div>
-			<span style="position: relative;"><input class="b-button__input" type="file" /></span>
+			<input class="b-button__input" type="file" />
 		</div>
 
 		<span style="padding: 0 10px">,</span>
 
-		<div class="b-button">
+		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">Multiple</div>
-			<span style="position: relative;"><input class="b-button__input" type="file" multiple /></span>
+			<input class="b-button__input" type="file" multiple />
 		</div>
 
 		<span style="padding: 0 30px">or</span>
 
-		<div class="b-button">
+		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">jpg, jpeg & gif</div>
-			<span style="position: relative;"><input class="b-button__input" type="file" accept=".jpg,.jpeg,.gif" multiple /></span>
+			<input class="b-button__input" type="file" accept=".jpg,.jpeg,.gif" multiple />
 		</div>
 
 	</div>
@@ -160,7 +161,23 @@
 	<div id="Log" style="margin: 10px; padding: 10px; border: 1px solid green;"></div>
 	<div id="Preview" style="margin: 10px; padding: 10px; border: 1px solid red;"></div>
 
+	<div id="__console" style="font-size: 12px; color: #333;"></div>
+
 	<script type="text/javascript">
+		if( !window.console ){
+			window.console = {
+				_div: document.getElementById('__console'),
+				log: function (){
+					this._div.innerHTML += [].join.call(arguments, ' ') + '<br/>';
+				},
+				error: function (){
+					this._div.innerHTML += '<span style="color: red">';
+					this.log.apply(this, arguments);
+					this._div.innerHTML += '</span>';
+				}
+			};
+		}
+
 		jQuery(function ($){
 			if( FileAPI.support.html5 ){
 				$('#drop-zone').show();
@@ -211,8 +228,8 @@
 						if( /image/.test(file.type) ){
 							FileAPI.log('FileAPI.Image:', file);
 							FileAPI.Image(file)
-								.preview(150)
-//								.rotate(90)
+								.preview(150, 200)
+								.rotate(90)
 								.get(function (err, image){
 									FileAPI.log('preview:', err ? 'error' : 'ok');
 
@@ -232,7 +249,7 @@
 
 					/* Upload file */
 					var xhr = FileAPI.upload({
-						url: '//www.local.git/FileAPI/index.php',
+						url: 'index.php',
 						data: {
 							  num: 10
 							, str: "foo"
@@ -282,7 +299,11 @@
 							FileAPI.log('filecomplete:', err, xhr);
 
 							if( !err ){
-								var result = FileAPI.parseJSON(xhr.responseText);
+								try {
+									var result = FileAPI.parseJSON(xhr.responseText);
+								} catch (er){
+									FileAPI.log('PARSE ERROR:', er.message);
+								}
 
 								FileAPI.each(result.images, function (dataURL, name){
 									$('<div/>')
@@ -292,13 +313,13 @@
 										.appendTo('body')
 									;
 								});
-								document.getElementById('Log').innerHTML += '<pre style="font-size: 11px;">'+result.data+'</pre>';
+								document.getElementById('Log').innerHTML += '<pre style="font-size: 11px;">'+xhr.responseText+'</pre>';
 							}
 						},
 
 						progress: function (){ FileAPI.log('progress:', arguments) },
-						complete: function (status, xhr){
-							FileAPI.log('complete:', status, xhr);
+						complete: function (err, xhr){
+							FileAPI.log('complete:', err, xhr);
 						}
 					});
 					/**/
