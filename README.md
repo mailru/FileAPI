@@ -2,8 +2,9 @@
 
 
 Support
+ * Multiupload: all browsers that support HTML5 or Flash
+ * Drag'n'Drop upload: files (HTML5) & directories (Chrome 21+)
  * Upload one file: all browsers
- * Multiupload: all browsers that support HTML or flash
  * Working with Images: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 5.4+
 
 
@@ -20,6 +21,15 @@ Support
 ```js
 var input = document.getElementById('user-files');
 var previewNode = document.getElementById('preview-list');
+
+// Drag'n'Drop
+FileAPI.event.dnd(previewNode, function (over){
+	$(this).css('background', over ? 'red' : '');
+}, function (files){
+	// ..
+});
+
+
 
 FileAPI.event.on(input, 'change', function (evt){
 	var files = FileAPI.getFiles(evt.target); // or FileAPI.getFiles(evt)
@@ -92,8 +102,9 @@ FileAPI.event.on(input, 'change', function (evt){
 
 ### API
 * FileAPI.[getFiles](#getFiles)(`source:HTMLInput|Event`)`:Array`
-* FileAPI.[getInfo](#getInfo)(`file:File`, `callback:Function`)
+* FileAPI.[getDropFiles](#getDropFiles)(`files:Array`, `callback:Function`)
 * FileAPI.[filterFiles](#filterFiles)(`files:Array`, `iterator:Function`, `complete:Function`)
+* FileAPI.[getInfo](#getInfo)(`file:File`, `callback:Function`)
 * FileAPI.[readAsImage](#readAs)(`file:File`, `callback:function`)
 * FileAPI.[readAsDataURL](#readAs)(`file:File`, `callback:function`)
 * FileAPI.[readAsBinaryString](#readAs)(`file:File`, `callback:function`)
@@ -104,6 +115,8 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.event.on(`el:HTMLElement`, `eventType:String`, `fn:Function`)
 * FileAPI.event.off(`el:HTMLElement`, `eventType:String`, `fn:Function`)
 * FileAPI.event.one(`el:HTMLElement`, `eventType:String`, `fn:Function`)
+* FileAPI.event.dnd(`el:HTMLElement`, `onHover:Function`, `onDrop:Function`)
+* jQuery('#el').dnd(onHover, onDrop)
 
 
 ### Utilities
@@ -120,6 +133,7 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.filter(`list:Array`, `iterator:Function`)`:Array`
 * FileAPI.isFile(`file:Mixed`)`:Boolean`
 * FileAPI.toBinaryString(`val:Base64`)`:String`
+
 
 
 ### FileAPI.Images
@@ -144,8 +158,8 @@ FileAPI.event.on('#my-file-1', 'change', onSelect);
 // or jQuery
 $('#my-file-2').on('change', onSelect);
 
-function onSelect(evt){
-	// (1) extract fileList from event (support dataTransfer)
+function onSelect(evt/**Event*/){
+	// (1) extract fileList from event
 	var files = FileAPI.getFiles(evt);
 
 	// (2) or so
@@ -154,14 +168,46 @@ function onSelect(evt){
 ```
 
 
+<a name="getDropFiles"></a>
+### FileAPI.getDropFiles
+```js
+function onDrop(evt){
+	FileAPI.getDropFiles(evt, function (files){
+		if( files.length ){
+			// ...
+		}
+	});
+}
+
+// OR
+
+var el = document.getElementById('el');
+FileAPI.event.dnd(el, function (over/**Boolean*/, evt/**Event*/){
+	el.style.background = ever ? 'red' : '':
+}, function (files/**Array*/, evt/**Event*/){
+	// ...
+});
+```
+
+
 <a name="getInfo"></a>
 ### FileAPI.getInfo
 ```js
-FileAPI.addInfoReader(/^image/, function (file, callback){
+FileAPI.getInfo(imageFile/**File*/, function (err/**Boolean*/, info/**Object*/){
+	if( !err ){
+		switch( info.exif.Orientation ){
+			// ...
+		}
+	}
+});
+
+// ...
+
+FileAPI.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
 	// http://www.nihilogic.dk/labs/exif/exif.js
 	// http://www.nihilogic.dk/labs/binaryajax/binaryajax.js
 	var Reader = new FileReader;
-	Reader.onload = function (evt){
+	Reader.onload = function (evt/**Event*/){
 		var binaryString = evt.target.result;
 		var oFile = new BinaryFile(binaryString, 0, file.size);
 		var exif  = EXIF.readFromBinaryFile(oFile);
@@ -171,15 +217,6 @@ FileAPI.addInfoReader(/^image/, function (file, callback){
 		callback(true);
 	};
 	Reader.readAsBinaryString(file);
-});
-
-
-FileAPI.getInfo(imageFile, function (err, info){
-	if( !err ){
-		switch( info.exif.Orientation ){
-			// ...
-		}
-	}
 });
 ```
 
@@ -301,7 +338,7 @@ var xhr = FileAPI.upload({
 <?
 	header('Access-Control-Allow-Methods: POST, OPTIONS');
 	header('Access-Control-Allow-Headers: Origin, X-Requested-With'); // and other custom headers
-	header('Access-Control-Allow-Origin: *'); // a comma-separated list of domains
+	header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']); // a comma-separated list of domains
 
 	if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
 		exit;

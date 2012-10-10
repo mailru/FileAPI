@@ -76,7 +76,7 @@
 
 	<script src="./FileAPI.js" type="text/javascript"></script>
 	<script src="./lib/canvas-to-blob.js" type="text/javascript"></script>
-	<script src="./lib/FileAPI.html.js" type="text/javascript"></script>
+	<script src="./lib/FileAPI.core.js" type="text/javascript"></script>
 	<script src="./lib/FileAPI.XHR.js" type="text/javascript"></script>
 	<script src="./lib/FileAPI.Form.js" type="text/javascript"></script>
 	<script src="./lib/FileAPI.Image.js" type="text/javascript"></script>
@@ -178,39 +178,29 @@
 			};
 		}
 
+
 		jQuery(function ($){
 			if( FileAPI.support.html5 ){
-				$('#drop-zone').show();
+				$('#drop-zone').show().dnd(function (over){
+					$(this).css({
+						  fontSize: over ? '35px' : '30px'
+						, backgroundColor: over ? '#BAFFFA' : ''
+					});
+				}, function (files){
+					console.log('dropFiles:', files);
+					onFiles(files);
+				});
 			}
 
-			$(document).on('drop dragover', false);
-
-
-			$('#drop-zone').on('dragenter dragleave dragover', function (evt){
-				var over = evt.type != 'dragleave';
-				$(this).css({ backgroundColor: over ? '#BAFFFA' : '', fontSize: over ? '35px' : '30px' });
-				evt.preventDefault();
-			});
-
-
-			$('#drop-zone')
-				.on('drop', function (evt){
-					evt.preventDefault();
-					$(this).trigger('dragleave');
-					onFiles(evt);
-				})
-			;
 
 
 			$('input[type="file"]').on('change', function (evt){
-				onFiles(evt);
+				FileAPI.log('onChange:', evt, files);
+				onFiles(FileAPI.getFiles(evt));
+				FileAPI.reset(evt.currentTarget);
 			});
 
-			function onFiles(evt){
-				var input = evt.target, files = FileAPI.getFiles(evt);
-
-				FileAPI.log('onChange:', evt, files);
-
+			function onFiles(files){
 				FileAPI.getFiles(files, function (file, info){
 					// filter function
 					if( /image/.test(file.type) && info ){
@@ -324,8 +314,6 @@
 					});
 					/**/
 				});
-
-				FileAPI.reset(input);
 			}
 
 
