@@ -24,7 +24,7 @@ var previewNode = document.getElementById('preview-list');
 
 // Drag'n'Drop
 FileAPI.event.dnd(previewNode, function (over){
-	this
+	$(this).css('background', over ? 'red' : '');
 }, function (files){
 	// ..
 });
