@@ -99,6 +99,11 @@ FileAPI.event.on(input, 'change', function (evt){
 });
 ```
 
+### HTML structure (templates)
+ * [Default](#html-default)
+ * [Button](#html-button)
+ * [Link](#html-link)
+
 
 ### API
 * FileAPI.[getFiles](#getFiles)(`source:HTMLInput|Event`)`:Array`
@@ -372,3 +377,100 @@ var xhr = FileAPI.upload({
 </script>
 ```
 
+---
+
+
+
+### HTML structure (templates)
+
+<a name="html-default"></a>
+### Default
+```html
+<div class="js-fileapi-wrapper" style="position: relative">
+	<input name="files" type="file" multiple />
+</div>
+```
+
+
+<a name="html-button"></a>
+### Button
+```html
+<style>
+.upload-btn {
+	width: 130px;
+	height: 25px;
+	overflow: hidden;
+	position: relative;
+	border: 3px solid #06c;
+	border-radius: 5px;
+	background: #0cf;
+
+}
+	.upload-btn:hover {
+		background: #09f;
+	}
+	.upload-btn__txt {
+		z-index: 1;
+		position: relative;
+		color: #fff;
+		font-size: 18px;
+		font-family: "Helvetica Neue";
+		line-height: 24px;
+		text-align: center;
+		text-shadow: 0 1px 1px #000;
+	}
+	.upload-btn__inp {
+	 	top: -10px;
+		right: -40px;
+		z-index: 2;
+		position: absolute;
+		cursor: pointer;
+		opacity: 0;
+		font-size: 50px;
+	}
+</style>
+<div class="upload-btn js-fileapi-wrapper">
+	<div class="upload-btn__txt">Upload files</div>
+	<input class="upload-btn__inp" name="files" type="file" multiple />
+</div>
+```
+
+
+<a name="html-link"></a>
+### Link
+```html
+<style>
+.upload-link {
+	display: inline-block;
+	*zoom: 1;
+	*display: inline;
+	overflow: hidden;
+	position: relative;
+	padding-bottom: 2px;
+	text-decoration: none;
+}
+	.upload-link__txt {
+		z-index: 1;
+		position: relative;
+		border-bottom: 1px dotted #36c;
+	}
+		.upload-link:hover .upload-link__txt {
+			color: #f00;
+			border-bottom-color: #f00;
+		}
+
+	.upload-link__inp {
+		top: -10px;
+		right: -40px;
+		z-index: 2;
+		position: absolute;
+		cursor: pointer;
+		opacity: 0;
+		font-size: 50px;
+	}
+</style>
+<a href="#" class="upload-link js-fileapi-wrapper">
+	<span class="upload-link__txt">Upload photo</span>
+	<input class="upload-link__inp" name="photo" type="file" accept=".jpg,.jpeg,.gif" />
+</a>
+```
