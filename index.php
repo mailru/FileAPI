@@ -195,10 +195,12 @@
 
 
 			$('input[type="file"]').on('change', function (evt){
+				var files = FileAPI.getFiles(evt);
 				FileAPI.log('onChange:', evt, files);
-				onFiles(FileAPI.getFiles(evt));
+				onFiles(files);
 				FileAPI.reset(evt.currentTarget);
 			});
+
 
 			function onFiles(files){
 				FileAPI.getFiles(files, function (file, info){
@@ -281,12 +283,25 @@
 								}
 							}
 						},
-						beforeupload: function (){ FileAPI.log('beforeupload:', arguments) },
-						upload: function (){ FileAPI.log('upload:', arguments) },
-						fileupload: function (){ FileAPI.log('fileupload:', arguments) },
-						fileprogress: function (){ FileAPI.log('fileprogress:', arguments) },
-						filecomplete: function (err, xhr){
-							FileAPI.log('filecomplete:', err, xhr);
+
+						beforeupload: function (){
+							FileAPI.log('beforeupload:', arguments);
+						},
+
+						upload: function (){
+							FileAPI.log('upload:', arguments);
+						},
+
+						fileupload: function (file, xhr){
+							FileAPI.log('fileupload:', file.name);
+						},
+
+						fileprogress: function (evt, file){
+							FileAPI.log('fileprogress:', file.name, '--', evt.loaded/evt.total*100);
+						},
+
+						filecomplete: function (err, xhr, file){
+							FileAPI.log('filecomplete:', err, file.name);
 
 							if( !err ){
 								try {
@@ -303,11 +318,15 @@
 										.appendTo('body')
 									;
 								});
+
 								document.getElementById('Log').innerHTML += '<pre style="font-size: 11px;">'+xhr.responseText+'</pre>';
 							}
 						},
 
-						progress: function (){ FileAPI.log('progress:', arguments) },
+						progress: function (evt, file){
+							FileAPI.log('progress:', evt.loaded/evt.total*100, '('+file.name+')');
+						},
+
 						complete: function (err, xhr){
 							FileAPI.log('complete:', err, xhr);
 						}
