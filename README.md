@@ -214,17 +214,20 @@ FileAPI.getInfo(imageFile/**File*/, function (err/**Boolean*/, info/**Object*/){
 FileAPI.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
 	// http://www.nihilogic.dk/labs/exif/exif.js
 	// http://www.nihilogic.dk/labs/binaryajax/binaryajax.js
-	var Reader = new FileReader;
-	Reader.onload = function (evt/**Event*/){
-		var binaryString = evt.target.result;
-		var oFile = new BinaryFile(binaryString, 0, file.size);
-		var exif  = EXIF.readFromBinaryFile(oFile);
-		callback(false, { 'exif': exif });
-	};
-	Reader.onerror = function (){
-		callback(true);
-	};
-	Reader.readAsBinaryString(file);
+	FileAPI.readAsBinaryString(file, function (evt){
+		if( evt.type == 'load' ){
+			var binaryString = evt.target.result;
+			var oFile = new BinaryFile(binaryString, 0, file.size);
+			var exif  = EXIF.readFromBinaryFile(oFile);
+			callback(false, { 'exif': exif });
+		}
+		else if( evt.type == 'error' ){
+			callback('read_as_binary_string');
+		}
+		else if( evt.type == 'progress' ){
+			// ...
+		}
+	});
 });
 ```
 
