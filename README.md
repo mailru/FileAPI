@@ -144,6 +144,7 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.GB
 * FileAPI.TB
 * FileAPI.support.`html5:Boolean`
+* FileAPI.support.`cors:Boolean`
 * FileAPI.support.`flash:Boolean`
 * FileAPI.support.`canvas:Boolean`
 * FileAPI.support.`dataURI:Boolean`
@@ -151,7 +152,7 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.extend(`dst:Object`, `src:Object`)`:Object`
 * FileAPI.filter(`list:Array`, `iterator:Function`)`:Array`
 * FileAPI.isFile(`file:Mixed`)`:Boolean`
-* FileAPI.toBinaryString(`val:Base64`)`:String`
+* FileAPI.toBinaryString(`str:Base64`)`:String`
 
 
 
