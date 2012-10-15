@@ -109,11 +109,14 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.[getFiles](#getFiles)(`source:HTMLInput|Event`)`:Array`
 * FileAPI.[getDropFiles](#getDropFiles)(`files:Array`, `callback:Function`)
 * FileAPI.[filterFiles](#filterFiles)(`files:Array`, `iterator:Function`, `complete:Function`)
+* FileAPI.[upload](#upload)(`options:Object`)`:XMLHttpRequest`
 * FileAPI.[getInfo](#getInfo)(`file:File`, `callback:Function`)
 * FileAPI.[readAsImage](#readAs)(`file:File`, `callback:function`)
 * FileAPI.[readAsDataURL](#readAs)(`file:File`, `callback:function`)
 * FileAPI.[readAsBinaryString](#readAs)(`file:File`, `callback:function`)
-* FileAPI.[upload](#upload)(`options:Object`)`:XMLHttpRequest`
+* FileAPI.[readAsArrayBuffer](#readAs)(`file:File`, `callback:function`)
+* FileAPI.[readAsText](#readAs)(`file:File`, `callback:function`)
+* FileAPI.[readAsText](#readAs)(`file:File`, `encoding:String`, `callback:function`)
 
 
 ### Events
@@ -124,7 +127,18 @@ FileAPI.event.on(input, 'change', function (evt){
 * jQuery('#el').dnd(onHover, onDrop)
 
 
-### Utilities
+### FileAPI.Image
+* .crop(width[, height])
+* .crop(x, y, width[, height])
+* .resize(width[, height])
+* .resize(width, height, `type:Enum(min,max,preview)`)
+* .preview(width[, height])
+* .rotate(deg)
+* .get(`fn:Function`)
+
+
+
+### Utils
 * FileAPI.KB
 * FileAPI.MB
 * FileAPI.GB
@@ -138,17 +152,6 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.filter(`list:Array`, `iterator:Function`)`:Array`
 * FileAPI.isFile(`file:Mixed`)`:Boolean`
 * FileAPI.toBinaryString(`val:Base64`)`:String`
-
-
-
-### FileAPI.Images
-* .crop(width[, height])
-* .crop(x, y, width[, height])
-* .resize(width[, height])
-* .resize(width, height, `type:Enum(min,max,preview)`)
-* .preview(width[, height])
-* .rotate(deg)
-* .get(`fn:Function`)
 
 
 
@@ -256,13 +259,14 @@ FileAPI.readAsImage(file, function (evt){
 
 FileAPI.readAsDataURL(file, function (evt){
 	if( evt.type == 'load' ){
-		// ...
+		// success
+		var result = evt.result;
 	}
 	else if( evt.type == 'progress' ){
-		// ...
+		var pr = evt.loaded/evt.total * 100;
 	}
 	else {
-		// ...
+		// error
 	}
 });
 ```
@@ -276,7 +280,8 @@ var xhr = FileAPI.upload({
 	data: { foo: 'bar' },
 	headers: { 'x-header': '...' },
 	files: {
-		'images': FileAPI.filter(files, function (file){ return /image/.test(file.type); })
+		images: FileAPI.filter(files, function (file){ return /image/.test(file.type); }),
+		customFile: { file: 'generate.txt', blob: customFileBlob }
 	},
 	imageTransform: {
 		maxWidth: 1024,
@@ -308,6 +313,37 @@ var xhr = FileAPI.upload({
 	}
 });
 ```
+
+### imageTransform
+ * width`:Number`
+ * height`:Number`
+ * preview`:Boolean`
+ * maxWidth`:Number`
+ * maxHeight`:Number`
+ * rotate`:Number`
+```js
+imageTransform: {
+	// (1) Resize to 120x200
+	resize: { width: 120, height: 200 }
+
+	// (2) create preview 320x240
+	thumb:  { width: 320, height: 240, preview: true }
+
+	// (3) Resize by max side
+	max:    { maxWidth: 800, maxHeight: 600 }
+
+	// (4) Custom resize
+	custom: function (info, transform){
+		return transform
+				.crop(100, 100, 300, 200)
+				.resize(100, 50)
+			;
+	}
+}
+```
+
+
+----
 
 
 
