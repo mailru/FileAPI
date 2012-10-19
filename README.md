@@ -217,10 +217,10 @@ FileAPI.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
 	// http://www.nihilogic.dk/labs/binaryajax/binaryajax.js
 	FileAPI.readAsBinaryString(file, function (evt){
 		if( evt.type == 'load' ){
-			var binaryString = evt.target.result;
+			var binaryString = evt.result;
 			var oFile = new BinaryFile(binaryString, 0, file.size);
 			var exif  = EXIF.readFromBinaryFile(oFile);
-			callback(false, { 'exif': exif });
+			callback(false, { 'exif': exif || {} });
 		}
 		else if( evt.type == 'error' ){
 			callback('read_as_binary_string');
