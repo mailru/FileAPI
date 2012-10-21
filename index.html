@@ -5,7 +5,13 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>FileAPI :: TEST</title>
 
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<script src="//yandex.st/jquery/1.8.2/jquery.min.js"></script>
 
 	<script src="./FileAPI.min.js" type="text/javascript"></script>
 	<script src="./FileAPI.id3.js"></script>
@@ -67,16 +73,15 @@
 			border: 1px solid #ccc;
 			border-radius: 3px;
 			background-color: #f5f5f5;
-			background: -moz-linear-gradient(top, #fff 0%, #f5f5f5 49%, #ececec 50%, #eee 100%); /* FF3.6+ */
-			background: -webkit-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%); /* Chrome10+,Safari5.1+ */
-			background: -o-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%); /* Opera 11.10+ */
-			background: -ms-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%); /* IE10+ */
-			background: linear-gradient(to bottom, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%); /* W3C */
+			background: -moz-linear-gradient(top, #fff 0%, #f5f5f5 49%, #ececec 50%, #eee 100%);
+			background: -webkit-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%);
+			background: -o-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%);
+			background: linear-gradient(to bottom, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%);
 			-webkit-user-select: none;
 			-moz-user-select: none;
 			user-select: none;
 		}
-			.b-button:hover {
+			.b-button_hover {
 				border-color: #fa0;
 				box-shadow: 0 0 2px #fa0;
 			}
@@ -95,43 +100,169 @@
 			}
 
 
-		.b-preview {
-			width: 200px;
-			height: 200px;
-			margin: 5px 10px 0 5px;
+	#preview {
+		max-width: 600px;
+		box-shadow: 0 1px 3px rgba(0,0,0,.4);
+		border-radius: 3px;
+	}
+		.b-file {
 			padding: 5px;
-			border-radius: 8px;
-			background-color: #eee;
+			overflow: hidden;
+			border-radius: 3px;
+			background: -webkit-linear-gradient(top, #fcfcfc 0%, #f6f6f6 100%);
+			background: -moz-linear-gradient(top, #fcfcfc 0%, #f6f6f6 100%);
+			background: -o-linear-gradient(top, #fcfcfc 0%, #f6f6f6 100%);
+			background: linear-gradient(to bottom, #fcfcfc 0%, #f6f6f6 100%);
 		}
-			.b-preview__name {
+			.b-file__left {
+				float: left;
+				margin: 1px 0 0 2px;
+				line-height: 0;
+			}
+				.b-file__left_border {
+					border: 2px solid #fff;
+					border-radius: 4px;
+				}
+
+			.b-file__right {
+				margin-left: 45px;
+			}
+
+			.b-file__name {
 				color: #36c;
 				cursor: pointer;
 				border-bottom: 1px dotted #36c;
 				text-decoration: none;
 			}
-				.b-preview__name:hover {
+				.b-file__name:hover {
 					color: #f00;
 					border-bottom-color: #f00;
+				}
+
+			.b-file__info {
+				color: #666;
+				position: absolute;
+				font-size: 12px;
+				margin-top: 3px;
+			}
+				.b-file_upload .b-file__info { display: none; }
+
+			.b-file__bar {
+				opacity: 0;
+				padding-top: 4px;
+				-webkit-transition: opacity .3s ease-out;
+				-moz-transition: opacity .3s ease-out;
+				transition: opacity .3s ease-out;
+			}
+				.b-file_upload .b-file__bar {
+					opacity: 1;
+				}
+
+			.b-file__done {
+				color: #458383;
+			}
+
+		.b-progress {
+			width: 200px;
+			height: 10px;
+			border: 2px solid #E2E4E2;
+			border-radius: 10px;
+			box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+			background-color: #d3d3d3;
+			position: relative;
+		}
+			.b-progress__bar {
+				width: 0;
+				height: 10px;
+				border-radius: 10px;
+				background-color: #2D9DD7;
+				background: -webkit-linear-gradient(top, #2D9DD7 0%, #1C81C7 100%); /* FF3.6+ */
+				background: -moz-linear-gradient(top, #2D9DD7 0%, #1C81C7 100%); /* FF3.6+ */
+				background: linear-gradient(to bottom, #2D9DD7 0%, #1C81C7 100%); /* FF3.6+ */
+				-webkit-transition: width .5s ease-out;
+				-moz-transition: width .5s ease-out;
+				transition: width .5s ease-out;
+			}
+
+		.b-dropzone,
+		.b-dropzone__bg {
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 30000;
+			position: absolute;
+		}
+			.b-dropzone__bg {
+				opacity: .2;
+				background-color: #2D9DD7
+			}
+			.b-dropzone__txt {
+				color: #1C81C7;
+				text-shadow: 0 2px 1px #113C53;
+				font-size: 400%;
+				font-weight: bold;
+				text-align: center;
+				width: 500px;
+				top: 50%;
+				left: 50%;
+				margin: -100px 0 0 -250px;
+				z-index: 30001;
+				position: absolute;
+			}
+
+		.b-layer {
+			border: 3px solid #fff;
+			border-radius: 5px;
+			box-shadow: 0 1px 30px #000;
+			background-color: #f3f3f3;
+			top: 50px;
+			left: 50%;
+			z-index: 30002;
+			position: absolute;
+			margin-left: -150px;
+			margin-bottom: 100px;
+		}
+			.b-layer__h1 {
+				color: #fff;
+				padding: 10px 10px;
+				width: 300px;
+				overflow: hidden;
+				background-color: #2D9DD7;
+			}
+			.b-layer__img {
+				padding: 5px 10px;
+				text-align: center;
+				border-top: 2px solid #fff;
+			}
+			.b-layer__info {
+				padding: 2px 15px;
+				border-top: 2px solid #fff;
+			}
+				.b-layer__info div {
+					width: 280px;
+					overflow: hidden;
+					white-space: nowrap;
 				}
 	</style>
 
 </head>
 <body>
-	<div style="margin: 50px;">
+	<div id="drop-zone" class="b-dropzone" style="display: none">
+		<div class="b-dropzone__bg"></div>
+		<div class="b-dropzone__txt">Drop files there</div>
+	</div>
 
+	<div>
 		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">Upload one file</div>
 			<input class="b-button__input" type="file" />
 		</div>
 
-		<span style="padding: 0 10px">,</span>
-
 		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">Multiple</div>
 			<input class="b-button__input" type="file" multiple />
 		</div>
-
-		<span style="padding: 0 10px">,</span>
 
 		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">jpg, jpeg & gif</div>
@@ -141,49 +272,61 @@
 		<span id="drag-n-drop" style="display: none; padding: 0 30px">
 			or &nbsp; &nbsp; drag'n'drop
 		</span>
-
 	</div>
 
-	<div id="preview"></div>
+	<div id="preview" style="margin-top: 30px"></div>
 
-	<script id="b-preview-ejs" type="text/ejs">
-		<% if( /image/.test(file.type) ){ %>
-		<div class="b-preview b-preview_image">
-			<div class="b-preview__img"></div>
-			<div>
-				<a class="b-preview__name"><%=file.name%></a>
-				<div class="b-preview__details" xstyle="display: none;">
-					<div><%=info.width%>x<%=info.height%>, <%=(file.size/FileAPI.KB).toFixed(2)%>KB</div>
-					<% $.each(info.exif, function (key, val){ %>
-						<div><b><%=key%></b>: <%=val%></div>
-					<% }); %>
+	<script id="b-file-ejs" type="text/ejs">
+		<div id="file-<%=FileAPI.uid(file)%>" class="b-file b-file_<%=file.type.split('/')[0]%>">
+			<div class="js-left b-file__left">
+				<img src="<%=icon[file.type.split('/')[0]]||icon.def%>" width="32" height="32" style="margin: 2px 0 0 3px"/>
+			</div>
+			<div class="b-file__right">
+				<a class="js-name b-file__name"><%=file.name%></a>
+				<div class="js-info b-file__info">size: <%=(file.size/FileAPI.KB).toFixed(2)%> KB</div>
+				<div class="b-file__bar">
+					<div class="js-progress b-progress"><div class="js-bar b-progress__bar"></div></div>
 				</div>
 			</div>
 		</div>
-		<% } else if( /audio/.test(file) ){ %>
-		<div class="b-preview b-preview_image">
-			<div class="b-preview__audio"></div>
-			<div>
-				<a class="b-preview__name"><%=file.name%></a>
+	</script>
+
+	<script id="b-layer-ejs" type="text/ejs">
+		<div class="b-layer">
+			<div class="b-layer__h1"><%=file.name%></div>
+			<% if( info.exif ){ %>
+				<div class="js-img b-layer__img"></div>
+			<% } %>
+			<div class="b-layer__info">
+				<%
+				FileAPI.each(info, function(val, key){
+					if( Object.prototype.toString.call(val) == '[object Object]' ){
+						var sub = '';
+						FileAPI.each(val, function (val, key){ sub += '<div>'+key+': '+val+'</div>'; });
+						if( sub ){
+							%><%=key%><div style="margin: 0 0 5px 20px;"><%=sub%></div><%
+						}
+					} else {
+				%>
+					<div><%=key%>: <%=val%></div>
+				<%
+					}
+				});
+				%>
 			</div>
 		</div>
-		<% } else { %>
-		<div class="b-preview">
-		</div>
-		<% } %>
 	</script>
 
 
 	<script type="text/javascript">
-		$('#preview').html(tmpl($('#b-preview-ejs').html(), {
-			file: { name: 'inbx.png', type: 'image', size: 214 },
-			info: { width: 100, height: 300, exif: {} }
-		}));
-
 		jQuery(function ($){
-			if( FileAPI.support.html5 ){
+			$(document).on('mouseenter mouseleave', '.b-button', function (evt){
+				$(evt.currentTarget).toggleClass('b-button_hover', evt.type == 'mouseenter');
+			});
+
+			if( 'ondrop' in document ){
 				$('#drag-n-drop').show();
-				$(document.body).dnd(function (over){
+				$(document).dnd(function (over){
 					$('#drop-zone').toggle(over);
 				}, function (files){
 					onFiles(files);
@@ -198,128 +341,120 @@
 			});
 
 
-			function onFiles(files){
-				FileAPI.each(files, function (file){
-					FileAPI.getInfo(file, function (err, info){
-					});
-				});
+			var FU = {
+				icon: {
+					  def:   '//cdn1.iconfinder.com/data/icons/CrystalClear/32x32/mimetypes/unknown.png'
+					, image: '//cdn1.iconfinder.com/data/icons/humano2/32x32/apps/synfig_icon.png'
+					, audio: '//cdn1.iconfinder.com/data/icons/august/PNG/Music.png'
+					, video: '//cdn1.iconfinder.com/data/icons/df_On_Stage_Icon_Set/128/Video.png'
+				},
 
-				/* Preview *
-				FileAPI.each(files, function (file){
-					if( /image/.test(file.type) ){
-						FileAPI.log('FileAPI.Image:', file);
+				files: [],
+				active: false,
+
+				add: function (file){
+					FU.files.push(file);
+
+					if( /^image/.test(file.type) ){
 						FileAPI.Image(file)
-							.preview(150, 200)
-							.get(function (err, image){
-								FileAPI.log('preview:', err ? 'error' : 'ok');
-
+							.preview(300, 300)
+							.get(function (err, img){
 								if( !err ){
-									$(image)
-										.prependTo('#Preview')
-										.css({ opacity: 0 })
-										.animate({ opacity: 1 }, 'fast')
+									FU._getEl(file, '.js-left')
+										.addClass('b-file__left_border')
+										.html(FU.clone(img).css({ width: 35, height: 35, cursor: 'pointer' }))
 									;
+
+									FU._getEl(file).click(function (){
+										FU.showLayer(file, img);
+										return false;
+									});
 								}
 							})
 						;
 					}
-				});
-				/**/
-
-
-				/* Upload file *
-				var xhr = FileAPI.upload({
-					url: 'index.php',
-					data: {
-						  num: 10
-						, str: "foo"
-					},
-					files: {
-						  photos: FileAPI.filter(files, function (file){ return /^image/.test(file.type) })
-						, other:  FileAPI.filter(files, function (file){ return !/^image/.test(file.type) })
-					},
-					imageOriginal: false,
-					_imageTransform: {
-						  maxWidth: 320
-						, maxHeight: 240
-						, rotate: 90
-					},
-					imageTransform: {
-						'max600': {
-							// resize by max side
-							  maxWidth: 600
-							, maxHeight: 500
-						},
-						'400x400': {
-							// resize image
-							  width: 400
-							, height: 400
-						},
-						'preview': {
-							// create preview
-							  width: 100
-							, height: 100
-							, preview: true
-						},
-						'custom': function (image, transform){
-							if( image.width > 150 ){
-								transform
-									.crop(100, 150, 200, 200)
-									.resize(150)
-									.rotate(90)
-								;
-							}
-						}
-					},
-
-					beforeupload: function (){
-						FileAPI.log('beforeupload:', arguments);
-					},
-
-					upload: function (){
-						FileAPI.log('upload:', arguments);
-					},
-
-					fileupload: function (file, xhr){
-						FileAPI.log('fileupload:', file.name);
-					},
-
-					fileprogress: function (evt, file){
-						FileAPI.log('fileprogress:', file.name, '--', evt.loaded/evt.total*100);
-					},
-
-					filecomplete: function (err, xhr, file){
-						FileAPI.log('filecomplete:', err, file.name);
-
-						if( !err ){
-							try {
-								var result = FileAPI.parseJSON(xhr.responseText);
-							} catch (er){
-								FileAPI.log('PARSE ERROR:', er.message);
-							}
-
-							FileAPI.each(result.images, function (dataURL, name){
-								$('<div/>')
-									.append('<div><b>'+name+'</b></div>')
-									.append($(new Image).attr('src', dataURL))
-									.css({ margin: 5, border: '1px dotted #666', padding: 5 })
-									.appendTo('body')
-								;
-							});
-
-							document.getElementById('Log').innerHTML += '<pre style="font-size: 11px;">'+xhr.responseText+'</pre>';
-						}
-					},
-
-					progress: function (evt, file){
-						FileAPI.log('progress:', evt.loaded/evt.total*100, '('+file.name+')');
-					},
-
-					complete: function (err, xhr){
-						FileAPI.log('complete:', err, xhr);
+					else {
+						FU._getEl(file).click(function (){
+								FU.showLayer(file);
+								return false;
+							})
+						;
 					}
+				},
+
+				showLayer: function (file, img){
+					var $Layer = $('#layer-'+FileAPI.uid(file));
+
+					if( !$Layer[0] ){
+						$Layer = $('<div/>').appendTo('body').attr('id', 'layer-'+FileAPI.uid(file));
+					}
+
+					FileAPI.getInfo(file, function (err, info){
+						$Layer = $Layer.html(tmpl($('#b-layer-ejs').html(), { file: file, info: info }));
+
+						if( img ){
+							$Layer.find('.js-img').append(img);
+						}
+
+						$(document).one('click keyup', function (evt){
+							$Layer.remove();
+						});
+					});
+				},
+
+				clone: function (el){
+					if( /canvas/i.test(el.nodeName) ){
+						var newEl	= $(el).clone()[0];
+						newEl.getContext('2d').drawImage(el, 0, 0);
+						el = newEl;
+					}
+					return	$(el);
+				},
+
+				start: function (){
+					if( !FU.active && (FU.active = FU.files.length > 0) ){
+						FU._upload(FU.files.shift());
+					}
+				},
+
+				_getEl: function (file, sel){
+					var $el = $('#file-'+FileAPI.uid(file));
+					return	sel ? $el.find(sel) : $el;
+				},
+
+				_upload: function (file){
+					if( file ){
+						FileAPI.upload({
+							url: 'http://rubaxa.org/index.php',
+							files: { file: file },
+							upload: function (){
+								FU._getEl(file).addClass('b-file_upload');
+							},
+							progress: function (evt){
+								FU._getEl(file, '.js-bar').css('width', evt.loaded/evt.total*100+'%');
+							},
+							complete: function (){
+								FU._getEl(file)
+									.removeClass('b-file_upload')
+									.find('.js-info').append(', <b class="b-file__done">done</b>')
+								;
+								FU.active = false;
+								FU.start();
+							}
+						});
+					}
+				}
+			};
+
+			function onFiles(files){
+				var $Queue = $('<div/>').prependTo('#preview');
+
+				FileAPI.each(files, function (file){
+					$Queue.append(tmpl($('#b-file-ejs').html(), { file: file, icon: FU.icon }));
+
+					FU.add(file);
+					FU.start();
 				});
-				/**/
 			}
 		}); // ready
 	</script>
