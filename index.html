@@ -14,7 +14,6 @@
 
 	<script src="//yandex.st/jquery/1.8.2/jquery.min.js"></script>
 
-	<script>var FileAPI = { debug: true, build: 3 };</script>
 	<script src="./FileAPI.min.js" type="text/javascript"></script>
 	<script src="./FileAPI.id3.js"></script>
 	<script src="./FileAPI.exif.js"></script>
@@ -150,16 +149,12 @@
 				.b-file_upload .b-file__info { display: none; }
 
 			.b-file__bar {
-				opacity: 0;
 				padding-top: 4px;
-				-webkit-transition: opacity .3s ease-out;
-				-moz-transition: opacity .3s ease-out;
-				transition: opacity .3s ease-out;
 			}
-				.b-file_upload .b-file__bar {
-					opacity: 1;
-				}
 
+			.b-file__error {
+				color: #c00;
+			}
 			.b-file__done {
 				color: #458383;
 			}
@@ -284,10 +279,10 @@
 				<img src="<%=icon[file.type.split('/')[0]]||icon.def%>" width="32" height="32" style="margin: 2px 0 0 3px"/>
 			</div>
 			<div class="b-file__right">
-				<a class="js-name b-file__name"><%=file.name%></a>
+				<div><a class="js-name b-file__name"><%=file.name%></a></div>
 				<div class="js-info b-file__info">size: <%=(file.size/FileAPI.KB).toFixed(2)%> KB</div>
-				<div class="b-file__bar">
-					<div class="js-progress b-progress"><div class="js-bar b-progress__bar"></div></div>
+				<div class="js-progress b-file__bar" style="display: none">
+					<div class="b-progress"><div class="js-bar b-progress__bar"></div></div>
 				</div>
 			</div>
 		</div>
@@ -358,24 +353,20 @@
 					FU.files.push(file);
 
 					if( /^image/.test(file.type) ){
-						FileAPI.Image(file)
-							.preview(300, 300)
-							.get(function (err, img){
-								FileAPI.log('get:', +!!err, file.type);
-								if( !err ){
+						FileAPI.Image(file).preview(35).get(function (err, img){
+							if( !err ){
 
-									FU._getEl(file, '.js-left')
-										.addClass('b-file__left_border')
-										.html(FU.clone(img).css({ width: 35, height: 35, cursor: 'pointer' }))
-									;
+								FU._getEl(file, '.js-left')
+									.addClass('b-file__left_border')
+									.html(img)
+								;
 
-									FU._getEl(file).click(function (){
-										FU.showLayer(file, img);
-										return false;
-									});
-								}
-							})
-						;
+								FU._getEl(file).click(function (){
+									FU.showLayer(file);
+									return false;
+								});
+							}
+						});
 					}
 					else {
 						FU._getEl(file).click(function (){
@@ -385,7 +376,7 @@
 					}
 				},
 
-				showLayer: function (file, img){
+				showLayer: function (file){
 					var $Layer = $('#layer-'+FileAPI.uid(file));
 
 					if( !$Layer[0] ){
@@ -395,8 +386,10 @@
 					FileAPI.getInfo(file, function (err, info){
 						$Layer = $Layer.html(tmpl($('#b-layer-ejs').html(), { file: file, info: err ? {} : info }));
 
-						if( img ){
-							$Layer.find('.js-img').append(img);
+						if( /image/i.test(file.type) ){
+							FileAPI.Image(file).preview(300).get(function (err, img){
+								$Layer.find('.js-img').append(img);
+							});
 						}
 
 						$(document).one('click keyup', function (evt){
@@ -416,7 +409,7 @@
 
 				start: function (){
 					if( !FU.active && (FU.active = FU.files.length > 0) ){
-//						FU._upload(FU.files.shift());
+						FU._upload(FU.files.shift());
 					}
 				},
 
@@ -431,16 +424,17 @@
 							url: 'http://rubaxa.org/index.php',
 							files: { file: file },
 							upload: function (){
-								FU._getEl(file).addClass('b-file_upload');
+								FU._getEl(file, '.js-progress').show();
 							},
 							progress: function (evt){
 								FU._getEl(file, '.js-bar').css('width', evt.loaded/evt.total*100+'%');
 							},
-							complete: function (){
-								FU._getEl(file)
-									.removeClass('b-file_upload')
-									.find('.js-info').append(', <b class="b-file__done">done</b>')
-								;
+							complete: function (err){
+								var state = err ? 'error' : 'done';
+
+								FU._getEl(file, '.js-progress').hide();
+								FU._getEl(file, '.js-info').append(', <b class="b-file__'+state+'">'+state+'</b>');
+
 								FU.active = false;
 								FU.start();
 							}
