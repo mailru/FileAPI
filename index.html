@@ -336,7 +336,7 @@
 			}
 
 
-			$(document).on('change', 'input[type="file"]', function (evt){
+			$('input[type="file"]').on('change', function (evt){
 				var files = FileAPI.getFiles(evt);
 				onFiles(files);
 				FileAPI.reset(evt.currentTarget);
@@ -361,7 +361,9 @@
 						FileAPI.Image(file)
 							.preview(300, 300)
 							.get(function (err, img){
+								FileAPI.log('get:', +!!err, file.type);
 								if( !err ){
+
 									FU._getEl(file, '.js-left')
 										.addClass('b-file__left_border')
 										.html(FU.clone(img).css({ width: 35, height: 35, cursor: 'pointer' }))
@@ -414,7 +416,7 @@
 
 				start: function (){
 					if( !FU.active && (FU.active = FU.files.length > 0) ){
-						FU._upload(FU.files.shift());
+//						FU._upload(FU.files.shift());
 					}
 				},
 
