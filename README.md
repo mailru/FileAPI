@@ -145,6 +145,7 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.TB
 * FileAPI.support.`html5:Boolean`
 * FileAPI.support.`cors:Boolean`
+* FileAPI.support.`dnd:Boolean`
 * FileAPI.support.`flash:Boolean`
 * FileAPI.support.`canvas:Boolean`
 * FileAPI.support.`dataURI:Boolean`
