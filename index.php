@@ -134,21 +134,21 @@
 
 		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">Upload one file</div>
-			<input class="b-button__input" type="file" />
+			<input name="files" class="b-button__input" type="file" />
 		</div>
 
 		<span style="padding: 0 10px">,</span>
 
 		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">Multiple</div>
-			<input class="b-button__input" type="file" multiple />
+			<input name="files" class="b-button__input" type="file" multiple />
 		</div>
 
 		<span style="padding: 0 30px">or</span>
 
 		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">jpg, jpeg & gif</div>
-			<input class="b-button__input" type="file" accept=".jpg,.jpeg,.gif" multiple />
+			<input name="files" class="b-button__input" type="file" accept=".jpg,.jpeg,.gif" multiple />
 		</div>
 
 	</div>
@@ -180,7 +180,7 @@
 
 
 		jQuery(function ($){
-			if( FileAPI.support.html5 ){
+			if( FileAPI.support.dnd ){
 				$('#drop-zone').show().dnd(function (over){
 					$(this).css({
 						  fontSize: over ? '35px' : '30px'
@@ -196,24 +196,26 @@
 
 			$('input[type="file"]').on('change', function (evt){
 				var files = FileAPI.getFiles(evt);
-				FileAPI.log('onChange:', evt, files);
+				FileAPI.log('onChange:', evt);
 				onFiles(files);
 				FileAPI.reset(evt.currentTarget);
 			});
 
 
 			function onFiles(files){
-				FileAPI.getFiles(files, function (file, info){
+				FileAPI.log('files:', files.length);
+
+				FileAPI.filterFiles(files, function (file, info){
 					// filter function
 					if( /image/.test(file.type) && info ){
 						return	info.width > 100 || info.height > 100;
 					}
 					else {
-						return	file.size > 512;
+						return	file.size > 512 || !file.size;
 					}
 				}, function (files, deleted){
 					// result function
-					FileAPI.log('filterFiles:', files, deleted);
+					FileAPI.log('filterFiles:', files.length, deleted.length);
 
 					/* Preview */
 					FileAPI.each(files, function (file){
