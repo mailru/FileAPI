@@ -219,6 +219,20 @@
 
 					/* Preview */
 					FileAPI.each(files, function (file){
+						/*
+						FileAPI.each(['DataURL', 'BinaryString', 'ArrayBuffer'], function (type){
+							FileAPI['readAs'+type](file, function (evt){
+								if( evt.type == 'error' ){
+									FileAPI.log('FileAPI.readAs'+type+' -- fail');
+								}
+								else if( evt.type == 'load' ){
+									FileAPI.log('FileAPI.readAs'+type+' -- ok');
+								}
+							});
+						});
+						*/
+
+
 						if( /image/.test(file.type) ){
 							FileAPI.log('FileAPI.Image:', file);
 							FileAPI.Image(file)

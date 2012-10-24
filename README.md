@@ -1,6 +1,11 @@
 # FileAPI — a set of tools for working with files.
 
 
+<p align="center">
+ ~~~  <a href="http://mailru.github.com/FileAPI/">DEMO</a>  ~~~
+</p>
+
+
 Support
  * Multiupload: all browsers that support HTML5 or Flash
  * Drag'n'Drop upload: files (HTML5) & directories (Chrome 21+)
