@@ -252,7 +252,12 @@
 		<div class="b-dropzone__txt">Drop files there</div>
 	</div>
 
-	<div>
+	<div id="oooops" style="display: none; margin: 10px; padding: 10px; border: 2px solid #f60; border-radius: 4px;">
+		Увы, ваш браузер не поддерживает html5 и flash,
+		поэтому смотреть тут нечего, а iframe не даёт всей красоты :]
+	</div>
+
+	<div id="buttons-panel">
 		<div class="b-button js-fileapi-wrapper">
 			<div class="b-button__text">Upload one file</div>
 			<input name="files" class="b-button__input" type="file" />
@@ -319,6 +324,11 @@
 
 	<script type="text/javascript">
 		jQuery(function ($){
+			if( !(FileAPI.support.cors || FileAPI.support.flash) ){
+				$('#oooops').show();
+				$('#buttons-panel').hide();
+			}
+
 			$(document).on('mouseenter mouseleave', '.b-button', function (evt){
 				$(evt.currentTarget).toggleClass('b-button_hover', evt.type == 'mouseenter');
 			});
