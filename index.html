@@ -6,7 +6,7 @@
 
 	<title>FileAPI :: TEST</title>
 
-	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=0.8, maximum-scale=0.8" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
 	<meta name="format-detection" content="email=no" />
@@ -14,7 +14,8 @@
 
 	<script src="//yandex.st/jquery/1.8.2/jquery.min.js"></script>
 
-	<script src="./FileAPI.min.js" type="text/javascript"></script>
+	<script>var FileAPI = { debug: true }</script>
+	<script src="./FileAPI.min.js"></script>
 	<script src="./FileAPI.id3.js"></script>
 	<script src="./FileAPI.exif.js"></script>
 
@@ -178,6 +179,7 @@
 				background: linear-gradient(to bottom, #2D9DD7 0%, #1C81C7 100%); /* FF3.6+ */
 				-webkit-transition: width .5s ease-out;
 				-moz-transition: width .5s ease-out;
+				-ms-transition: width .5s ease-out;
 				transition: width .5s ease-out;
 			}
 
@@ -321,6 +323,7 @@
 				$(evt.currentTarget).toggleClass('b-button_hover', evt.type == 'mouseenter');
 			});
 
+
 			if( FileAPI.support.dnd ){
 				$('#drag-n-drop').show();
 				$(document).dnd(function (over){
@@ -370,8 +373,8 @@
 					}
 					else {
 						FU._getEl(file).click(function (){
-								FU.showLayer(file);
-								return false;
+							FU.showLayer(file);
+							return false;
 						});
 					}
 				},
@@ -384,7 +387,10 @@
 					}
 
 					FileAPI.getInfo(file, function (err, info){
-						$Layer = $Layer.html(tmpl($('#b-layer-ejs').html(), { file: file, info: err ? {} : info }));
+						$Layer
+							.click(function (){ $(document).click(); })
+							.html(tmpl($('#b-layer-ejs').html(), { file: file, info: err ? {} : info }))
+						;
 
 						if( /image/i.test(file.type) ){
 							FileAPI.Image(file).preview(300).get(function (err, img){
@@ -392,7 +398,7 @@
 							});
 						}
 
-						$(document).one('click keyup', function (evt){
+						$(document).off('click.layer keyup.layer').one('click.layer keyup.layer', function (evt){
 							$Layer.remove();
 						});
 					});
@@ -424,15 +430,18 @@
 							url: 'http://rubaxa.org/index.php',
 							files: { file: file },
 							upload: function (){
-								FU._getEl(file, '.js-progress').show();
+								FU._getEl(file, '.js-progress')
+									.css({ opacity: 0 }).show()
+									.animate({ opacity: 1 }, 100)
+								;
 							},
 							progress: function (evt){
 								FU._getEl(file, '.js-bar').css('width', evt.loaded/evt.total*100+'%');
 							},
-							complete: function (err){
+							complete: function (err, xhr){
 								var state = err ? 'error' : 'done';
 
-								FU._getEl(file, '.js-progress').hide();
+								FU._getEl(file, '.js-progress').animate({ opacity: 0 }, 200, function (){ $(this).hide() });
 								FU._getEl(file, '.js-info').append(', <b class="b-file__'+state+'">'+state+'</b>');
 
 								FU.active = false;
