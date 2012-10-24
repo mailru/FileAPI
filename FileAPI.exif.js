@@ -1,3 +1,4 @@
+(function (){
 /**!
  * Binary Ajax 0.1.10
  * Copyright (c) 2008 Jacob Seidelin, cupboy@gmail.com, http://blog.nihilogic.dk/
@@ -41,7 +42,8 @@ FileAPI.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
 			callback(false, { 'exif': exif || {} });
 		}
 		else if( evt.type == 'error' ){
-			callback('read_as_binary_string');
+			callback('read_as_binary_string_exif');
 		}
 	});
 });
+})();
