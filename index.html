@@ -108,13 +108,17 @@
 		border-radius: 3px;
 	}
 		.b-file {
+			height: 40px;
 			padding: 5px;
+			position: relative;
 			overflow: hidden;
 			border-radius: 3px;
+			background-color: #fcfcfc;
 			background: -webkit-linear-gradient(top, #fcfcfc 0%, #f6f6f6 100%);
 			background: -moz-linear-gradient(top, #fcfcfc 0%, #f6f6f6 100%);
 			background: -o-linear-gradient(top, #fcfcfc 0%, #f6f6f6 100%);
 			background: linear-gradient(to bottom, #fcfcfc 0%, #f6f6f6 100%);
+			clear: both;
 		}
 			.b-file__left {
 				float: left;
@@ -147,7 +151,6 @@
 				font-size: 12px;
 				margin-top: 3px;
 			}
-				.b-file_upload .b-file__info { display: none; }
 
 			.b-file__bar {
 				padding-top: 4px;
@@ -159,6 +162,18 @@
 			.b-file__done {
 				color: #458383;
 			}
+			.b-file__abort {
+				top: 10px;
+				right: 20px;
+				width: 15px;
+				height: 15px;
+				position: absolute;
+				color: #c00;
+				cursor: pointer;
+				font-size: 20px;
+				display: none;
+			}
+				.b-file_upload .b-file__abort { display: block; }
 
 		.b-progress {
 			width: 200px;
@@ -281,7 +296,7 @@
 	<div id="preview" style="margin-top: 30px"></div>
 
 	<script id="b-file-ejs" type="text/ejs">
-		<div id="file-<%=FileAPI.uid(file)%>" class="b-file b-file_<%=file.type.split('/')[0]%>">
+		<div id="file-<%=FileAPI.uid(file)%>" class="js-file b-file b-file_<%=file.type.split('/')[0]%>">
 			<div class="js-left b-file__left">
 				<img src="<%=icon[file.type.split('/')[0]]||icon.def%>" width="32" height="32" style="margin: 2px 0 0 3px"/>
 			</div>
@@ -292,15 +307,14 @@
 					<div class="b-progress"><div class="js-bar b-progress__bar"></div></div>
 				</div>
 			</div>
+			<i class="js-abort b-file__abort" title="abort">&times;</i>
 		</div>
 	</script>
 
 	<script id="b-layer-ejs" type="text/ejs">
 		<div class="b-layer">
 			<div class="b-layer__h1"><%=file.name%></div>
-			<% if( info.exif ){ %>
-				<div class="js-img b-layer__img"></div>
-			<% } %>
+			<div class="js-img b-layer__img"></div>
 			<div class="b-layer__info">
 				<%
 				FileAPI.each(info, function(val, key){
@@ -360,6 +374,7 @@
 				},
 
 				files: [],
+				index: 0,
 				active: false,
 
 				add: function (file){
@@ -368,44 +383,53 @@
 					if( /^image/.test(file.type) ){
 						FileAPI.Image(file).preview(35).get(function (err, img){
 							if( !err ){
-
 								FU._getEl(file, '.js-left')
 									.addClass('b-file__left_border')
 									.html(img)
 								;
-
-								FU._getEl(file).click(function (){
-									FU.showLayer(file);
-									return false;
-								});
 							}
-						});
-					}
-					else {
-						FU._getEl(file).click(function (){
-							FU.showLayer(file);
-							return false;
 						});
 					}
 				},
 
-				showLayer: function (file){
-					var $Layer = $('#layer-'+FileAPI.uid(file));
+				getFileById: function (id){
+					var i = FU.files.length;
+					while( i-- ){
+						if( FileAPI.uid(FU.files[i]) == id ){
+							return	FU.files[i];
+						}
+					}
+				},
+
+				showLayer: function (id){
+					var $Layer = $('#layer-'+id), file = this.getFileById(id);
 
 					if( !$Layer[0] ){
-						$Layer = $('<div/>').appendTo('body').attr('id', 'layer-'+FileAPI.uid(file));
+						$Layer = $('<div/>').appendTo('body').attr('id', 'layer-'+id);
 					}
+
+					$Layer.css('top', $(window).scrollTop() + 30);
 
 					FileAPI.getInfo(file, function (err, info){
 						$Layer
 							.click(function (){ $(document).click(); })
-							.html(tmpl($('#b-layer-ejs').html(), { file: file, info: err ? {} : info }))
+							.html(tmpl($('#b-layer-ejs').html(), {
+								  file: file
+								, info: $.extend(err ? {} : info, { size: (file.size/1024).toFixed(3) + ' KB' })
+							}))
 						;
 
 						if( /image/i.test(file.type) ){
-							FileAPI.Image(file).preview(300).get(function (err, img){
-								$Layer.find('.js-img').append(img);
-							});
+							if( err ){
+								$Layer.find('.js-img').html('Ooops.');
+							}
+							else {
+								FileAPI.Image(file).preview(300).get(function (err, img){
+									$Layer.find('.js-img').append(img);
+								});
+							}
+						} else {
+							$Layer.find('.js-img').remove();
 						}
 
 						$(document).off('click.layer keyup.layer').one('click.layer keyup.layer', function (evt){
@@ -414,18 +438,16 @@
 					});
 				},
 
-				clone: function (el){
-					if( /canvas/i.test(el.nodeName) ){
-						var newEl	= $(el).clone()[0];
-						newEl.getContext('2d').drawImage(el, 0, 0);
-						el = newEl;
+				start: function (){
+					if( !FU.active && (FU.active = FU.files.length > FU.index) ){
+						FU._upload(FU.files[FU.index]);
 					}
-					return	$(el);
 				},
 
-				start: function (){
-					if( !FU.active && (FU.active = FU.files.length > 0) ){
-						FU._upload(FU.files.shift());
+				abort: function (id){
+					var file = this.getFileById(id);
+					if( file.xhr ){
+						file.xhr.abort();
 					}
 				},
 
@@ -436,10 +458,11 @@
 
 				_upload: function (file){
 					if( file ){
-						FileAPI.upload({
-							url: 'http://rubaxa.org/index.php',
+						file.xhr = FileAPI.upload({
+							url: 'http://www.rubaxa.org/index.php',
 							files: { file: file },
 							upload: function (){
+								FU._getEl(file).addClass('b-file_upload');
 								FU._getEl(file, '.js-progress')
 									.css({ opacity: 0 }).show()
 									.animate({ opacity: 1 }, 100)
@@ -451,10 +474,13 @@
 							complete: function (err, xhr){
 								var state = err ? 'error' : 'done';
 
+								FU._getEl(file).removeClass('b-file_upload');
 								FU._getEl(file, '.js-progress').animate({ opacity: 0 }, 200, function (){ $(this).hide() });
-								FU._getEl(file, '.js-info').append(', <b class="b-file__'+state+'">'+state+'</b>');
+								FU._getEl(file, '.js-info').append(', <b class="b-file__'+state+'">'+(err ? (xhr.statusText || err) : state)+'</b>');
 
+								FU.index++;
 								FU.active = false;
+
 								FU.start();
 							}
 						});
@@ -466,12 +492,35 @@
 				var $Queue = $('<div/>').prependTo('#preview');
 
 				FileAPI.each(files, function (file){
-					$Queue.append(tmpl($('#b-file-ejs').html(), { file: file, icon: FU.icon }));
+					if( file.size >= 25*FileAPI.MB ){
+						alert('Sorrow.\nMax size 25MB')
+					}
+					else if( file.size === void 0 ){
+						$('#oooops').show();
+						$('#buttons-panel').hide();
+					}
+					else {
+						$Queue.append(tmpl($('#b-file-ejs').html(), { file: file, icon: FU.icon }));
 
-					FU.add(file);
-					FU.start();
+						FU.add(file);
+						FU.start();
+					}
 				});
 			}
+
+
+			$(document)
+				.on('click', '.js-file', function (evt){
+					if( !evt.isDefaultPrevented() ){
+						FU.showLayer(evt.currentTarget.id.split('-')[1]);
+						evt.preventDefault();
+					}
+				})
+				.on('click', '.js-abort', function (evt){
+					FU.abort($(evt.target).closest('.js-file').attr('id').split('-')[1]);
+					evt.preventDefault();
+				})
+			;
 		}); // ready
 	</script>
 
