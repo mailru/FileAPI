@@ -7,7 +7,7 @@
 
 
 Support
- * Multiupload: all browsers that support HTML5 or Flash
+ * Multiupload: all browsers that support HTML5 or [Flash](#flash-settings)
  * Drag'n'Drop upload: files (HTML5) & directories (Chrome 21+)
  * Upload one file: all browsers
  * Working with Images: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 5.4+
@@ -160,6 +160,13 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.isFile(`file:Mixed`)`:Boolean`
 * FileAPI.toBinaryString(`str:Base64`)`:String`
 
+
+<a name="flash-settings"></a>
+### Flash settings
+```html
+	<script>var FileAPI = { staticPath = '/js/' };</script>
+	<script src="/js/FileAPI.min.js"></script>
+```
 
 
 ---------------------------------------
@@ -419,7 +426,7 @@ imageTransform: {
 	if( ctx && ctx[jsonp] ){
 		ctx[jsonp](<?=$statusCode/*200 — OK*/?>, "<?=addslashes($statusText)?>", "<?=addslashes($response)?>");
 	}
-})(this.parent, '<?=$_POST['callback']?>');
+})(this.parent, "<?=htmlspecialchars($_POST['callback'])?>");
 </script>
 ```
 
@@ -432,9 +439,9 @@ imageTransform: {
 <a name="html-default"></a>
 ### Default
 ```html
-<div class="js-fileapi-wrapper" style="position: relative">
+<span class="js-fileapi-wrapper" style="position: relative; display: inline-block;">
 	<input name="files" type="file" multiple />
-</div>
+</span>
 ```
 
 
