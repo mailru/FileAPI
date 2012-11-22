@@ -1,3 +1,4 @@
+(function (){
 /**!
  * Binary Ajax 0.1.10
  * Copyright (c) 2008 Jacob Seidelin, cupboy@gmail.com, http://blog.nihilogic.dk/
@@ -32,16 +33,27 @@ SensingMethod:{1:"Not defined",2:"One-chip color area sensor",3:"Two-chip color 
 EXIF.getTag=function(b,a){if(b.exifdata)return b.exifdata[a]};EXIF.getAllTags=function(b){if(!b.exifdata)return{};var b=b.exifdata,a={},d;for(d in b)b.hasOwnProperty(d)&&(a[d]=b[d]);return a};EXIF.pretty=function(b){if(!b.exifdata)return"";var b=b.exifdata,a="",d;for(d in b)b.hasOwnProperty(d)&&(a="object"==typeof b[d]?a+(d+" : ["+b[d].length+" values]\r\n"):a+(d+" : "+b[d]+"\r\n"));return a};EXIF.readFromBinaryFile=function(b){return j(b)}})();
 
 
+FileAPI.support.exif = true;
+
+
 FileAPI.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
-	FileAPI.readAsBinaryString(file, function (evt){
-		if( evt.type == 'load' ){
-			var binaryString = evt.result;
-			var oFile = new BinaryFile(binaryString, 0, file.size);
-			var exif  = EXIF.readFromBinaryFile(oFile);
-			callback(false, { 'exif': exif || {} });
-		}
-		else if( evt.type == 'error' ){
-			callback('read_as_binary_string');
-		}
-	});
+	if( !file.__exif ){
+		var defer = file.__exif = FileAPI.defer();
+
+		FileAPI.readAsBinaryString(file, function (evt){
+			if( evt.type == 'load' ){
+				var binaryString = evt.result;
+				var oFile = new BinaryFile(binaryString, 0, file.size);
+				var exif  = EXIF.readFromBinaryFile(oFile);
+
+				defer.resolve(false, { 'exif': exif || {} });
+			}
+			else if( evt.type == 'error' ){
+				defer.resolve('read_as_binary_string_exif');
+			}
+		});
+	}
+
+	file.__exif.then(callback);
 });
+})();
