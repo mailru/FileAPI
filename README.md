@@ -6,11 +6,14 @@
 </p>
 
 
-Support
- * Multiupload: all browsers that support HTML5 or Flash
+## Support
+ * Multiupload: all browsers that support HTML5 or [Flash](#flash-settings)
  * Drag'n'Drop upload: files (HTML5) & directories (Chrome 21+)
  * Upload one file: all browsers
  * Working with Images: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 5.4+
+    + crop, resize, preview & rotate (HTML5 or Flash)
+    + auto orientation by exif (HTML5, if include FileAPI.exif.js or Flash)
+
 
 
 
@@ -88,6 +91,7 @@ FileAPI.event.on(input, 'change', function (evt){
 				maxWidth:  1024,
 				maxHeight: 768
 			},
+			imageAutoOrientation: true,
 			fileprogress: function (evt){
 				var percent = evt.loaded/evt.total*100;
 				// ...
@@ -160,6 +164,13 @@ FileAPI.event.on(input, 'change', function (evt){
 * FileAPI.isFile(`file:Mixed`)`:Boolean`
 * FileAPI.toBinaryString(`str:Base64`)`:String`
 
+
+<a name="flash-settings"></a>
+### Flash settings
+```html
+	<script>var FileAPI = { staticPath = '/js/' };</script>
+	<script src="/js/FileAPI.min.js"></script>
+```
 
 
 ---------------------------------------
@@ -297,6 +308,7 @@ var xhr = FileAPI.upload({
 		maxWidth: 1024,
 		maxHeight: 768
 	},
+	imageAutoOrientation: true,
 	upload: function (xhr, options){
 		// start uploading
 	},
@@ -324,6 +336,8 @@ var xhr = FileAPI.upload({
 });
 ```
 
+
+<a href="imageTransform"></a>
 ### imageTransform
  * width`:Number`
  * height`:Number`
@@ -332,24 +346,61 @@ var xhr = FileAPI.upload({
  * maxHeight`:Number`
  * rotate`:Number`
 ```js
-imageTransform: {
-	// (1) Resize to 120x200
-	resize: { width: 120, height: 200 }
+FileAPI.upload({
+	// ..
+	imageOriginal: false, // don't send original on server
 
-	// (2) create preview 320x240
-	thumb:  { width: 320, height: 240, preview: true }
+	imageTransform: {
+		// (1) Resize to 120x200
+		resize: { width: 120, height: 200 }
 
-	// (3) Resize by max side
-	max:    { maxWidth: 800, maxHeight: 600 }
+		// (2) create preview 320x240
+		thumb:  { width: 320, height: 240, preview: true }
 
-	// (4) Custom resize
-	custom: function (info, transform){
-		return transform
-				.crop(100, 100, 300, 200)
-				.resize(100, 50)
-			;
+		// (3) Resize by max side
+		max:    { maxWidth: 800, maxHeight: 600 }
+
+		// (4) Custom resize
+		custom: function (info, transform){
+			return transform
+					.crop(100, 100, 300, 200)
+					.resize(100, 50)
+				;
+		}
 	}
-}
+});
+```
+
+
+<a name="imageAutoOrientation"></a>
+### imageAutoOrientation
+```js
+// (1) all images
+FileAPI.upload({
+ 	// ..
+	imageAutoOrientation: true
+});
+
+// (2) or so
+FileAPI.upload({
+	// ..
+	imageAutoOrientation: true,
+	imageTransform: { width: .., height: .. }
+});
+
+// (3) or so
+FileAPI.upload({
+	// ..
+	imageTransform: { rotate: 'auto' }
+});
+
+// (4) only "800x600", original not modified
+FileAPI.upload({
+	// ..
+	imageTransform: {
+		"800x600": { width: 800, height: 600, rotate: 'auto' }
+	}
+});
 ```
 
 
@@ -419,7 +470,7 @@ imageTransform: {
 	if( ctx && ctx[jsonp] ){
 		ctx[jsonp](<?=$statusCode/*200 — OK*/?>, "<?=addslashes($statusText)?>", "<?=addslashes($response)?>");
 	}
-})(this.parent, '<?=$_POST['callback']?>');
+})(this.parent, "<?=htmlspecialchars($_POST['callback'])?>");
 </script>
 ```
 
@@ -432,9 +483,9 @@ imageTransform: {
 <a name="html-default"></a>
 ### Default
 ```html
-<div class="js-fileapi-wrapper" style="position: relative">
+<span class="js-fileapi-wrapper" style="position: relative; display: inline-block;">
 	<input name="files" type="file" multiple />
-</div>
+</span>
 ```
 
 
