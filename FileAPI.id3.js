@@ -1,3 +1,14 @@
+(function (){
+/**
+ * JavaScript ID3 Reader
+ * https://github.com/aadsm/JavaScript-ID3-Reader
+ *
+ * Authors
+ *   Jacob Seidelin
+ *   António Afonso
+ *   Joshua Kifer
+ */
+
 var x=!0,y=null;function z(a,b,d){function e(c){c=parseInt(c.getResponseHeader("Content-Length"),10)||-1;b(new h(a,c))}function f(){var c=y;window.XMLHttpRequest?c=new XMLHttpRequest:window.ActiveXObject&&(c=new ActiveXObject("Microsoft.XMLHTTP"));return c}function h(c,a){var b,g;function e(c){var a=~~(c[0]/b)-g,c=~~(c[1]/b)+1+g;0>a&&(a=0);c>=blockTotal&&(c=blockTotal-1);return[a,c]}function h(e,g){function m(c){parseInt(c.getResponseHeader("Content-Length"),10)==a&&(e[0]=0,e[1]=blockTotal-1,i[0]=0,i[1]=a-1);for(var c=
 {data:c.U||c.responseText,offset:i[0]},b=e[0];b<=e[1];b++)A[b]=c;l+=i[1]-i[0]+1;g&&g()}for(;A[e[0]];)if(e[0]++,e[0]>e[1]){g&&g();return}for(;A[e[1]];)if(e[1]--,e[0]>e[1]){g&&g();return}var i=[e[0]*b,(e[1]+1)*b-1],w=c,r=d,L=q,I=!!g,n=f();n?("undefined"===typeof I&&(I=x),m&&("undefined"!=typeof n.onload?n.onload=function(){"200"==n.status||"206"==n.status?(n.fileSize=L||n.getResponseHeader("Content-Length"),m(n)):r&&r();n=y}:n.onreadystatechange=function(){4==n.readyState&&("200"==n.status||"206"==
 n.status?(n.fileSize=L||n.getResponseHeader("Content-Length"),m(n)):r&&r(),n=y)}),n.open("GET",w,I),n.overrideMimeType&&n.overrideMimeType("text/plain; charset=x-user-defined"),i&&n.setRequestHeader("Range","bytes="+i[0]+"-"+i[1]),n.setRequestHeader("If-Modified-Since","Sat, 1 Jan 1970 00:00:00 GMT"),n.send(y)):r&&r()}var q,l=0,w=new B("",0,a),A=[];b=b||2048;g="undefined"===typeof g?0:g;blockTotal=~~((a-1)/b)+1;for(var r in w)w.hasOwnProperty(r)&&"function"===typeof w[r]&&(this[r]=w[r]);this.a=function(c){var a;
@@ -28,19 +39,29 @@ var P=this.u={};P.types={"0":"uint8",1:"text",13:"jpeg",14:"png",21:"uint8"};P.k
 P.r=function(a){var b={};Q(b,a,0,a.o());return b};this.ID4=this.u;
 
 
+FileAPI.support.id3 = true;
+
+
 FileAPI.addInfoReader(/^audio/i, function (file, callback){
-	FileAPI.readAsBinaryString(file, function (evt){
-		if( evt.type == 'load' ){
-			ID3.loadTags(file.name, function (){
-				callback(false, ID3.getAllTags(file.name));
-			}, {
-				dataReader: function (url, fn){
-					var oFile = new ID3.BinaryFile(evt.result, 0, file.size);
-					fn(oFile)
-				}
-			});
-		} else if( evt.type == 'error' ){
-			callback('read_as_binary_string_id3');
-		}
-	});
+	if( !file.__id3 ){
+		var defer = file.__id3 = FileAPI.defer();
+
+		FileAPI.readAsBinaryString(file, function (evt){
+			if( evt.type == 'load' ){
+				ID3.loadTags(file.name, function (){
+					defer.resolve(false, file.__id3 = ID3.getAllTags(file.name));
+				}, {
+					dataReader: function (url, fn){
+						var oFile = new ID3.BinaryFile(evt.result, 0, file.size);
+						fn(oFile)
+					}
+				});
+			} else if( evt.type == 'error' ){
+				callback('read_as_binary_string_id3');
+			}
+		});
+	}
+
+	file.__id3.then(callback);
 });
+})();

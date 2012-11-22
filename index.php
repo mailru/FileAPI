@@ -81,6 +81,8 @@
 	<script src="./lib/FileAPI.Form.js" type="text/javascript"></script>
 	<script src="./lib/FileAPI.Image.js" type="text/javascript"></script>
 	<script src="./lib/FileAPI.Flash.js" type="text/javascript"></script>
+	<script src="./FileAPI.exif.js" type="text/javascript"></script>
+	<script src="./FileAPI.id3.js" type="text/javascript"></script>
 
 	<style>
 		body {
@@ -237,7 +239,7 @@
 							FileAPI.log('FileAPI.Image:', file);
 							FileAPI.Image(file)
 								.preview(150, 200)
-								.rotate(90)
+								.rotate('auto')
 								.get(function (err, image){
 									FileAPI.log('preview:', err ? 'error' : 'ok');
 
@@ -267,6 +269,7 @@
 							, other:  FileAPI.filter(files, function (file){ return !/^image/.test(file.type) })
 						},
 						imageOriginal: false,
+						imageAutoOrientation: true,
 						_imageTransform: {
 							  maxWidth: 320
 							, maxHeight: 240
