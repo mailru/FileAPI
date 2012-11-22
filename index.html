@@ -382,7 +382,7 @@
 					FU.files.push(file);
 
 					if( /^image/.test(file.type) ){
-						FileAPI.Image(file).preview(35).get(function (err, img){
+						FileAPI.Image(file).preview(35).rotate('auto').get(function (err, img){
 							if( !err ){
 								FU._getEl(file, '.js-left')
 									.addClass('b-file__left_border')
