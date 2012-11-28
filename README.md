@@ -81,8 +81,8 @@ FileAPI.event.on(input, 'change', function (evt){
 		// upload on server
 		var xhr = FileAPI.upload({
 			url: '...',
-			data: { foo: 'bar' },
-			headers: { 'x-header': '...' },
+			data: { foo: 'bar' }, // POST-data (iframe, flash, html5)
+			headers: { 'x-header': '...' }, , // request headers (flash, html5)
 			files: {
 				files: FileAPI.filter(fileList, function (file){ return !/image/.test(file.type); }),
 				pictures: imageList
@@ -92,11 +92,11 @@ FileAPI.event.on(input, 'change', function (evt){
 				maxHeight: 768
 			},
 			imageAutoOrientation: true,
-			fileprogress: function (evt){
+			fileprogress: function (evt){   // (flash, html5)
 				var percent = evt.loaded/evt.total*100;
 				// ...
 			},
-			progress: function (evt){
+			progress: function (evt){    // (flash, html5)
 				var percent = evt.loaded/evt.total*100;
 				// ...
 			},
