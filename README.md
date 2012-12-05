@@ -2,7 +2,9 @@
 
 
 <p align="center">
- ~~~  <a href="http://mailru.github.com/FileAPI/">DEMO</a>  ~~~
+ ~~~  <a href="http://mailru.github.com/FileAPI/">DEMO</a>
+ ~~~  <a href="http://mailru.github.com/FileAPI/example.userpic.html">user pic</a>
+ ~~~
 </p>
 
 
@@ -538,6 +540,7 @@ FileAPI.upload({
 ```html
 <style>
 .upload-link {
+	color: #36c;
 	display: inline-block;
 	*zoom: 1;
 	*display: inline;
@@ -566,7 +569,7 @@ FileAPI.upload({
 		font-size: 50px;
 	}
 </style>
-<a href="#" class="upload-link js-fileapi-wrapper">
+<a class="upload-link js-fileapi-wrapper">
 	<span class="upload-link__txt">Upload photo</span>
 	<input class="upload-link__inp" name="photo" type="file" accept=".jpg,.jpeg,.gif" />
 </a>
