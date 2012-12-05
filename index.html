@@ -259,10 +259,29 @@
 					overflow: hidden;
 					white-space: nowrap;
 				}
+
+
+		.examples {
+			left: 0;
+			right: 0;
+			bottom: 0;
+			position: fixed;
+			box-shadow: 0 0 5px rgba(0,0,0,.65);
+			background-color: #fff;
+		}
+			.examples__inner {
+				padding: 5px 10px;
+			}
 	</style>
 
 </head>
 <body>
+	<div class="examples">
+		<div class="examples__inner">
+			<a href="./example.userpic.html">user pic</a>
+		</div>
+	</div>
+
 	<div id="drop-zone" class="b-dropzone" style="display: none">
 		<div class="b-dropzone__bg"></div>
 		<div class="b-dropzone__txt">Drop files there</div>
