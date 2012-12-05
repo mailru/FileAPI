@@ -2,7 +2,9 @@
 
 
 <p align="center">
- ~~~  <a href="http://mailru.github.com/FileAPI/">DEMO</a>  ~~~
+ ~~~  <a href="http://mailru.github.com/FileAPI/">DEMO</a>
+ ~~~  <a href="http://mailru.github.com/FileAPI/example.userpic.html">user pic</a>
+ ~~~
 </p>
 
 
@@ -81,8 +83,8 @@ FileAPI.event.on(input, 'change', function (evt){
 		// upload on server
 		var xhr = FileAPI.upload({
 			url: '...',
-			data: { foo: 'bar' },
-			headers: { 'x-header': '...' },
+			data: { foo: 'bar' }, // POST-data (iframe, flash, html5)
+			headers: { 'x-header': '...' }, , // request headers (flash, html5)
 			files: {
 				files: FileAPI.filter(fileList, function (file){ return !/image/.test(file.type); }),
 				pictures: imageList
@@ -92,11 +94,11 @@ FileAPI.event.on(input, 'change', function (evt){
 				maxHeight: 768
 			},
 			imageAutoOrientation: true,
-			fileprogress: function (evt){
+			fileprogress: function (evt){   // (flash, html5)
 				var percent = evt.loaded/evt.total*100;
 				// ...
 			},
-			progress: function (evt){
+			progress: function (evt){    // (flash, html5)
 				var percent = evt.loaded/evt.total*100;
 				// ...
 			},
@@ -538,6 +540,7 @@ FileAPI.upload({
 ```html
 <style>
 .upload-link {
+	color: #36c;
 	display: inline-block;
 	*zoom: 1;
 	*display: inline;
@@ -566,7 +569,7 @@ FileAPI.upload({
 		font-size: 50px;
 	}
 </style>
-<a href="#" class="upload-link js-fileapi-wrapper">
+<a class="upload-link js-fileapi-wrapper">
 	<span class="upload-link__txt">Upload photo</span>
 	<input class="upload-link__inp" name="photo" type="file" accept=".jpg,.jpeg,.gif" />
 </a>
