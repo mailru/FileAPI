@@ -30,8 +30,8 @@
 	<script>
 		// Объект настройки
 		var FileAPI = {
-			debug: true, // режим отладки
-			staticPath: './235/' // путь до флешек
+			debug: false, // режим отладки
+			staticPath: './' // путь до флешек
 		};
 	</script>
 	<script src="./FileAPI.min.js"></script>
@@ -66,6 +66,7 @@
 			position: absolute;
 			cursor: pointer;
 			opacity: 0;
+			filter: alpha(opacity=0);
 			font-size: 50px;
 		}
 
