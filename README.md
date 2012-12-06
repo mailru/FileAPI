@@ -525,6 +525,7 @@ FileAPI.upload({
 		position: absolute;
 		cursor: pointer;
 		opacity: 0;
+		filter: alpha(opacity=0);
 		font-size: 50px;
 	}
 </style>
@@ -566,6 +567,7 @@ FileAPI.upload({
 		position: absolute;
 		cursor: pointer;
 		opacity: 0;
+		filter: alpha(opacity=0);
 		font-size: 50px;
 	}
 </style>
