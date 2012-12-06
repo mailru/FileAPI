@@ -1,4 +1,19 @@
 <!DOCTYPE html>
+<!--
+
+
+           ~~~ Это пример создания загрузки фото! ~~~
+
+
+ 1. Скопируйте исходники себе в проект
+ 2. Разместите crossdomain.xml на домене, куда будут грузиться файлы
+ 3. Укажите правильный путь к флешкам, он задаётся через "staticPath"
+ 4. ...
+ 5. Profit!
+
+
+
+-->
 <html>
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -12,7 +27,15 @@
 
 	<title>FileAPI :: UserPic :: example</title>
 
+	<script>
+		// Объект настройки
+		var FileAPI = {
+			debug: false, // режим отладки
+			staticPath: './' // путь до флешек
+		};
+	</script>
 	<script src="./FileAPI.min.js"></script>
+
 	<style>
 	.upload-link {
 		color: #36c;
@@ -43,6 +66,7 @@
 			position: absolute;
 			cursor: pointer;
 			opacity: 0;
+			filter: alpha(opacity=0);
 			font-size: 50px;
 		}
 
