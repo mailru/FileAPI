@@ -303,6 +303,10 @@
 							}
 						},
 
+						prepare: function (file, options){
+							options.data[FileAPI.uid()] = 1;
+						},
+
 						beforeupload: function (){
 							FileAPI.log('beforeupload:', arguments);
 						},
@@ -338,7 +342,7 @@
 									;
 								});
 
-								document.getElementById('Log').innerHTML += '<pre style="font-size: 11px;">'+xhr.responseText+'</pre>';
+								document.getElementById('Log').innerHTML += '<pre style="font-size: 11px;">'+xhr.responseText.substr(0, 200)+'</pre>';
 							}
 						},
 
