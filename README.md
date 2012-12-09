@@ -170,7 +170,7 @@ FileAPI.event.on(input, 'change', function (evt){
 <a name="flash-settings"></a>
 ### Flash settings
 ```html
-	<script>var FileAPI = { staticPath = '/js/' };</script>
+	<script>var FileAPI = { staticPath: '/js/' };</script>
 	<script src="/js/FileAPI.min.js"></script>
 ```
 
