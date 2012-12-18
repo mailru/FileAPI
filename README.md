@@ -211,7 +211,7 @@ function onDrop(evt){
 
 var el = document.getElementById('el');
 FileAPI.event.dnd(el, function (over/**Boolean*/, evt/**Event*/){
-	el.style.background = ever ? 'red' : '':
+	el.style.background = ever ? 'red' : '';
 }, function (files/**Array*/, evt/**Event*/){
 	// ...
 });
