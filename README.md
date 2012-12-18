@@ -84,7 +84,7 @@ FileAPI.event.on(input, 'change', function (evt){
 		var xhr = FileAPI.upload({
 			url: '...',
 			data: { foo: 'bar' }, // POST-data (iframe, flash, html5)
-			headers: { 'x-header': '...' }, , // request headers (flash, html5)
+			headers: { 'x-header': '...' }, // request headers (flash, html5)
 			files: {
 				files: FileAPI.filter(fileList, function (file){ return !/image/.test(file.type); }),
 				pictures: imageList
