@@ -170,7 +170,7 @@ FileAPI.event.on(input, 'change', function (evt){
 <a name="flash-settings"></a>
 ### Flash settings
 ```html
-	<script>var FileAPI = { staticPath = '/js/' };</script>
+	<script>var FileAPI = { staticPath: '/js/' };</script>
 	<script src="/js/FileAPI.min.js"></script>
 ```
 
@@ -311,6 +311,10 @@ var xhr = FileAPI.upload({
 		maxHeight: 768
 	},
 	imageAutoOrientation: true,
+	prepare: function (file, options){
+		// prepare options for current file
+		options.data.filename = file.name;
+	},
 	upload: function (xhr, options){
 		// start uploading
 	},
