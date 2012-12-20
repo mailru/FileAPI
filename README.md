@@ -84,7 +84,7 @@ FileAPI.event.on(input, 'change', function (evt){
 		var xhr = FileAPI.upload({
 			url: '...',
 			data: { foo: 'bar' }, // POST-data (iframe, flash, html5)
-			headers: { 'x-header': '...' }, , // request headers (flash, html5)
+			headers: { 'x-header': '...' }, // request headers (flash, html5)
 			files: {
 				files: FileAPI.filter(fileList, function (file){ return !/image/.test(file.type); }),
 				pictures: imageList
@@ -211,7 +211,7 @@ function onDrop(evt){
 
 var el = document.getElementById('el');
 FileAPI.event.dnd(el, function (over/**Boolean*/, evt/**Event*/){
-	el.style.background = ever ? 'red' : '':
+	el.style.background = ever ? 'red' : '';
 }, function (files/**Array*/, evt/**Event*/){
 	// ...
 });
@@ -580,3 +580,16 @@ FileAPI.upload({
 	<input class="upload-link__inp" name="photo" type="file" accept=".jpg,.jpeg,.gif" />
 </a>
 ```
+
+
+---
+
+
+## Changelog
+### 1.0.1
+ * #51: remove circular references from `file-objects` (Flash transport)
+ * added `changelog`
+
+
+### 1.0.0
+ * first release
