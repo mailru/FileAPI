@@ -580,3 +580,16 @@ FileAPI.upload({
 	<input class="upload-link__inp" name="photo" type="file" accept=".jpg,.jpeg,.gif" />
 </a>
 ```
+
+
+---
+
+
+## Changelog
+### 1.0.1
+ * #51: remove circular references from `file-objects` (Flash transport)
+ * added `changelog`
+
+
+### 1.0.0
+ * first release
