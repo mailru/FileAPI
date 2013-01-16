@@ -170,7 +170,16 @@ FileAPI.event.on(input, 'change', function (evt){
 <a name="flash-settings"></a>
 ### Flash settings
 ```html
-	<script>var FileAPI = { staticPath: '/js/' };</script>
+	<script>
+		var FileAPI = {
+			// @required
+			  staticPath: '/js/' // @default: "./"
+
+			// @optional
+			, flashUrl: '/js/FileAPI.flash.swf' // @default: FileAPI.staticPath + "FileAPI.flash.swf"
+			, flashImageUrl: '/js/FileAPI.flash.image.swf' // @default: FileAPI.staticPath + "FileAPI.flash.image.swf"
+		};
+	</script>
 	<script src="/js/FileAPI.min.js"></script>
 ```
 
@@ -586,8 +595,12 @@ FileAPI.upload({
 
 
 ## Changelog
+### 1.1.0
+ * [#54](https://github.com/mailru/FileAPI/issues/54): added `FileAPI.flashUrl` and `FileAPI.flashImageUrl`
+
+
 ### 1.0.1
- * #51: remove circular references from `file-objects` (Flash transport)
+ * [#51](https://github.com/mailru/FileAPI/issues/51): remove circular references from `file-objects` (Flash transport)
  * added `changelog`
 
 
