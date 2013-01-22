@@ -1,4 +1,4 @@
-# FileAPI — a set of tools for working with files.
+﻿# FileAPI — a set of tools for working with files.
 
 
 <p align="center">
@@ -220,7 +220,7 @@ function onDrop(evt){
 
 var el = document.getElementById('el');
 FileAPI.event.dnd(el, function (over/**Boolean*/, evt/**Event*/){
-	el.style.background = ever ? 'red' : '';
+	el.style.background = over ? 'red' : '';
 }, function (files/**Array*/, evt/**Event*/){
 	// ...
 });
