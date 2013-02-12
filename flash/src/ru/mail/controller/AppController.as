@@ -597,7 +597,7 @@ package ru.mail.controller
 						if (event.error.error.indexOf("#2038") > -1) {
 							_model.hasError = true;
 						}
-						_jsCaller.callJS( callback, {type:"error", message:event.error.getError() } );
+						_jsCaller.callJS( callback, {type:"error", message:event.error.getError(), status:event.error.httpStatus } );
 					}
 					
 					uploadCommand.dispose();

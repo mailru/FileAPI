@@ -15,13 +15,17 @@ package ru.mail.data.vo
 		public var errorType:String = "error";
 		public var errorID:String = "";
 		public var errorMessage:String = "";
+		public var httpStatus:String = '';
 		
-		public function ErrorVO(error:String, errorType:String = null)
+		public function ErrorVO(error:String, errorType:String = null, httpStatus:String = null)
 		{
 			super();
 			parseError(error);
 			if (errorType) {
 				this.errorType = errorType;
+			}
+			if (httpStatus) {
+				this.httpStatus = httpStatus;
 			}
 		}
 		
