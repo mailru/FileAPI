@@ -670,8 +670,16 @@ All the other codes - fatal error, user's involvement is recommend.
 
 
 ## Changelog
+### 1.2.2
+ * [#67](https://github.com/mailru/FileAPI/pull/67): Added correct httpStatus for upload fail, [#62](https://github.com/mailru/FileAPI/pull/68)
+ * [#68](https://github.com/mailru/FileAPI/pull/68) Added "Content-Type" for chunked upload, [#65](https://github.com/mailru/FileAPI/pull/65)
+ * Fixed progress event, [#66](https://github.com/mailru/FileAPI/issues/66)
+ * - dependency on FileAPI.Image for FileAPI.Flash
+
+
 ### 1.2.1
  * [#64](https://github.com/mailru/FileAPI/issues/64): Bufixed for [#63](https://github.com/mailru/FileAPI/issues/63)
+
 
 
 ### 1.2.0
