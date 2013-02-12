@@ -22,6 +22,7 @@ package ru.mail.commands
 	public class UploadFileCommand extends AbstractUploadFileCommand
 	{
 		private var fileRef:FileReference;
+		private var status:String = null; // httpStatus. in case of upload error we get httpStatus event followed by ioError event. add status to error event using this temp variable
 		
 		public function UploadFileCommand(fileRef:FileReference, url:String, headers:Object, uploadPostData:Object, uploadDataFieldName:String)
 		{
@@ -103,7 +104,8 @@ package ru.mail.commands
 		private function onHTTPStatus(event:HTTPStatusEvent):void
 		{
 			trace ("onHTTPStatus", event);
-			LoggerJS.log("fileReference.upload HTTPStatusEvent: " +event.status)
+			LoggerJS.log("fileReference.upload HTTPStatusEvent: " +event.status);
+			status = event.status.toString();
 			dispatchEvent(new TextEvent("httpStatus", false, false, event.status.toString() ) );
 		}
 		
@@ -120,7 +122,7 @@ package ru.mail.commands
 			LoggerJS.log("fileReference.upload onError: " +event.toString());
 			
 			trace ("onError", event);
-			complete(false, null, new ErrorVO(event.toString(), errorType) );
+			complete(false, null, new ErrorVO(event.toString(), errorType, status) );
 		}
 		
 		private function onProgress(event:ProgressEvent):void
