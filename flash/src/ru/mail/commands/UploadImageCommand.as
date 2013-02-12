@@ -24,6 +24,7 @@ package ru.mail.commands
 		private var _files:Object;
 		private var _totalSize:int = 0;
 		private var _loader:MultipartURLLoader;
+		private var status:String = null; // httpStatus. in case of upload error we get httpStatus event followed by ioError event. add status to error event using this temp variable
 		
 		public function UploadImageCommand(files:Object, url:String, headers:Object, uploadPostData:Object)
 		{
@@ -130,7 +131,8 @@ package ru.mail.commands
 		private function onHTTPStatus(event:HTTPStatusEvent):void
 		{
 			trace ("onHTTPStatus", event);
-			LoggerJS.log("urlloader.upload onHTTPStatus: " +event.toString());
+			LoggerJS.log("urlloader.upload onHTTPStatus: " +event.status);
+			status = event.status.toString();
 			dispatchEvent(new TextEvent("httpStatus", false, false, event.status.toString() ) );
 		}
 		
@@ -147,7 +149,7 @@ package ru.mail.commands
 			LoggerJS.log("fileReference.upload onError: " +event.toString());
 			
 			trace ("onError", event);
-			complete(false, null, new ErrorVO(event.toString(), errorType) );
+			complete(false, null, new ErrorVO(event.toString(), errorType, status) );
 		}
 		
 		private function onProgress(event:ProgressEvent):void
