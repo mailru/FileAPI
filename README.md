@@ -527,7 +527,7 @@ All the other codes - fatal error, user's involvement is recommend.
 ```php
 <?
 	header('Access-Control-Allow-Methods: POST, OPTIONS');
-	header('Access-Control-Allow-Headers: Origin, X-Requested-With'); // and other custom headers
+	header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type'); // and other custom headers
 	header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']); // a comma-separated list of domains
 
 	if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
