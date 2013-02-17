@@ -675,6 +675,7 @@ All the other codes - fatal error, user's involvement is recommend.
  * [#68](https://github.com/mailru/FileAPI/pull/68) Added "Content-Type" for chunked upload, [#65](https://github.com/mailru/FileAPI/pull/65)
  * [#69](https://github.com/mailru/FileAPI/issues/69): Fixed network down recovery
  * Fixed progress event, [#66](https://github.com/mailru/FileAPI/issues/66)
+ * Increase flash stage size, [#73](https://github.com/mailru/FileAPI/pull/73)
  * - array index from POST-param "name", [#72](https://github.com/mailru/FileAPI/issues/72)
  * - dependency on FileAPI.Image for FileAPI.Flash
 
