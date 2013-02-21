@@ -476,18 +476,20 @@ FileAPI.upload({
 });
 ```
 
-All relations between client and server is operated on level of HTTP's titles. Client sets up titles for transferring separate chunk.
+Client and server communicate to each other using the following HTTP headers and status codes.
+
+Client explicitly sets the following headers:
 * [Content-Range](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.16): bytes \<start-offset\>-\<end-offset\>/\<total\>
 * [Content-Disposition](http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.5.1): attachment; filename=\<file-name\>
 
-Other titles are not used. Tracking name's uniqueness of delegating file is not executed. It is left on developer's consideration.
+Any other headers are set by a target browser and are not used by client.
+Library does not provide any facilities to track a file uniqueness across requests, it's left on developer's consideration.
 
-In response to delegating chunk server can reply following codes:
-* 200, 201 — chunk is successfully saved
-* 416, 500 — repairable error, you can continue upload.
+Client recognizes the following response codes:
+* 200, 201 - chunk is successfully saved
+* 416, 500 - recoverable error, library tries to resend chunk 'chunkUploadRetry' times then fails
 
-All the other codes — fatal error, user's involvement is recommend.
-
+All the other codes - fatal error, user's involvement is recommend.
 
 
 -----
@@ -525,7 +527,7 @@ All the other codes — fatal error, user's involvement is recommend.
 ```php
 <?
 	header('Access-Control-Allow-Methods: POST, OPTIONS');
-	header('Access-Control-Allow-Headers: Origin, X-Requested-With'); // and other custom headers
+	header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type'); // and other custom headers
 	header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']); // a comma-separated list of domains
 
 	if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
@@ -668,6 +670,21 @@ All the other codes — fatal error, user's involvement is recommend.
 
 
 ## Changelog
+### 1.2.2
+ * [#67](https://github.com/mailru/FileAPI/pull/67): Added correct httpStatus for upload fail, [#62](https://github.com/mailru/FileAPI/pull/68)
+ * [#68](https://github.com/mailru/FileAPI/pull/68) Added "Content-Type" for chunked upload, [#65](https://github.com/mailru/FileAPI/pull/65)
+ * [#69](https://github.com/mailru/FileAPI/issues/69): Fixed network down recovery
+ * Fixed progress event, [#66](https://github.com/mailru/FileAPI/issues/66)
+ * Increase flash stage size, [#73](https://github.com/mailru/FileAPI/pull/73)
+ * - array index from POST-param "name", [#72](https://github.com/mailru/FileAPI/issues/72)
+ * - dependency on FileAPI.Image for FileAPI.Flash
+
+
+### 1.2.1
+ * [#64](https://github.com/mailru/FileAPI/issues/64): Bufixed for [#63](https://github.com/mailru/FileAPI/issues/63)
+
+
+
 ### 1.2.0
  * [#57](https://github.com/mailru/FileAPI/issues/57): Chunked file upload
 

@@ -14,6 +14,8 @@
 
 
 	if( strtoupper($_SERVER['REQUEST_METHOD']) == 'POST' ){
+		header('HTTP/1.1 201 Created');
+
 		$files	= FileAPI::getFiles();
 		$images = array();
 		fetchImages($files, $images);
