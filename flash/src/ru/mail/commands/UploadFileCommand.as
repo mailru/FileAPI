@@ -38,8 +38,6 @@ package ru.mail.commands
 			fileRef.removeEventListener(IOErrorEvent.IO_ERROR, onError);
 			fileRef.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onError);
 			fileRef.removeEventListener(ProgressEvent.PROGRESS, onProgress);
-			
-			fileRef = null;
 		}
 		
 		override public function execute():void
