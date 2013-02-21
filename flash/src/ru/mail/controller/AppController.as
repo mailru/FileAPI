@@ -648,7 +648,7 @@ package ru.mail.controller
 			}
 			_model.filesBuilder.removeFile(file);
 			file = null;
-			
+			LoggerJS.log("abort complete");
 		}
 		
 		/**
