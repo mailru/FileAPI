@@ -672,6 +672,9 @@ All the other codes - fatal error, user's involvement is recommend.
 ## Changelog
 ### 1.2.3
  * [#77](https://github.com/mailru/FileAPI/pull/77): Fixed flash.abort(), [#75](https://github.com/mailru/FileAPI/issues/75)
+ * - `FileAPI.addMime`
+ * + `FileAPI.accept` — fallback for flash.
+
 
 ### 1.2.2
  * [#67](https://github.com/mailru/FileAPI/pull/67): Added correct httpStatus for upload fail, [#62](https://github.com/mailru/FileAPI/pull/68)
