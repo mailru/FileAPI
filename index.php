@@ -33,7 +33,7 @@
 			echo  $json;
 		}
 		else {
-			echo  '<script type="text/javascript">'
+			echo  '<script>'
 				. '(function(ctx,jsonp){'
 				. 	'if(ctx&&ctx[jsonp]){'
 				.		'ctx[jsonp](200, "OK", "'.addslashes($json).'")'
@@ -76,15 +76,17 @@
 	<script>var FileAPI = { debug: true };</script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 
-	<script src="./FileAPI.js" type="text/javascript"></script>
-	<script src="./lib/canvas-to-blob.js" type="text/javascript"></script>
-	<script src="./lib/FileAPI.core.js" type="text/javascript"></script>
-	<script src="./lib/FileAPI.XHR.js" type="text/javascript"></script>
-	<script src="./lib/FileAPI.Form.js" type="text/javascript"></script>
-	<script src="./lib/FileAPI.Image.js" type="text/javascript"></script>
-	<script src="./lib/FileAPI.Flash.js" type="text/javascript"></script>
-	<script src="./FileAPI.exif.js" type="text/javascript"></script>
-	<script src="./FileAPI.id3.js" type="text/javascript"></script>
+	<script src="./FileAPI.js"></script>
+	<script src="./lib/canvas-to-blob.js"></script>
+	<script src="./lib/FileAPI.core.js"></script>
+	<script src="./lib/FileAPI.XHR.js"></script>
+	<script src="./lib/FileAPI.Form.js"></script>
+	<script src="./lib/FileAPI.Image.js"></script>
+	<script src="./lib/FileAPI.Flash.js"></script>
+
+	<script src="./plugins/FileAPI.id3.js"></script>
+	<script src="./plugins/FileAPI.exif.js"></script>
+	<script src="./plugins/FileAPI.Camera.js"></script>
 
 	<style>
 		body {
@@ -155,6 +157,10 @@
 			<input name="files" class="b-button__input" type="file" accept="image/*" multiple />
 		</div>
 
+		<div id="camera" style="width: 220px; height: 140px; border: 2px solid #c00; margin: 20px auto">
+			Camera not loaded.
+		</div>
+
 	</div>
 
 
@@ -167,7 +173,7 @@
 
 	<div id="__console" style="font-size: 12px; color: #333;"></div>
 
-	<script type="text/javascript">
+	<script>
 		if( !window.console ){
 			window.console = {
 				_div: document.getElementById('__console'),
@@ -196,6 +202,15 @@
 				});
 			}
 
+
+			FileAPI.Camera.publish($('#camera'), function (err, cam){
+				cam.start(function (){
+					setTimeout(function (){
+						onFiles([cam.shot()]);
+						cam.stop();
+					}, 1000);
+				});
+			});
 
 
 			$('input[type="file"]').on('change', function (evt){
