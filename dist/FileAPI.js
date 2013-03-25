@@ -266,7 +266,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.0',
+			version: '2.0.0b',
 
 			cors: false,
 			debug: false,
@@ -482,7 +482,6 @@
 					callback(false);
 				}
 			},
-
 
 
 			/**
@@ -1871,7 +1870,9 @@
 
 	};
 
+
 	Image.exifOrientation = exifOrientation;
+
 
 	Image.transform = function (file, transform, autoOrientation, fn){
 		function _transform(err, img){
@@ -2953,7 +2954,7 @@
 							}
 							else {
 								if( !file.__info ){
-									var defer = file.__info = FileAPI.defer();
+									var defer = file.__info = api.defer();
 
 									flash.cmd(file, 'getFileInfo', {
 										  id: file.id
@@ -2971,7 +2972,7 @@
 
 					// FileAPI.Image
 					api.support.transform = true;
-					FileAPI.Image && _inherit(FileAPI.Image.prototype, {
+					api.Image && _inherit(api.Image.prototype, {
 						get: function (fn, scaleMode){
 							this.set({ scaleMode: scaleMode || 'noScale' }); // noScale, exactFit
 							this.parent(fn);
@@ -3031,18 +3032,22 @@
 						},
 
 						toData: function (fn){
-							var file = this.file;
+							var file = this.file, info = file.info, matrix = this.getMatrix(info);
 
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
 							}
 							else {
+								if( matrix.deg == 'auto' ){
+									matrix.deg = api.Image.exifOrientation[info && info.exif && info.exif.Orientation] || 0;
+								}
+
 								fn.call(this, !file.info, {
 									  id:		file.id
 									, flashId:	file.flashId
 									, name:		file.name
 									, type:		file.type
-									, matrix:	this.getMatrix(file.info)
+									, matrix:	matrix
 								});
 							}
 						}
@@ -3106,7 +3111,6 @@
 								getResponseHeader: function (name){ return this.headers[name]; },
 								getAllResponseHeaders: function (){ return this.headers; }
 							};
-
 
 							var queue = api.queue(function (){
 								flash.cmd(flashId, 'upload', {

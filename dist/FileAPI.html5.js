@@ -266,7 +266,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.0',
+			version: '2.0.0b',
 
 			cors: false,
 			debug: false,
@@ -482,7 +482,6 @@
 					callback(false);
 				}
 			},
-
 
 
 			/**
@@ -1871,7 +1870,9 @@
 
 	};
 
+
 	Image.exifOrientation = exifOrientation;
+
 
 	Image.transform = function (file, transform, autoOrientation, fn){
 		function _transform(err, img){

@@ -114,7 +114,7 @@ package ru.mail.commands
 				{
 					matrix = new Matrix();
 					matrix.identity();
-					matrix.translate( -1*Math.ceil(imageTransform.sx), -1*Math.ceil(imageTransform.sy) );
+					matrix.translate( -1*Math.round(imageTransform.sx), -1*Math.round(imageTransform.sy) );
 					
 					currentImageMap = new BitmapData(imageTransform.sw, imageTransform.sh);
 					currentImageMap.draw(fullImageMap, matrix);
@@ -155,7 +155,7 @@ package ru.mail.commands
 						curWidth = 0.5*curWidth;
 						curHeight = 0.5*curHeight;
 						
-						currentImageMap = new BitmapData( Math.ceil( curWidth ), Math.ceil( curHeight ) );
+						currentImageMap = new BitmapData( Math.round( curWidth ), Math.round( curHeight ) );
 						
 						// TODO: set smoothing to false (nearest neighbour) - it should work the same
 						currentImageMap.draw(mapToScale, matrix, null, null, null, true );
@@ -172,18 +172,18 @@ package ru.mail.commands
 				// single-step
 				
 				// final size including rotation
-				var tw:Number = Math.ceil( Math.abs( Math.sin(angle)*imageTransform.dh ) + Math.abs( Math.cos(angle)*imageTransform.dw ) );
-				var th:Number = Math.ceil( Math.abs( Math.sin(angle)*imageTransform.dw ) + Math.abs( Math.cos(angle)*imageTransform.dh ) );
+				var tw:Number = Math.round( Math.abs( Math.sin(angle)*imageTransform.dh ) + Math.abs( Math.cos(angle)*imageTransform.dw ) );
+				var th:Number = Math.round( Math.abs( Math.sin(angle)*imageTransform.dw ) + Math.abs( Math.cos(angle)*imageTransform.dh ) );
 				
 				scaleX = imageTransform.dw/currentImageMap.width;
 				scaleY = imageTransform.dh/currentImageMap.height;
 				
 				matrix = new Matrix();
 				matrix.identity();
-				matrix.translate( -1*Math.ceil(0.5*currentImageMap.width), -1*Math.ceil(0.5*currentImageMap.height) );
+				matrix.translate( -1*Math.round(0.5*currentImageMap.width), -1*Math.round(0.5*currentImageMap.height) );
 				matrix.rotate( angle );
 				matrix.scale( scaleX, scaleY );
-				matrix.translate( Math.ceil(0.5*tw), Math.ceil(0.5*th) );
+				matrix.translate( Math.round(0.5*tw), Math.round(0.5*th) );
 				
 				resizedImageMap = new BitmapData( tw , th );
 				// resize with bilinear interpolation
