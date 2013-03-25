@@ -9,6 +9,7 @@ module.exports = function (grunt){
 			all: [
 				  'Gruntfile.js'
 				, 'lib/**/*.js'
+				, 'plugins/jquery.fileapi.js'
 			],
 
 			options: {
@@ -35,10 +36,11 @@ module.exports = function (grunt){
 
 		concat: {
 			options: {
-				  banner: '/*! <%= pkg.name %> v<%= pkg.version %> | <%= grunt.template.today("yyyy-mm-dd") %> | <%= pkg.repository.url %>\n' +
+				banner: '/*! <%= pkg.name %> <%= pkg.version %> - <%= pkg.license %> | <%= pkg.repository.url %>\n' +
 					' * <%= pkg.description %>\n' +
-					' */\n\n'
-				, separator: ';'
+					' */\n\n',
+
+				footer: 'if( typeof define === "function" && define.amd ){ define("<%= pkg.name %>", [], function (){ return <%= pkg.name %>; }); }'
 			},
 
 			all: {
@@ -48,6 +50,7 @@ module.exports = function (grunt){
 					, 'lib/FileAPI.Image.js'
 					, 'lib/FileAPI.Form.js'
 					, 'lib/FileAPI.XHR.js'
+					, 'lib/FileAPI.Camera.js'
 					, 'lib/FileAPI.Flash.js'
 				],
 				dest: 'dist/<%= pkg.name %>.js'
@@ -60,17 +63,19 @@ module.exports = function (grunt){
 					, 'lib/FileAPI.Image.js'
 					, 'lib/FileAPI.Form.js'
 					, 'lib/FileAPI.XHR.js'
+					, 'lib/FileAPI.Camera.js'
 				],
 				dest: 'dist/<%= pkg.name %>.html5.js'
 			}
 		},
 
 		uglify: {
-			options: { banner: '/*! <%= pkg.name %> v<%= pkg.version %> | <%= grunt.template.today("yyyy-mm-dd") %> | <%= pkg.repository.url %> */\n' },
+			options: { banner: '/*! <%= pkg.name %> <%= pkg.version %> - <%= pkg.license %> | <%= pkg.repository.url %> */\n' },
 			dist: {
 				files: {
 					  'dist/<%= pkg.name %>.min.js': ['<%= concat.all.dest %>']
 					, 'dist/<%= pkg.name %>.html5.min.js': ['<%= concat.html5.dest %>']
+					, 'dist/jquery.fileapi.min.js': ['plugins/jquery.fileapi.js']
 				}
 			}
 		}

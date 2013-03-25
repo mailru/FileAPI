@@ -1,28 +1,32 @@
 {
-  "name": "FileAPI",
-  "version": "2.0.0",
-  "devDependencies": {
-    "grunt": "~0.4.0",
-    "grunt-contrib-jshint": "~0.2.0",
-    "grunt-contrib-concat": "~0.1",
-    "grunt-contrib-uglify": "~0.1"
-  },
-  "description": "FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.",
-  "main": "FileAPI.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mailru/FileAPI.git"
-  },
-  "keywords": [
-    "FileAPI",
-    "upload",
-    "file",
-    "html5",
-    "chunked"
-  ],
-  "author": "Konstantin Lebedev, Demidov Vladimir",
-  "license": "BSD"
+	"name": "FileAPI",
+	"version": "2.0.0",
+	"devDependencies": {
+		"grunt": "~0.4.0",
+		"grunt-contrib-jshint": "~0.2.0",
+		"grunt-contrib-concat": "~0.1",
+		"grunt-contrib-uglify": "~0.1"
+	},
+	"description": "FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.",
+	"main": "FileAPI.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/mailru/FileAPI.git"
+	},
+	"keywords": [
+		"FileAPI",
+		"upload",
+		"file",
+		"html5",
+		"chunked"
+	],
+	"author": "Konstantin Lebedev <ibnRubaXa@gmail.com>",
+	"contributors": [
+		"Vladimir Demidov <v.demidov@corp.mail.ru>",
+		"Ilya Lebedev <ilya@lebedev.net>"
+	],
+	"license": "BSD"
 }

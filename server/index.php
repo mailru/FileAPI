@@ -77,16 +77,16 @@
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 
 	<script src="./FileAPI.js"></script>
-	<script src="./lib/canvas-to-blob.js"></script>
-	<script src="./lib/FileAPI.core.js"></script>
-	<script src="./lib/FileAPI.XHR.js"></script>
-	<script src="./lib/FileAPI.Form.js"></script>
-	<script src="./lib/FileAPI.Image.js"></script>
-	<script src="./lib/FileAPI.Flash.js"></script>
+	<script src="../lib/canvas-to-blob.js"></script>
+	<script src="../lib/FileAPI.core.js"></script>
+	<script src="../lib/FileAPI.XHR.js"></script>
+	<script src="../lib/FileAPI.Form.js"></script>
+	<script src="../lib/FileAPI.Image.js"></script>
+	<script src="../lib/FileAPI.Flash.js"></script>
+	<script src="../lib/FileAPI.Camera.js"></script>
 
-	<script src="./plugins/FileAPI.id3.js"></script>
-	<script src="./plugins/FileAPI.exif.js"></script>
-	<script src="./plugins/FileAPI.Camera.js"></script>
+	<script src="../plugins/FileAPI.id3.js"></script>
+	<script src="../plugins/FileAPI.exif.js"></script>
 
 	<style>
 		body {

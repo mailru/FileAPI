@@ -1,4 +1,4 @@
-/*! FileAPI v1.2.4 | 2013-03-07 | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.0.0 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -93,15 +93,18 @@
         window.dataURLtoBlob = dataURLtoBlob;
     }
 }(window));
-;/*jslint evil: true */
+
+/*jslint evil: true */
 /*global window, Image, Blob, XMLHttpRequest, URL, webkitURL, ActiveXObject */
 
-(function (window, undef){
+(function (window, jQuery, undef){
 	'use strict';
 
 	var
 		gid = 1,
 		noop = function (){},
+
+		document = window.document,
 		userAgent = window.navigator.userAgent,
 
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
@@ -110,7 +113,6 @@
 		File = window.File,
 		FileReader = window.FileReader,
 		FormData = window.FormData,
-		jQuery = window.jQuery,
 
 		html5 =    !!(File && (FileReader && window.Uint8Array || FormData))
 				&& !(/safari\//.test(userAgent) && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
@@ -119,28 +121,27 @@
 		
 		chunked = html5 && !!Blob && !!(Blob.prototype.webkitSlice || Blob.prototype.mozSlice || Blob.prototype.slice),
 
-		document = window.document,
-
 		// https://github.com/blueimp/JavaScript-Canvas-to-Blob
 		dataURLtoBlob = window.dataURLtoBlob,
 
+
 		_rimg = /img/i,
 		_rcanvas = /canvas/i,
-		_rimgcanvas = /img|canvas/,
+		_rimgcanvas = /img|canvas/i,
 		_rinput = /input/i,
 		_rdata = /^data:[^,]+,/,
 
-		Num = Number,
-		Math = Math,
+		Num = window.Number,
+		Math = window.Math,
 
 		_pow = Math.pow,
 		_round = Math.round,
-		_from = function (sz) { return _round(sz * this); },
 
-		_KB = new Num(1024),
-		_MB = new Num(_pow(_KB, 2)),
-		_GB = new Num(_pow(_KB, 3)),
-		_TB = new Num(_pow(_KB, 4)),
+		_SIZE_CONST = function (pow){
+			pow = new Num(_pow(1024, pow));
+			pow.from = function (sz){ return _round(sz * this); };
+			return	pow;
+		},
 
 		_elEvents = {}, // element event listeners
 		_infoReader = [], // list of file info processors
@@ -254,18 +255,24 @@
 		},
 
 
+		_supportInputAttr = function (attr){
+			var input = document.createElement('input');
+			input.setAttribute('type', "file");
+			return attr in input;
+		},
+
 
 		/**
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '1.2.4',
+			version: '2.0.0',
 
 			cors: false,
 			debug: false,
 			pingUrl: false,
 
-			staticPath: './',
+			staticPath: './dist/',
 
 			flashUrl: 0, // @default: './FileAPI.flash.swf'
 			flashImageUrl: 0, // @default: './FileAPI.flash.image.swf'
@@ -281,10 +288,10 @@
 			chunkUploadRetry : 0,
 			chunkNetworkDownRetryTimeout : 2000, // milliseconds, don't flood when network is down
 
-			KB: (_KB.from = _from, _KB),
-			MB: (_MB.from = _from, _MB),
-			GB: (_GB.from = _from, _GB),
-			TB: (_TB.from = _from, _TB),
+			KB: _SIZE_CONST(1),
+			MB: _SIZE_CONST(2),
+			GB: _SIZE_CONST(3),
+			TB: _SIZE_CONST(4),
 
 			expando: 'fileapi' + (new Date).getTime(),
 
@@ -326,7 +333,9 @@
 				cors:    cors,
 				html5:   html5,
 				chunked: chunked,
-				dataURI: true
+				dataURI: true,
+				accept:   _supportInputAttr('accept'),
+				multiple: _supportInputAttr('multiple')
 			},
 
 			event: {
@@ -458,8 +467,8 @@
 
 			/**
 			 * Async for
-			 *
-			 * @param	{Array}	array
+			 * @param {Array} array
+			 * @param {Function} callback
 			 */
 			afor: function (array, callback){
 				var i = 0, n = array.length;
@@ -480,15 +489,13 @@
 			 * Merge the contents of two or more objects together into the first object
 			 *
 			 * @param	{Object}	dst
-			 * @param	{Object}	[src]
 			 * @return	{Object}
 			 */
 			extend: function (dst){
-				_each(arguments, function (src){
-					_each(src, function (val, key){
-						dst[key] = val;
-					});
-				});
+				var args = arguments, i = 1, _ext = function (val, key){ dst[key] = val; };
+				for( ; i < args.length; i++ ){
+					_each(args[i], _ext);
+				}
 				return  dst;
 			},
 
@@ -815,6 +822,20 @@
 
 
 			/**
+			 * Get total file size
+			 * @param	{Array}	files
+			 * @return	{Number}
+			 */
+			getTotalSize: function (files){
+				var size = 0, i = files && files.length;
+				while( i-- ){
+					size += files[i].size;
+				}
+				return	size;
+			},
+
+
+			/**
 			 * Get image information
 			 *
 			 * @param	{File}		file
@@ -848,7 +869,7 @@
 					})();
 				}
 				else {
-					fn('not_support', info);
+					fn('not_support_info', info);
 				}
 			},
 
@@ -934,6 +955,7 @@
 					, chunkUpoloadRetry: api.chunkUploadRetry
 				}, options);
 
+
 				if( options.imageAutoOrientation && !options.imageTransform ){
 					options.imageTransform	= { rotate: 'auto' };
 				}
@@ -942,11 +964,9 @@
 				var
 					  proxyXHR = new api.XHR(options)
 					, dataArray = this._getFilesDataArray(options.files)
-					, total = 0
-					, loaded = 0
-					, _loaded = 0
-					, _part = 1 // part of total size
 					, _this = this
+					, _total = 0
+					, _loaded = 0
 					, _nextFile
 					, _complete = false
 				;
@@ -954,7 +974,7 @@
 
 				// calc total size
 				_each(dataArray, function (data){
-					total += data.size;
+					_total += data.size;
 				});
 
 				// Array of files
@@ -964,13 +984,14 @@
 				});
 
 				// Set upload status props
-				proxyXHR.total	= total;
+				proxyXHR.total	= _total;
 				proxyXHR.loaded	= 0;
 
 				// emit "beforeupload"  event
 				options.beforeupload(proxyXHR, options);
+
 				// Upload by file
-				( _nextFile = function _nextFile(){
+				_nextFile = function (){
 					var
 						  data = dataArray.shift()
 						, _file = data && data.file
@@ -988,8 +1009,8 @@
 						// Prepare file options
 						options.prepare(_file, _fileOptions);
 
-						this._getFormData(_fileOptions, data, function (form){
-							if( !loaded ){
+						_this._getFormData(_fileOptions, data, function (form){
+							if( !_loaded ){
 								// emit "upload" event
 								options.upload(proxyXHR, options);
 							}
@@ -1003,21 +1024,18 @@
 
 								progress: function (evt){
 									if( !_fileLoaded ){
-										loaded += (total * _part * (evt.loaded/evt.total) - _loaded + 0.5)|0;
-										_loaded = loaded;
-
-										data.total	= evt.total;
-										data.loaded	= evt.loaded;
-
 										// emit "fileprogress" event
-										options.fileprogress(evt, _file, xhr, _fileOptions);
+										options.fileprogress({
+											  type:   'progress'
+											, total:  data.total = evt.total
+											, loaded: data.loaded = evt.loaded
+										}, _file, xhr, _fileOptions);
 
 										// emit "progress" event
 										options.progress({
-											  type:   evt.type
-											, total:  total
-											, loaded: proxyXHR.loaded = loaded
-											, lengthComputable: true
+											  type:   'progress'
+											, total:  _total
+											, loaded: proxyXHR.loaded = (_loaded + data.size * (evt.loaded/evt.total))|0
 										}, _file, xhr, _fileOptions);
 									}
 								},
@@ -1027,25 +1045,26 @@
 										proxyXHR[name] = xhr[name];
 									});
 
-									// fixed throttle event
-									_fileLoaded = true;
-
 									data.loaded	= data.total;
 
+									// emulate 100% "progress"
+									this.progress(data);
+
 									// bytes loaded
-									proxyXHR.loaded = (loaded += (loaded - _loaded) + (total*_part + 0.5)|0);
+									_loaded += data.size; // data.size != data.total, it's desirable fix this
+									proxyXHR.loaded = _loaded;
 
 									// emit "filecomplete" event
 									options.filecomplete(err, xhr, _file, _fileOptions);
+
+									// fixed throttle event
+									_fileLoaded = true;
 
 									// upload next file
 									_nextFile.call(_this);
 								}
 							})); // xhr
 
-
-							// share of file size from the total size
-							_part = data.size / total;
 
 							// ...
 							proxyXHR.abort = function (current){ this.current = current; xhr.abort(); };
@@ -1059,32 +1078,39 @@
 						// Mark done state
 						_complete = true;
 					}
-				}).call(this);
+				};
+
+
+				// Next tick
+				setTimeout(_nextFile, 0);
+
 
 				// Append more files to the existing request
 				proxyXHR.append = function (files) {
 					files = api._getFilesDataArray(files);
 
 					_each(files, function (data) {
-						total += data.size;
+						_total += data.size;
 						proxyXHR.files.push(data.file);
 						dataArray.push(data);
 					});
 
-					if (_complete) {
+					if( _complete ){
 						_nextFile.call(_this);
 					}
 				};
 
+
 				// Removes file from queue by file reference and returns it
 				proxyXHR.remove = function (file) {
-				    var idx = -1;
-					_each(dataArray, function (data) {
-						idx++;
-						if (data.file == file) {
-							return dataArray.splice(idx, 1);
+				    var i = dataArray.length, _file;
+				    while( i-- ){
+						if( dataArray[i].file == file ){
+							_file = dataArray.splice(i, 1);
+							_total -= _file.size;
 						}
-					});
+					}
+					return	_file;
 				};
 
 				return proxyXHR;
@@ -1113,7 +1139,7 @@
 							add(file, name);
 						});
 					}
-					else if( file && file.name ){
+					else if( file && (file.name || file.image) ){
 						files.push({
 							  name: name
 							, file: file
@@ -1137,58 +1163,70 @@
 					, trans = api.support.transform && options.imageTransform
 					, Form = new api.Form
 					, queue = api.queue(function (){ fn(Form); })
-					, isOrignTrans = trans && (parseInt(trans.maxWidth || trans.minWidth || trans.width, 10) > 0 || trans.rotate)
+					, isOrignTrans = trans && (parseInt(trans.maxWidth || trans.minWidth || trans.width, 10) > 0 || trans.rotate || trans.crop)
 				;
 
+				(function _addFile(file/**Object*/){
+					if( file.image ){ // This is a FileAPI.Image
+						queue.inc();
 
-				if( api.Image && trans && (/image/.test(file.type) || _rimgcanvas.test(file.nodeType)) ){
-					queue.inc();
+						file.get(function (err, image){
+							// @todo: error
+							_addFile(image);
 
-					if( isOrignTrans ){
-						// Convert to array for transform function
-						trans = [trans];
+							queue.next();
+						});
 					}
+					else if( api.Image && trans && (/^image/.test(file.type) || _rimgcanvas.test(file.nodeName)) ){
+						queue.inc();
 
-					api.Image.transform(file, trans, options.imageAutoOrientation, function (err, images){
-						if( isOrignTrans && !err ){
-							if( !dataURLtoBlob && !api.flashEngine ){
-								images[0] = api.toBinaryString(images[0]);
-								Form.multipart = true;
-							}
-
-							Form.append(name, images[0], filename, filetype);
-						}
-						else {
-							if( !err ){
-								_each(images, function (image, idx){
-									if( !dataURLtoBlob && !api.flashEngine ){
-										image = api.toBinaryString(image);
-										Form.multipart = true;
-									}
-
-									Form.append(name +'['+ idx +']', image, filename, filetype);
-								});
-
-								name += '[original]';
-							}
-
-							if( err || options.imageOriginal ){
-								Form.append(name, file, filename, filetype);
-							}
+						if( isOrignTrans ){
+							// Convert to array for transform function
+							trans = [trans];
 						}
 
-						queue.next();
-					});
-				}
-				else {
-					Form.append(name, file, filename);
-				}
+						api.Image.transform(file, trans, options.imageAutoOrientation, function (err, images){
+							if( isOrignTrans && !err ){
+								if( !dataURLtoBlob && !api.flashEngine ){
+									images[0] = api.toBinaryString(images[0]);
+									Form.multipart = true;
+								}
+
+								Form.append(name, images[0], filename, filetype);
+							}
+							else {
+								if( !err ){
+									_each(images, function (image, idx){
+										if( !dataURLtoBlob && !api.flashEngine ){
+											image = api.toBinaryString(image);
+											Form.multipart = true;
+										}
+
+										Form.append(name +'['+ idx +']', image, filename, filetype);
+									});
+
+									name += '[original]';
+								}
+
+								if( err || options.imageOriginal ){
+									Form.append(name, file, filename, filetype);
+								}
+							}
+
+							queue.next();
+						});
+					}
+					else {
+						Form.append(name, file, filename);
+					}
+				})(file);
+
 
 				// Append data
 				_each(options.data, function add(val, name){
 					if( typeof val == 'object' ){
-						_each(val, function (v, i){
-							add(v, name+'['+i+']');
+						_each(val, function (v, key){
+							add(v, name+'['+key+']');
 						});
 					}
 					else {
@@ -1489,7 +1527,13 @@
 	});
 
 
-	// Special event
+	/**
+	 * Drag'n'Drop special event
+	 *
+	 * @param	{HTMLElement}	el
+	 * @param	{Function}		onHover
+	 * @param	{Function}		onDrop
+	 */
 	api.event.dnd = function (el, onHover, onDrop){
 		var _id, _type;
 
@@ -1549,11 +1593,29 @@
 	};
 
 
+	/**
+	 * Remove drag'n'drop
+	 * @param	{HTMLElement}	el
+	 * @param	{Function}		onHover
+	 * @param	{Function}		onDrop
+	 */
+	api.event.dnd.remove = function (el, onHover, onDrop){
+		_off(el, 'dragenter dragleave dragover', onHover);
+		_off(el, 'drop', onDrop);
+	};
+
+
 	// Support jQuery
 	if( jQuery && !jQuery.fn.dnd ){
 		jQuery.fn.dnd = function (onHover, onDrop){
 			return this.each(function (){
 				api.event.dnd(this, onHover, onDrop);
+			});
+		};
+
+		jQuery.fn.removednd = function (onHover, onDrop){
+			return this.each(function (){
+				api.event.dnd.remove(this, onHover, onDrop);
 			});
 		};
 	}
@@ -1566,8 +1628,9 @@
 	// @configuration
 	if( !api.flashUrl ){ api.flashUrl = api.staticPath + 'FileAPI.flash.swf'; }
 	if( !api.flashImageUrl ){ api.flashImageUrl = api.staticPath + 'FileAPI.flash.image.swf'; }
-})(window);
-;/*global FileAPI, document */
+})(window, window.jQuery);
+
+/*global FileAPI, document */
 
 (function (api, document, undef){
 	'use strict';
@@ -1577,7 +1640,7 @@
 		round = Math.round,
 		getCanvas = function (){ return document.createElement('canvas'); },
 		support = false,
-		exitOrientation = {
+		exifOrientation = {
 			  8:	270
 			, 3:	180
 			, 6:	90
@@ -1591,8 +1654,13 @@
 
 
 	function Image(file, low){
-		if( !(this instanceof Image) ){
-			return	new Image(file);
+		if( file instanceof Image ){
+			var img = new Image(file.file, low);
+			api.extend(img.matrix, file.matrix);
+			return	img;
+		}
+		else if( !(this instanceof Image) ){
+			return	new Image(file, low);
 		}
 
 		this.file   = file;
@@ -1610,7 +1678,10 @@
 			deg: 0
 		};
 	}
+
+
 	Image.prototype = {
+		image: true,
 		constructor: Image,
 
 		set: function (attrs){
@@ -1646,9 +1717,15 @@
 
 		_load: function (image, fn){
 			var self = this;
-			api.readAsImage(image, function (evt){
-				fn.call(self, evt.type != 'load', evt.result);
-			});
+
+			if( /img|video/i.test(image.nodeName) ){
+				fn.call(self, null, image);
+			}
+			else {
+				api.readAsImage(image, function (evt){
+					fn.call(self, evt.type != 'load', evt.result);
+				});
+			}
 		},
 
 		_apply: function (image, fn){
@@ -1656,17 +1733,19 @@
 				  canvas = getCanvas()
 				, m = this.getMatrix(image)
 				, ctx = canvas.getContext('2d')
+				, width = image.videoWidth || image.width
+				, height = image.videoHeight || image.height
 				, deg = m.deg
 				, dw = m.dw
 				, dh = m.dh
-				, w = image.width
-				, h = image.height
+				, w = width
+				, h = height
 				, copy, buffer = image
 			;
 
 
 			if( this.better ){
-				while( Math.min(w/dw, h/dh) > 2 ){
+				while( min(w/dw, h/dh) > 2 ){
 					w = ~~(w/2 + 0.5);
 					h = ~~(h/2 + 0.5);
 
@@ -1705,10 +1784,10 @@
 		getMatrix: function (image){
 			var
 				  m  = api.extend({}, this.matrix)
-				, sw = m.sw = m.sw || image.width
-				, sh = m.sh = m.sh || image.height
-				, dw = m.dw = m.dw || m.sw
-				, dh = m.dh = m.dh || m.sh
+				, sw = m.sw = m.sw || image.videoWidth || image.width
+				, sh = m.sh = m.sh || image.videoHeight || image.height
+				, dw = m.dw = m.dw || sw
+				, dh = m.dh = m.dh || sh
 				, sf = sw/sh, df = dw/dh
 				, type = m.resize
 			;
@@ -1764,14 +1843,15 @@
 			});
 		},
 
+
 		get: function (fn){
 			if( api.support.transform ){
-				var _this = this;
+				var _this = this, matrix = _this.matrix;
 
-				if( _this.matrix.deg == 'auto' ){
-					api.getInfo(this.file, function (err, info){
+				if( matrix.deg == 'auto' ){
+					api.getInfo(_this.file, function (err, info){
 						// rotate by exif orientation
-						_this.matrix.deg = exitOrientation[info && info.exif && info.exif.Orientation] || 0;
+						matrix.deg = exifOrientation[info && info.exif && info.exif.Orientation] || 0;
 						_this._trans(fn);
 					});
 				}
@@ -1780,9 +1860,10 @@
 				}
 			}
 			else {
-				fn('not_support');
+				fn('not_support_transform');
 			}
 		},
+
 
 		toData: function (fn){
 			this.get(fn);
@@ -1790,11 +1871,11 @@
 
 	};
 
+	Image.exifOrientation = exifOrientation;
 
 	Image.transform = function (file, transform, autoOrientation, fn){
-		api.getInfo(file, function (err, img){
+		function _transform(err, img){
 			// img -- info object
-
 			var
 				  images = {}
 				, queue = api.queue(function (err){
@@ -1819,6 +1900,11 @@
 							}
 						}
 
+						if( params.crop ){
+							var crop = params.crop;
+							ImgTrans.crop(crop.x|0, crop.y|0, crop.w || crop.width, crop.h || crop.height);
+						}
+
 						if( params.rotate === undef && autoOrientation ){
 							params.rotate = 'auto';
 						}
@@ -1841,17 +1927,29 @@
 			else {
 				queue.fail();
 			}
-		});
+		}
+
+
+		// @todo: Оло-ло, нужно рефакторить это место
+		if( file.width ){
+			_transform(false, file);
+		} else {
+			api.getInfo(file, _transform);
+		}
 	};
+
 
 
 	// @export
 	api.support.canvas = api.support.transform = support;
 	api.Image = Image;
 })(FileAPI, document);
-;/*global window, FileAPI */
+
+/*global window, FileAPI */
 
 (function (api, window){
+	"use strict";
+
 	var
 		  encode = window.encodeURIComponent
 		, document = window.document
@@ -2010,9 +2108,12 @@
 	// @export
 	api.Form = Form;
 })(FileAPI, window);
-;/*global window, FileAPI, Uint8Array */
+
+/*global window, FileAPI, Uint8Array */
 
 (function (window, api){
+	"use strict";
+
 	var
 		  noop = function (){}
 		, document = window.document
@@ -2025,13 +2126,16 @@
 				, getAllResponseHeaders: noop
 			};
 			this.options = options;
-		}
+		},
+
+		_xhrResponsePostfix = { '': 1, XML: 1, Text: 1, Body: 1 }
 	;
 
 
 	XHR.prototype = {
 		status: 0,
 		statusText: '',
+		constructor: XHR,
 
 		getResponseHeader: function (name){
 			return this.xhr.getResponseHeader(name);
@@ -2183,7 +2287,7 @@
 						_this.readyState = xhr.readyState;
 
 						if( xhr.readyState == 4 ){
-							for( var k in { '': 1, XML: 1, Text: 1, Body: 1 } ){
+							for( var k in _xhrResponsePostfix ){
 								_this['response'+k]  = xhr['response'+k];
 							}
 							xhr.onreadystatechange = null;
@@ -2266,7 +2370,7 @@
 						_this.readyState = xhr.readyState;
 
 						if( xhr.readyState == 4 ){
-							for( var k in { '': 1, XML: 1, Text: 1, Body: 1 } ){
+							for( var k in _xhrResponsePostfix ){
 								_this['response'+k]  = xhr['response'+k];
 							}
 							xhr.onreadystatechange = null;
@@ -2302,16 +2406,242 @@
 	// @export
 	api.XHR = XHR;
 })(window, FileAPI);
-;/**
+
+/**
+ * @class	FileAPI.Camera
+ * @author	RubaXa	<trash@rubaxa.org>
+ * @support	Chrome 21+, FF 18+, Opera 12+
+ */
+
+/*global window, FileAPI, jQuery */
+/** @namespace LocalMediaStream -- https://developer.mozilla.org/en-US/docs/WebRTC/MediaStream_API#LocalMediaStream */
+(function (window, api){
+	"use strict";
+
+	var
+		URL = window.URL || window.webkitURL,
+
+		document = window.document,
+		navigator = window.navigator,
+
+		getMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia,
+
+		html5 = !!getMedia
+	;
+
+
+	// Support "media"
+	api.support.media = html5;
+
+
+	var Camera = function (video){
+		this.video = video;
+	};
+
+
+	Camera.prototype = {
+		isActive: function (){
+			var stream = this.stream;
+			return	stream ? stream.readyState == stream.LIVE : false;
+		},
+
+
+		/**
+		 * Start camera streaming
+		 * @param	{Function}	callback
+		 */
+		start: function (callback){
+			var
+				  _this = this
+				, video = _this.video
+				, _successId
+				, _failId
+				, _complete = function (err){
+					clearTimeout(_failId);
+					clearTimeout(_successId);
+					api.event.off(video, 'loadedmetadata', _complete);
+					callback && callback(err, _this);
+				}
+			;
+
+			getMedia.call(navigator, { video: true }, function (stream/**LocalMediaStream*/){
+				// Success
+				_this.stream = stream;
+
+				// Set camera stream
+				video.src = URL.createObjectURL(stream);
+
+				api.event.on(video, 'loadedmetadata', function (){
+					_complete(null);
+				});
+
+				// Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
+				// See crbug.com/110938.
+				_successId = setInterval(function (){
+					if( _detectVideoSignal(video) ){
+						_complete(null);
+					}
+				}, 1000);
+
+				_failId = setTimeout(function (){
+					_complete('timeout');
+				}, 5000);
+
+				// Go-go-go!
+				video.play();
+			}, _complete/*error*/);
+		},
+
+
+		/**
+		 * Stop camera streaming
+		 */
+		stop: function (){
+			try {
+				this.video.pause();
+				this.stream.stop();
+			} catch( err ){ }
+		},
+
+
+		/**
+		 * Create screenshot
+		 * @return {FileAPI.Camera.Shot}
+		 */
+		shot: function (){
+			return	new Shot(this.video);
+		}
+	};
+
+
+	/**
+	 * Get camera element from container
+	 *
+	 * @static
+	 * @param	{HTMLElement}	el
+	 * @return	{Camera}
+	 */
+	Camera.get = function (el){
+		return	new Camera(el.firstChild);
+	};
+
+
+	/**
+	 * Publish camera element into container
+	 *
+	 * @static
+	 * @param	{HTMLElement}	el
+	 * @param	{Object}		options
+	 * @param	{Function}		[callback]
+	 */
+	Camera.publish = function (el, options, callback){
+		if( typeof options == 'function' ){
+			callback = options;
+			options = {};
+		}
+
+		// Dimensions of "camera"
+		options = api.extend({}, {
+			  width:	'100%'
+			, height:	'100%'
+			, start:	true
+		}, options);
+
+
+		if( el.jquery ){
+			// Extract first element, from jQuery collection
+			el = el[0];
+		}
+
+
+		if( html5 ){
+			// Create video element
+			var video = document.createElement('video'), cam;
+
+			// Set dimensions
+			video.style.width	= _px(options.width);
+			video.style.height	= _px(options.height);
+
+			// Clean container
+			if( window.jQuery ){
+				jQuery(el).empty();
+			} else {
+				el.innerHTML = '';
+			}
+
+			// Add "camera" to container
+			el.appendChild(video);
+
+			// Get camera
+			cam = Camera.get(el);
+			if( options.start ){
+				cam.start(callback);
+			}
+			else {
+				callback(null, cam);
+			}
+		}
+		else {
+			callback('not_support_camera');
+		}
+	};
+
+
+	/**
+	 * @class	FileAPI.Camera.Shot
+	 */
+	var Shot = function (video){
+		var shot = new api.Image(video);
+		shot.type	= 'image/png';
+		shot.width	= video.videoWidth;
+		shot.height	= video.videoHeight;
+		shot.size	= shot.width * shot.height * 4;
+		return	shot;
+	};
+
+
+	/**
+	 * Add "px" postfix, if value is a number
+	 *
+	 * @private
+	 * @param	{*}  val
+	 * @return	{String}
+	 */
+	function _px(val){
+		return	val >= 0 ? val + 'px' : val;
+	}
+
+
+	/**
+	 * @private
+	 * @param	{HTMLVideoElement} video
+	 * @return	{Boolean}
+	 */
+	function _detectVideoSignal(video){
+		var canvas = document.createElement('canvas'), ctx, res = false;
+		try {
+			ctx = canvas.getContext('2d');
+			ctx.drawImage(video, 0, 0);
+			res = ctx.getImageData(0, 0, 1, 1).data[4] != 255;
+		}
+		catch( e ){}
+		return	res;
+	}
+
+	// @export
+	api.Camera = Camera;
+})(window, FileAPI);
+
+/**
  * FileAPI fallback to Flash
  *
  * @flash-developer  "Vladimir Demidov" <v.demidov@corp.mail.ru>
  */
 
 /*global window, Image, ActiveXObject, FileAPI */
+(function (window, jQuery, api){
+	"use strict";
 
-
-(function (window, api){
 	var
 		  document = window.document
 		, location = window.location
@@ -2337,7 +2667,7 @@
 	})();
 
 
-	api.support.flash && (0 || !api.support.html5 || api.cors && !api.support.cors) && (function (){
+	api.support.flash && (api.onlyFlash || !api.support.html5 || api.cors && !api.support.cors) && (function (){
 		var
 			  _attr  = api.uid()
 			, _retry = 0
@@ -2523,7 +2853,7 @@
 							accept.push( ext );
 						});
 
-						flash.cmd(evt, 'accept', accept.length ? '.'+accept.join(',.') : '*');
+						flash.cmd(evt, 'accept', accept.length ? accept.join(',')+','+accept.join(',').toUpperCase() : '*');
 					}
 				},
 
@@ -2558,11 +2888,16 @@
 
 					if( document.createEvent ){
 						event = document.createEvent('Event');
-						event.initEvent ('change', true, false);
+						event.files = files;
+						event.initEvent('change', true, true);
 						inp.dispatchEvent(event);
 					}
-					else if( document.createEventObject ){
+					else if( jQuery ){
+						jQuery(inp).trigger({ type: 'change', files: files });
+					}
+					else {
 						event = document.createEventObject();
+						event.files = files;
 						inp.fireEvent('onchange', event);
 					}
 				},
@@ -2909,10 +3244,14 @@
 			var _id, flashId = api.uid(), el = document.createElement('div');
 
 			for( _id in opts ){
-				el.setAttribute('data-img-' + _id, opts[_id]);
+				el.setAttribute(_id, opts[_id]);
+				el[_id] = opts[_id];
 			}
 
 			_css(el, opts);
+
+			opts.width	= '100%';
+			opts.height	= '100%';
 
 			el.innerHTML = _makeFlashHTML(api.extend({
 				  id: flashId
@@ -2964,4 +3303,5 @@
 		});
 		dataURICheck.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 	})();
-})(window, FileAPI);
+})(window, window.jQuery, FileAPI);
+if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }

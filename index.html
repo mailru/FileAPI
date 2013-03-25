@@ -1,0 +1,440 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+
+	<title>FileAPI — a set of  javascript tools for working with files.</title>
+
+	<meta name="keywords" content="FileAPI, html5, upload, multiupload, dragndrop, chunk, chunked, file, image, crop, resize, rotate"/>
+	<meta name="description" content="FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF."/>
+
+	<link href="http://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet" type="text/css"/>
+	<link href="./statics/main.css" rel="stylesheet" type="text/css"/>
+	<link href="./dist/jcrop/jquery.Jcrop.min.css" rel="stylesheet" type="text/css"/>
+
+	<script src="//code.jquery.com/jquery-1.8.2.min.js"></script>
+	<script>!window.jQuery && document.write('<script src="/js/jquery.dev.js"><'+'/script>');</script>
+
+	<script>
+		var FileAPI = {
+			  debug: true
+			, onlyFlash: true
+			, staticPath: '/FileAPI/dist/'
+		};
+
+		var examples = [];
+	</script>
+
+	<script src="./lib/canvas-to-blob.js"></script>
+	<script src="./lib/FileAPI.core.js?1"></script>
+	<script src="./lib/FileAPI.Image.js?1"></script>
+	<script src="./lib/FileAPI.Form.js?1"></script>
+	<script src="./lib/FileAPI.XHR.js?1"></script>
+	<script src="./lib/FileAPI.Camera.js?1"></script>
+	<script src="./lib/FileAPI.Flash.js?1"></script>
+</head>
+<body>
+	<div>
+		<div class="body__top"></div>
+		<div class="logo logo_small" style="position: absolute; left: 18px; top: 20px;"></div>
+		<a class="view-on-github" href="https://github.com/mailru/FileAPI/"></a>
+
+		<div class="splash">
+			<div class="splash__inner">
+				<div class="splash__blind">
+					<div class="splash__logo"></div>
+					<div class="splash__click-here"></div>
+				</div>
+				<div class="splash__cam"></div>
+			</div>
+		</div>
+
+		<div class="content">
+			<div class="content__head"></div>
+
+			<div class="example">
+				<table>
+					<tr>
+						<td class="example__left">
+
+							<div id="simple">
+								<div class="btn btn_browse js-fileapi-wrapper">
+									<div class="js-browse">
+										<span>Browse</span>
+										<input class="btn__inp" type="file" name="filedata" />
+									</div>
+									<div class="js-upload" style="display: none">
+										<div class="js-progress btn__progress"></div>
+										<span>Uploading</span>
+										(<span class="js-size"></span>)
+									</div>
+								</div>
+							</div>
+
+						</td>
+						<td class="example__right">
+							<h2>Simple button</h2>
+						</td>
+					</tr>
+				</table>
+				<script>
+					examples.push(function (){
+						$('#simple').fileapi({
+							url: 'http://local.git/FileAPI/server/ctrl.php',
+							multiple: true,
+							maxSize: 20 * FileAPI.MB,
+							autoUpload: true,
+							elements: {
+								active: { show: '.js-upload', hide: '.js-browse' },
+								size: '.js-size',
+								progress: '.js-progress'
+							}
+						});
+					});
+				</script>
+			</div>
+
+			<div class="example">
+				<table id="userpic">
+					<tr>
+						<td class="example__left">
+
+							<div class="userpic">
+								<div class="js-preview userpic__preview"></div>
+								<div class="btn btn_choose js-fileapi-wrapper">
+									<div class="js-browse">
+										<span>Choose</span>
+										<input class="btn__inp" type="file" name="filedata"/>
+									</div>
+									<div class="js-upload" style="display: none;">
+										<span>Uploading</span>
+										<div class="js-progress-bar btn__progress"></div>
+									</div>
+								</div>
+							</div>
+
+						</td>
+						<td class="example__right">
+							<h2>Userpic</h2>
+						</td>
+					</tr>
+				</table>
+				<script>
+					examples.push(function (){
+						$('#userpic').fileapi({
+							url: 'http://local.git/FileAPI/server/ctrl.php',
+							accept: 'image/*',
+							imageSize: { minWidth: 200, minHeight: 200 },
+							elements: {
+								active: { show: '.js-upload', hide: '.js-browse' },
+								preview: {
+									el: '.js-preview',
+									width: 200,
+									height: 200,
+									rotate: 'auto' /* by exif */
+								},
+								progress: '.js-progress-bar'
+							},
+							onSelect: function (evt, ui){
+								var file = ui.files[0];
+
+								if( file ){
+									$('#popup').modal({
+										closeOnEsc: false,
+										closeOnOverlayClick: false,
+										onOpen: function (overlay){
+											$(overlay).on('click', '.js-upload', function (){
+												$('#popup').modal().close();
+												$('#userpic').fileapi('upload');
+											});
+
+											$('.js-img', overlay).cropper({
+												file: file,
+												bgColor: '#fff',
+												maxSize: [$(window).width()-100, $(window).height()-100],
+												minSize: [200, 200],
+												aspectRatio: 1,
+												onSelect: function (coords){
+													$('#userpic').fileapi('crop', file, coords);
+												}
+											});
+										}
+									}).open();
+								}
+							}
+						});
+					});
+				</script>
+			</div>
+
+			<div class="example">
+				<table id="file-upload">
+					<tr>
+						<td class="example__left" style="text-align: left;">
+
+							<form class="b-upload" action="http://local.git/FileAPI/server/ctrl.php" method="POST" enctype="multipart/form-data">
+								<div class="btn btn_browse btn_browse_small js-fileapi-wrapper">
+									<span>Browse</span>
+									<input class="btn__inp" type="file" name="filedata" />
+								</div>
+								<span class="js-info">
+									<span class="js-name b-upload__name"></span>
+									<span class="b-upload__size">(<span class="js-size"></span>)</span>
+								</span>
+
+								<hr/>
+
+								<button class="js-send" type="submit">Send</button>
+								<button class="js-reset" type="reset">reset</button>
+							</form>
+
+						</td>
+						<td class="example__right">
+							<h2>File upload</h2>
+						</td>
+					</tr>
+				</table>
+				<script>
+					examples.push(function (){
+						$('#file-upload').fileapi({
+							elements: {
+								ctrl: { upload: '.js-send', reset: '.js-reset' },
+								name: '.js-name',
+								size: '.js-size',
+								empty: { hide: '.js-info' }
+							}
+						});
+					});
+				</script>
+			</div>
+
+			<div class="example">
+				<table id="multiupload">
+					<tr>
+						<td class="example__left" style="text-align: left;">
+
+							<form class="b-upload b-upload_multi" action="http://local.git/FileAPI/server/ctrl.php" method="POST" enctype="multipart/form-data">
+								<div class="js-files b-upload__files">
+									<div class="js-file-tpl b-thumb" data-id="<%=uid%>" title="<%-name%>, <%-sizeText%>">
+										<div class="b-thumb__preview">
+											<div class="b-thumb__preview__pic"></div>
+										</div>
+										<% if( /^image/.test(type) ){ %>
+											<div data-fileapi="rotate.cw" class="b-thumb__rotate"></div>
+										<% } %>
+										<div class="b-thumb__progress fileprogress"><div class="fileprogress__bar"></div></div>
+										<div class="b-thumb__name"><%-name%></div>
+									</div>
+								</div>
+
+								<hr/>
+								<div class="btn btn_browse btn_browse_small js-fileapi-wrapper">
+									<span>Add</span>
+									<input class="btn__inp" type="file" name="filedata" />
+								</div>
+								<div class="js-upload btn btn_browse btn_browse_small">
+									<span>Upload</span>
+								</div>
+							</form>
+
+						</td>
+						<td class="example__right">
+							<h2>Multiupload</h2>
+						</td>
+					</tr>
+				</table>
+				<script>
+					examples.push(function (){
+						$('#multiupload').fileapi({
+							multiple: true,
+							elements: {
+								ctrl: { upload: '.js-upload' },
+								empty: { hide: '.js-size, .js-upload' },
+								list: '.js-files',
+								file: {
+									tpl: '.js-file-tpl',
+									preview: {
+										el: '.b-thumb__preview',
+										width: 80,
+										height: 80
+									},
+									upload: { show: '.fileprogress', hide: '.b-thumb__rotate' },
+									complete: { hide: '.fileprogress' },
+									progress: '.fileprogress__bar'
+								},
+								size: '.js-size'
+							}
+						});
+					});
+				</script>
+			</div>
+
+			<div class="example">
+				<table id="dnd">
+					<tr>
+						<td class="example__left" style="text-align: left;">
+
+							<div class="b-upload b-upload_dnd">
+								<div class="b-upload__dnd">Drag and drop, automatic upload</div>
+								<div class="js-files b-upload__files">
+									<div class="js-file-tpl b-thumb" data-id="<%=uid%>" title="<%-name%>, <%-sizeText%>">
+										<div class="b-thumb__preview">
+											<div class="b-thumb__preview__pic"></div>
+										</div>
+										<div class="b-thumb__progress fileprogress"><div class="fileprogress__bar"></div></div>
+										<div class="b-thumb__name"><%-name%></div>
+									</div>
+								</div>
+							</div>
+
+						</td>
+						<td class="example__right">
+							<h2>Drag'n'drop upload</h2>
+						</td>
+					</tr>
+				</table>
+				<script>
+					examples.push(function (){
+						$('#dnd').fileapi({
+							url: 'http://local.git/FileAPI/server/ctrl.php',
+							postName: 'filedata',
+							autoUpload: true,
+							elements: {
+								list: '.js-files',
+								file: {
+									tpl: '.js-file-tpl',
+									preview: {
+										el: '.b-thumb__preview',
+										width: 80,
+										height: 80
+									},
+									upload: { show: '.fileprogress' },
+									complete: { hide: '.fileprogress' },
+									progress: '.fileprogress__bar'
+								},
+								dnd: {
+									el: '.b-upload__dnd',
+									hover: 'b-upload__dnd_hover'
+								}
+							}
+						});
+					});
+				</script>
+			</div>
+
+		</div>
+	</div>
+
+
+	<div id="popup" class="popup" style="display: none;">
+		<div class="popup__body"><div class="js-img"></div></div>
+		<div style="margin: 0 0 5px; text-align: center;">
+			<div class="js-upload btn btn_browse btn_browse_small">Upload</div>
+		</div>
+	</div>
+
+
+
+	<script src="//yandex.st/highlightjs/7.2/highlight.min.js"></script>
+	<script src="//yandex.st/jquery/easing/1.3/jquery.easing.min.js"></script>
+
+	<script src="./plugins/jquery.fileapi.js"></script>
+	<script src="./dist/jcrop/jquery.Jcrop.min.js"></script>
+	<script src="./statics/jquery.modal.js"></script>
+
+	<script>
+		jQuery(function ($){
+			var $blind = $('.splash__blind');
+
+			$('.splash')
+				.mouseenter(function (){
+					$('.splash__blind', this)
+						.animate({ top: -10 }, 'fast', 'easeInQuad')
+						.animate({ top: 0 }, 'slow', 'easeOutBounce')
+					;
+				})
+				.click(function (){
+					$(this).off();
+
+					FileAPI.Camera.publish($('.splash__cam'), function (err, cam){
+						if( err ){
+							alert('Не удалось получить доступ к камере.');
+						} else {
+							$blind.animate({ top: -$(this).height() }, 'slow', 'easeOutQuart');
+						}
+					});
+				})
+			;
+
+
+			$('.example').each(function (){
+				var $example = $(this);
+
+				$example.find('h2').append('<div class="example__tabs"><a class="active" data-tab="javascript">code</a> <a data-tab="html">html</a></div>');
+
+				$('<div></div>')
+					.append('<div data-code="javascript"><pre><code>'+ $.trim(_getCode($example.find('script'))) +'</code></pre></div>')
+					.append('<div data-code="html" style="display: none"><pre><code>'+ $.trim(_getCode($example.find('.example__left'), true)) +'</code></pre></div>')
+					.appendTo($example.find('.example__right'))
+					.find('[data-code]').each(function (){
+						/** @namespace hljs -- highlight.js */
+						if( window.hljs ){
+							this.className = 'example__code language-' + $.attr(this, 'data-code');
+							hljs.highlightBlock(this);
+						}
+					})
+				;
+			});
+
+
+			$('body').on('click', '[data-tab]', function (evt){
+				evt.preventDefault();
+
+				var el = evt.currentTarget;
+				var tab = $.attr(el, 'data-tab');
+				var $example = $(el).closest('.example');
+
+				$example
+					.find('[data-tab]')
+						.removeClass('active')
+						.filter('[data-tab="'+tab+'"]')
+							.addClass('active')
+							.end()
+						.end()
+					.find('[data-code]')
+						.hide()
+						.filter('[data-code="'+tab+'"]').show()
+				;
+			});
+
+
+			function _getCode(node, all){
+				var code = FileAPI.filter($(node).prop('innerHTML').split('\n'), function (str){ return !!str; });
+				if( !all ){
+					code = code.slice(1, -2);
+				}
+
+				var tabSize = (code[0].match(/^\t+/) || [''])[0].length;
+
+				return $('<div/>')
+					.text($.map(code, function (line){
+						return line.substr(tabSize).replace(/\t/g, '   ');
+					}).join('\n'))
+					.prop('innerHTML')
+						.replace(/ disabled=""/g, '')
+						.replace(/&amp;lt;%/g, '<%')
+						.replace(/%&amp;gt;/g, '%>')
+				;
+			}
+
+
+			// Init examples
+			FileAPI.each(examples, function (fn){
+				fn();
+			});
+		});
+	</script>
+
+</body>
+</html>
