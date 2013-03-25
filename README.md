@@ -672,6 +672,7 @@ All the other codes - fatal error, user's involvement is recommend.
 ## Changelog
 ### 1.2.4
  * Fixed auto orientation image by EXIF (Flash)
+ * Fixed image dimensions after rotate (Flash)
 
 
 ### 1.2.3
