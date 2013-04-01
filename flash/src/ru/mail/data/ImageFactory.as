@@ -5,7 +5,7 @@ package ru.mail.data
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
-	
+
 	import ru.mail.commands.DecodeBytesToBitmapCommand;
 	import ru.mail.commands.LoadFileCommand;
 	import ru.mail.commands.ResizeFileCommand;
@@ -29,30 +29,36 @@ package ru.mail.data
 	public class ImageFactory extends EventDispatcher implements IImageFactory 
 	{
 		private var file:IFileVO;
-		
+
 		private var loadCommand:LoadFileCommand;
-		
+
+		private var isFileLoaded:Boolean = false;
+		private var isOverlayLoaded:Boolean = false;
+
 		public function ImageFactory(target:IFileVO)
 		{
 			if (!target) {
 				throw new Error("{ImageFactory} - init: target is null");
 			}
-			
+
 			file = target;
 		}
-		
+
 		public function createImage(imageTransform:ImageTransformVO):void {
+			isFileLoaded = false;
+			isOverlayLoaded = false;
+
 			if (!file.fileData) {
 				// first load file
 				if( file is FileVO) {
 					var loadFileCommand:LoadFileCommand = (file as FileVO).loadCommand? (file as FileVO).loadCommand as LoadFileCommand : new LoadFileCommand(file as FileVO);
-					
+
 					loadFileCommand.addEventListener(ImageTransformCompleteEvent.TYPE, function(event:ImageTransformCompleteEvent):void{
 						event.currentTarget.removeEventListener(event.type, arguments.callee);
 						trace ("loadCommand complete", event.isSuccess);
 						loadCommand = null;
 						if(event.isSuccess) {
-							checkImageData(imageTransform);
+							onLoadImageAndOverlay(true, imageTransform);
 						}
 						else {
 							complete( false, event.data, event.error );
@@ -64,15 +70,22 @@ package ru.mail.data
 				}
 			}
 			else {
-				checkImageData(imageTransform);
+				onLoadImageAndOverlay(true, imageTransform);
+			}
+
+			// check overlay
+			if ( imageTransform.overlay ) {
+				// todo: wait for all overlay images to load and then proceed
+
+				//onLoadImageAndOverlay(false, imageTransform);
 			}
 		}
-		
+
 		public function readExif():Object {
 			if (!file.fileData) {
 				return null;
 			}
-			
+
 			var exif:Object = {};
 			try {
 				var exifReader:ExifReader2 = new ExifReader2();
@@ -81,16 +94,23 @@ package ru.mail.data
 					// more info about orientation
 					// http://sylvana.net/jpegcrop/exif_orientation.html
 					var orientation:uint = uint(exifReader.getValue("Orientation"));
-					
+
 					exif["Orientation"] = orientation;
 				}
-				
+
 			} catch (e:Error) {
 				trace ("read exif error: "+ e);
 			}
 			return exif;
 		}
-		
+
+		private function onLoadImageAndOverlay(isFile:Boolean, imageTransform:ImageTransformVO):void
+		{
+			if (isFileLoaded && isOverlayLoaded) {
+				checkImageData(imageTransform);
+			}
+		}
+
 		/**
 		 * 1/2 Check if imageData has been loaded 
 		 * @param imageTransform
@@ -110,7 +130,7 @@ package ru.mail.data
 						file.imageData.copyPixels( event.decodedBitmap.bitmapData
 							, new Rectangle( 0, 0, event.decodedBitmap.width, event.decodedBitmap.height ), new Point( 0, 0 ));
 						event.decodedBitmap.bitmapData.dispose();
-						
+
 						createImageFromSource(imageTransform);
 					}
 					else {
@@ -123,7 +143,7 @@ package ru.mail.data
 				createImageFromSource(imageTransform);
 			}
 		}
-		
+
 		/**
 		 * 2/2 transform original imagedata 
 		 * @param imageTransform
@@ -152,7 +172,7 @@ package ru.mail.data
 				resizeCommand.execute();
 			}
 		}
-		
+
 		private function complete(isSuccess:Boolean, data:ByteArray, error:ErrorVO = null):void
 		{
 			trace ("imageFactory complete");
