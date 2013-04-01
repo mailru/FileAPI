@@ -52,6 +52,8 @@
 			},
 			sizeFormat: '0.00',
 
+			imageTransform: 0,
+
 			elements: {
 				ctrl: {
 					upload: '[data-fileapi="ctrl.upload"]',
@@ -61,6 +63,10 @@
 				empty: {
 					show: '[data-fileapi="empty.show"]',
 					hide: '[data-fileapi="empty.hide"]'
+				},
+				emptyQueue: {
+					show: '[data-fileapi="emptyQueue.show"]',
+					hide: '[data-fileapi="emptyQueue.hide"]'
 				},
 				active: {
 					show: '[data-fileapi="active.show"]',
@@ -177,6 +183,7 @@
 					, duplicate: opts.duplicate ? [] : this._extractDuplicateFiles(files)
 				}
 				, imageSize = opts.imageSize
+				, _this = this
 			;
 
 			if( imageSize || filterFn ){
@@ -194,14 +201,14 @@
 					data.files = succes;
 					data.other = other;
 
-					fn(data);
+					fn.call(_this, data);
 				});
 			} else {
 				api.each(files, function (file){
 					data[!maxSize || file.size <= maxSize ? 'files' : 'other'].push(file);
 				});
 
-				fn(data);
+				fn.call(_this, data);
 			}
 		},
 
@@ -248,8 +255,6 @@
 		},
 
 		_onSelect: function (evt){
-			api.log('_onSelect');
-
 			this._getFiles(evt, $.proxy(function (data){
 				if( data.all.length && this.emit('select', data) !== false ){
 					this.add(data.files);
@@ -266,9 +271,10 @@
 				, prevent = true
 			;
 
-			if( 'file.remove' == act ){
+			if( 'remove' == act ){
 				$item.remove();
 				this.queue = api.filter(this.queue, function (file){ return api.uid(file) != uid; });
+				this.files = api.filter(this.files, function (file){ return api.uid(file) != uid; });
 				this._redraw();
 			}
 			else if( /^rotate/.test(act)  ){
@@ -383,7 +389,7 @@
 
 			if( deg || crop ){
 				var trans = opts.imageTransform = opts.imageTransform || {};
-				if( $.isEmptyObject(trans) || parseInt(trans.maxWidth || trans.minWidth || trans.width, 10) > 0 ){
+				if( $.isEmptyObject(trans) || parseInt(trans.maxWidth || trans.minWidth || trans.width, 10) > 0 || trans.type || trans.quality ){
 					trans.crop		= crop;
 					trans.rotate	= deg;
 				}
@@ -418,13 +424,8 @@
 					var elem = 'elements.file.'+ type;
 
 					if( type == 'upload' ){
+						$file.find('['+_dataAttr+'="remove"]').hide();
 						$progress.width(0);
-					} else {
-						$file
-							.find(_this.option(elem + '.remove'))
-							.add( $file.find('['+_dataAttr+'="file.remove"]') )
-							.hide()
-						;
 					}
 
 					$progress.dequeue();
@@ -449,8 +450,9 @@
 		_redraw: function (){
 			var
 				  active = !!this.active
-				, queue = this.queue
-				, empty = !queue.length && !active
+				, files = this.files
+				, empty = !files.length && !active
+				, emptyQueue = !this.queue.length && !active
 				, name = []
 				, size = 0
 				, $files = this.$files
@@ -459,7 +461,7 @@
 			;
 
 
-			api.each(queue, function (file, i){
+			api.each(files, function (file, i){
 				var uid = api.uid(file);
 
 				name.push(file.name);
@@ -493,9 +495,14 @@
 
 				this.elem('empty.show').toggle( empty );
 				this.elem('empty.hide').toggle( !empty );
+			}
 
-				this.elem('notEmpty.show').toggle( !empty );
-				this.elem('notEmpty.hide').toggle( empty );
+
+			if( this.__emptyQueue !== emptyQueue ){
+				this.__emptyQueue = empty;
+
+				this.elem('emptyQueue.show').toggle( emptyQueue );
+				this.elem('emptyQueue.hide').toggle( !emptyQueue );
 			}
 
 
@@ -530,9 +537,9 @@
 				api.log('_makeFilePreview:', uid, file);
 
 				var
-					  img = api.Image(file)
-					, done = function (){
-						img.get(function (err, img){
+					  image = api.Image(file)
+					, doneFn = function (){
+						image.get(function (err, img){
 							if( !_this._crop[uid] ){
 								if( err ){
 									opts.get && opts.get($el, file);
@@ -545,19 +552,18 @@
 					}
 				;
 
-
 				if( opts.width ){
-					img.preview(opts.width, opts.height);
+					image.preview(opts.width, opts.height);
 				}
 
 				if( opts.rotate ){
-					img.rotate(opts.rotate);
+					image.rotate(opts.rotate);
 				}
 
 				if( opts.processing ){
-					opts.processing(file, img, done);
+					opts.processing(file, image, doneFn);
 				} else {
-					done();
+					doneFn();
 				}
 			}
 			else {
@@ -567,6 +573,7 @@
 
 		emit: function (name, arg){
 			var opts = this.options, evt = $.Event(name), res;
+			evt.widget = this;
 			name = $.camelCase('on-'+name.replace(/(file)(upload)/, '$1-$2'));
 			if( $.isFunction(opts[name]) ){
 				res = opts[name].call(this.el, evt, arg);
@@ -634,7 +641,7 @@
 			if( sel === void 0 && up ){
 				sel = this.option('elements.'+name.substr(0, name.lastIndexOf('.')));
 			}
-			return	this.$($.isEmptyObject(sel) ? [] : sel);
+			return	this.$($.type(sel) != 'string' && $.isEmptyObject(sel) ? [] : sel);
 		},
 
 		/**
@@ -745,6 +752,7 @@
 						, chunkSize: opts.chunkSize|0
 						, chunkUploadRetry: opts.chunkUploadRetry|0
 						, prepare: $.proxy(this, '_onFileUploadPrepare')
+						, imageTransform: opts.imageTransform
 					}
 				;
 
@@ -824,6 +832,7 @@
 			$el.css({
 				  '-webkit-transform': 'rotate('+deg+'deg)'
 				, '-moz-transform': 'rotate('+deg+'deg)'
+				, 'transform': 'rotate('+deg+'deg)'
 			});
 		},
 
@@ -857,6 +866,10 @@
 		var plugin = this.data('fileapi');
 
 		if( plugin ){
+			if( options === 'widget' ){
+				return	plugin;
+			}
+
 			if( typeof options == 'string' ){
 				var fn = plugin[options], res;
 				if( $.isFunction(fn) ){
@@ -901,8 +914,9 @@
 	};
 
 
+
 	/**
-	 * Extension for JCrop
+	 * Wrapper for JCrop
 	 */
 	$.fn.cropper = function (opts){
 		var $el = this, file = opts.file;
