@@ -1,4 +1,4 @@
-/*! FileAPI 2.0.0 - BSD | git://github.com/mailru/FileAPI.git
+/*! fileapi 2.0.0 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -80,8 +80,8 @@
                 callback(this.mozGetAsFile('blob', type));
             };
         } else if (CanvasPrototype.toDataURL && dataURLtoBlob) {
-            CanvasPrototype.toBlob = function (callback, type) {
-                callback(dataURLtoBlob(this.toDataURL(type)));
+            CanvasPrototype.toBlob = function (callback, type, quality) {
+                callback(dataURLtoBlob(this.toDataURL(type, quality)));
             };
         }
     }
@@ -1162,7 +1162,7 @@
 					, trans = api.support.transform && options.imageTransform
 					, Form = new api.Form
 					, queue = api.queue(function (){ fn(Form); })
-					, isOrignTrans = trans && (parseInt(trans.maxWidth || trans.minWidth || trans.width, 10) > 0 || trans.rotate || trans.crop)
+					, isOrignTrans = trans && (parseInt(trans.maxWidth || trans.minWidth || trans.width, 10) > 0 || trans.rotate || trans.crop || trans.type || trans.quality || trans.overlay)
 				;
 
 				(function _addFile(file/**Object*/){
@@ -1187,21 +1187,22 @@
 						api.Image.transform(file, trans, options.imageAutoOrientation, function (err, images){
 							if( isOrignTrans && !err ){
 								if( !dataURLtoBlob && !api.flashEngine ){
-									images[0] = api.toBinaryString(images[0]);
+									// Canvas.toBlob or Flash not supported, use multipart
+//									images[0] = api.toBinaryString(images[0]);
 									Form.multipart = true;
 								}
 
-								Form.append(name, images[0], filename, filetype);
+								Form.append(name, images[0], filename,  trans[0].type || filetype);
 							}
 							else {
 								if( !err ){
 									_each(images, function (image, idx){
 										if( !dataURLtoBlob && !api.flashEngine ){
-											image = api.toBinaryString(image);
+//											image = api.toBinaryString(image);
 											Form.multipart = true;
 										}
 
-										Form.append(name +'['+ idx +']', image, filename, filetype);
+										Form.append(name +'['+ idx +']', image, filename, trans[idx].type || filetype);
 									});
 
 									name += '[original]';
@@ -1598,7 +1599,7 @@
 	 * @param	{Function}		onHover
 	 * @param	{Function}		onDrop
 	 */
-	api.event.dnd.remove = function (el, onHover, onDrop){
+	api.event.dnd.off = function (el, onHover, onDrop){
 		_off(el, 'dragenter dragleave dragover', onHover);
 		_off(el, 'drop', onDrop);
 	};
@@ -1612,9 +1613,9 @@
 			});
 		};
 
-		jQuery.fn.removednd = function (onHover, onDrop){
+		jQuery.fn.offdnd = function (onHover, onDrop){
 			return this.each(function (){
-				api.event.dnd.remove(this, onHover, onDrop);
+				api.event.dnd.off(this, onHover, onDrop);
 			});
 		};
 	}
@@ -1629,7 +1630,7 @@
 	if( !api.flashImageUrl ){ api.flashImageUrl = api.staticPath + 'FileAPI.flash.image.swf'; }
 })(window, window.jQuery);
 
-/*global FileAPI, document */
+/*global window, FileAPI, document */
 
 (function (api, document, undef){
 	'use strict';
@@ -1652,18 +1653,17 @@
 	catch (e){}
 
 
-	function Image(file, low){
+	function Image(file){
 		if( file instanceof Image ){
-			var img = new Image(file.file, low);
+			var img = new Image(file.file);
 			api.extend(img.matrix, file.matrix);
 			return	img;
 		}
 		else if( !(this instanceof Image) ){
-			return	new Image(file, low);
+			return	new Image(file);
 		}
 
 		this.file   = file;
-		this.better = !low;
 		this.matrix	= {
 			sx: 0,
 			sy: 0,
@@ -1674,7 +1674,8 @@
 			dw: 0,
 			dh: 0,
 			resize: 0, // min, max OR preview
-			deg: 0
+			deg: 0,
+			quality: 1 // jpeg quality
 		};
 	}
 
@@ -1707,11 +1708,15 @@
 		},
 
 		preview: function (w, h){
-			return	this.set({ dw: w, dh: h || w, resize: 'preview' });
+			return	this.resize(w, h || w, 'preview');
 		},
 
 		rotate: function (deg){
 			return	this.set({ deg: deg });
+		},
+
+		overlay: function (images){
+			return	this.set({ overlay: images });
 		},
 
 		_load: function (image, fn){
@@ -1739,33 +1744,37 @@
 				, dh = m.dh
 				, w = width
 				, h = height
-				, copy, buffer = image
+				, copy // canvas copy
+				, buffer = image
+				, overlay = m.overlay
+				, queue = api.queue(function (){ fn(false, canvas); })
 			;
 
 
-			if( this.better ){
-				while( min(w/dw, h/dh) > 2 ){
-					w = ~~(w/2 + 0.5);
-					h = ~~(h/2 + 0.5);
+			while( min(w/dw, h/dh) > 2 ){
+				w = (w/2 + 0.5)|0;
+				h = (h/2 + 0.5)|0;
 
-					copy = getCanvas();
-					copy.width  = w;
-					copy.height = h;
+				copy = getCanvas();
+				copy.width  = w;
+				copy.height = h;
 
-					if( buffer !== image ){
-						copy.getContext('2d').drawImage(buffer, 0, 0, buffer.width, buffer.height, 0, 0, w, h);
-						buffer = copy;
-					}
-					else {
-						buffer = copy;
-						buffer.getContext('2d').drawImage(image, m.sx, m.sy, m.sw, m.sh, 0, 0, w, h);
-						m.sx = m.sy = m.sw = m.sh = 0;
-					}
+				if( buffer !== image ){
+					copy.getContext('2d').drawImage(buffer, 0, 0, buffer.width, buffer.height, 0, 0, w, h);
+					buffer = copy;
+				}
+				else {
+					buffer = copy;
+					buffer.getContext('2d').drawImage(image, m.sx, m.sy, m.sw, m.sh, 0, 0, w, h);
+					m.sx = m.sy = m.sw = m.sh = 0;
 				}
 			}
 
 			canvas.width  = (deg % 180) ? dh : dw;
 			canvas.height = (deg % 180) ? dw : dh;
+
+			canvas.type = m.type;
+			canvas.quality = m.quality;
 
 			ctx.rotate(deg * Math.PI / 180);
 			ctx.drawImage(buffer
@@ -1777,7 +1786,39 @@
 				, dw, dh
 			);
 
-			fn.call(this, false, canvas);
+			// Apply overlay
+			overlay && api.each([].concat(overlay), function (over){
+				queue.inc();
+				// preload
+				var img = new window.Image, fn = function (){
+					var
+						  x = over.x|0
+						, y = over.y|0
+						, w = over.w || img.width
+						, h = over.h || img.height
+						, rel = over.rel
+					;
+
+					// center  |  right  |  left
+					x = (rel == 1 || rel == 4 || rel == 7) ? (dw - w + x)/2 : (rel == 2 || rel == 5 || rel == 8 ? dw - (w + x) : x);
+
+					// center  |  bottom  |  top
+					y = (rel == 3 || rel == 4 || rel == 5) ? (dh - h + y)/2 : (rel >= 6 ? dh - (h + y) : y);
+
+					api.event.off(img, 'error load abort', fn);
+
+					ctx.globalAlpha = over.opacity || 1;
+					ctx.drawImage(img, x, y, w, h);
+					queue.next();
+				};
+				api.event.on(img, 'error load abort', fn);
+				img.src = over.src;
+				if( img.complete ){
+					fn();
+				}
+			});
+
+			queue.check();
 		},
 
 		getMatrix: function (image){
@@ -1910,7 +1951,12 @@
 							params.rotate = 'auto';
 						}
 
-						ImgTrans.rotate(params.rotate);
+						ImgTrans.set({
+							  deg: params.rotate
+							, type: params.type || file.type || 'image/png'
+							, quality: params.quality || 1
+							, overlay: params.overlay
+						});
 
 						queue.inc();
 						ImgTrans.toData(function (err, image){
@@ -1940,6 +1986,15 @@
 	};
 
 
+	// @const
+	api.each(['TOP', 'CENTER', 'BOTTOM'], function (x, i){
+		api.each(['LEFT', 'CENTER', 'RIGHT'], function (y, j){
+			Image[x+'_'+y] = i*3 + j;
+			Image[y+'_'+x] = i*3 + j;
+		});
+	});
+
+
 
 	// @export
 	api.support.canvas = api.support.transform = support;
@@ -1952,10 +2007,10 @@
 	"use strict";
 
 	var
-		  encode = window.encodeURIComponent
-		, document = window.document
+		  document = window.document
 		, FormData = window.FormData
 		, Form = function (){ this.items = []; }
+		, encodeURIComponent = window.encodeURIComponent
 	;
 
 
@@ -2038,19 +2093,20 @@
 				if( file.file ){
 					data.type = file.file;
 				}
+
 				if( file.blob.toBlob ){
 				    // canvas
 					queue.inc();
-					file.blob.toBlob(function (blob){
+					_converFile(file, function (file, blob){
 						data.name = file.name;
 						data.file = blob;
 						data.size = blob.length;
 						data.type = file.type;
 						queue.next();
-					}, 'image/png');
+					});
 				}
 				else if( file.file ){
-				    //file
+				    // file
 					data.name = file.blob.name;
 					data.file = file.blob;
 					data.size = file.blob.size;
@@ -2058,11 +2114,12 @@
 				}
 				else {
 				    // additional data
-				    if (!data.params) {
+				    if( !data.params ){
 				        data.params = [];
 				    }
-				    data.params.push(encodeURIComponent(file.name) + "=" + encodeURIComponent(file.blob));
+				    data.params.push(encodeURIComponent(file.name) +"="+ encodeURIComponent(file.blob));
 				}
+
 				data.start = -1;
 				data.end = -1;
 				data.retry = 0;
@@ -2071,16 +2128,12 @@
 
 		toFormData: function (fn){
 			this._to(new FormData, fn, function (file, data, queue){
-				if( file.file ){
-					data.append('_'+file.name, file.file);
-				}
-
 				if( file.blob && file.blob.toBlob ){
 					queue.inc();
-					file.blob.toBlob(function (blob){
+					_converFile(file, function (file, blob){
 						data.append(file.name, blob, file.file);
 						queue.next();
-					}, 'image/png');
+					});
 				}
 				else if( file.file ){
 					data.append(file.name, file.blob, file.file);
@@ -2088,22 +2141,60 @@
 				else {
 					data.append(file.name, file.blob);
 				}
+
+				if( file.file ){
+					data.append('_'+file.name, file.file);
+				}
 			});
 		},
 
 
 		toMultipartData: function (fn){
 			this._to([], fn, function (file, data, queue, boundary){
-				data.push(
-					  '--_' + boundary + ('\r\nContent-Disposition: form-data; name="'+ file.name +'"'+ (file.file ? '; filename="'+ encode(file.file) +'"' : '')
-					+ (file.file ? '\r\nContent-Type: '+ (file.type || 'application/octet-stream') : '')
-					+ '\r\n'
-					+ '\r\n'+ (file.file ? file.blob : encode(file.blob))
-					+ '\r\n')
-				);
+				_converFile(file, function (file, blob){
+					data.push(
+						  '--_' + boundary + ('\r\nContent-Disposition: form-data; name="'+ file.name +'"'+ (file.file ? '; filename="'+ encodeURIComponent(file.file) +'"' : '')
+						+ (file.file ? '\r\nContent-Type: '+ (file.type || 'application/octet-stream') : '')
+						+ '\r\n'
+						+ '\r\n'+ (file.file ? blob : encodeURIComponent(blob))
+						+ '\r\n')
+					);
+				});
 			}, api.expando);
 		}
 	};
+
+
+	function _converFile(file, fn){
+		var blob = file.blob, filename = file.file;
+
+		if( filename ){
+			var
+				  mime = { 'image/jpeg': '.jpe?g', 'image/png': '.png' }
+				, type = mime[file.type] ? file.type : 'image/png'
+				, ext  = mime[type] || '.png'
+				, quality = blob.quality || 1
+			;
+
+			if( !filename.match(new RegExp(ext+'$', 'i')) ){
+				filename += ext.replace('?', '');
+			}
+
+			file.file = filename;
+			file.type = type;
+
+			if( blob.toBlob ){
+				blob.toBlob(function (blob){
+					fn(file, blob);
+				}, type, quality);
+			}
+			else {
+				blob = api.toBinaryString(blob.toDataURL(type, quality));
+			}
+		}
+
+		return	blob;
+	}
 
 
 	// @export
@@ -2301,9 +2392,7 @@
 								if (((!xhr.status && !xhr.aborted) || 500 == xhr.status || 416 == xhr.status) && ++data.retry <= options.chunkUploadRetry) {
 									// let's try again the same chunk
 									// only applicable for recoverable error codes 500 && 416
-
-									var to = xhr.status ? 0
-									                    : api.chunkNetworkDownRetryTimeout;
+									var delay = xhr.status ? 0 : api.chunkNetworkDownRetryTimeout;
 
 								    // inform about recoverable problems
 									options.pause(data.file, options);
@@ -2311,6 +2400,7 @@
 									// smart restart if server reports about the last known byte
 									var lkb = xhr.getResponseHeader('X-Last-Known-Byte');
 									api.log("X-Last-Known-Byte: " + lkb);
+
 									if (lkb) {
 										data.end = parseInt(lkb, 10);
 									} else {
@@ -2319,7 +2409,7 @@
 
 									setTimeout(function () {
 									    _this._send(options, data);
-									}, to);
+									}, delay);
 								} else {
 									// no mo retries
 									_this.end(xhr.status);
@@ -2632,4 +2722,4 @@
 	// @export
 	api.Camera = Camera;
 })(window, FileAPI);
-if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }
+if( typeof define === "function" && define.amd ){ define("fileapi", [], function (){ return fileapi; }); }
