@@ -9,9 +9,11 @@ img {
 }
 
 body {
-	font-family: "Helvetica Neue";
-	background-color: #202227;
-	background-image: url('body.png');
+	color: #ddd;
+	font-size: 14px;
+	font-family: "Helvetica Neue", Helvetica;
+	line-height: 140%;
+	background: #202227 url('body.png');
 }
 	.body__top {
 		top: 0;
@@ -23,144 +25,118 @@ body {
 		background-image: url('body__top.png');
 	}
 
+.logo {
+	height: 200px;
+	background: url('logo.png') center center no-repeat;
+}
+
+
+.sidebar {
+	top: 0;
+	left: 0;
+	height: 100%;
+	position: fixed;
+	overflow: auto;
+	overflow-x: hidden;
+	width: 250px;
+	background: url('content.png');
+	box-shadow: 0 0 20px rgba(0,0,0,.9)
+}
+	.sidebar ul {
+		list-style: none;
+		padding: 0;
+		margin: 5px 0 5px 15px;
+	}
+
+	.sidebar a {
+		color: #333;
+		text-decoration: none;
+	}
+		.sidebar a:hover {
+			color: #f60;
+			border-bottom: 1px dotted #f60;
+		}
+
+.menu {
+	margin: 20px 15px;
+	font-size: 16px;
+	line-height: 130%;
+}
+	.menu__name {
+		border-bottom: 1px dotted #333;
+	}
+
 
 
 h2 {
 	margin: 0 0 10px;
 	font-size: 40px;
-	font-family: 'Roboto', sans-serif;
 	font-weight: 300;
-	text-shadow: 0 1px 1px #fff;
+}
+
+h3 {
+	font-size: 30px;
+	font-weight: normal;
+}
+
+.descr {
+	color: #AAA;
+	margin-top: 5px;
+	margin-bottom: 10px;
+}
+
+.type {
+	color: #ffcc66;
+	font-weight: normal;
+}
+
+.fn {
+	margin: 10px 0 0;
+	font-size: 16px;
+}
+	.fn__args {
+		font-weight: normal;
+	}
+
+h2, h3, h4, .fn, .descr, .args {
+	text-shadow: 0 1px 1px #000;
 }
 
 
-.view-on-github {
-	top: 160px;
-	right: 5%;
-	width: 114px;
-	height: 80px;
-	display: block;
-	position: absolute;
-	background: url('view-on-github.png') no-repeat;
+code {
+	font-family: monospace;
+	border-radius: 5px;
 }
-
-
-.logo {
-	display: inline-block;
-	background-position: no-repeat;
+.code {
+	font-size: 90%;
+	font-family: monospace;
+	border: 1px solid #666;
+	border-radius: 3px;
+	background-color: rgba(255,255,255,.05);
+	*background-color: #f3f3f3;
+	padding: 0 3px;
 }
-	.logo_small {
-		width: 43px;
-		height: 15px;
-		background-image: url('logo_small.png');
-	}
-
-
-.splash {
-	width: 650px;
-	height: 370px;
-	margin: 30px auto 0;
-	box-shadow: 0 1px 1px rgba(255,255,255,.2);
-	border-radius: 4px;
-	background-color: #000;
-	position: relative;
-}
-	.splash__inner {
-		top: 3px;
-		left: 3px;
-		right: 3px;
-		bottom: 3px;
-		overflow: hidden;
-		position: absolute;
-	}
-
-	.splash__blind {
-		width: 100%;
-		height: 100%;
-		cursor: pointer;
-		position: absolute;
-		border-radius: 4px;
-		background-image: url('splash__blind.png');
-	}
-
-	.splash__logo {
-		top: 50%;
-		left: 50%;
-		width: 284px;
-		height: 201px;
-		margin: -120px 0 0 -142px;
-		position: absolute;
-		background: url('splash__logo.png') no-repeat;
-	}
-
-	.splash__click-here {
-		right: 60px;
-		bottom: 40px;
-		width: 66px;
-		height: 25px;
-		position: absolute;
-		background: url('click-here.png') no-repeat;
-		cursor: pointer;
-	}
 
 
 .content {
-	width: 80%;
-	max-width: 1200px;
-	margin: 60px auto;
-	border: 1px solid #fff;
+	margin-left: 300px;
+	margin-right: 50px;
 	position: relative;
-	min-height: 400px;
-	background-color: #F4F7F1;
-	background-image: url('content.png');
 }
-	.content__head {
-		top: -21px;
-		left: 36px;
-		right: 36px;
-		height: 20px;
-		position: absolute;
-		text-align: center;
-		background-image: url('content__head.png');
-	}
 
-	.content__head:before, .content__head:after {
-		top: 0;
-		left: 0;
-		width: 100%;
-		bottom: 0;
-		z-index: -1;
-		content: '';
-		position: absolute;
-		background-image: url('content__head.png');
-	}
-	.content__head:before {
-		left: 20px;
-		-webkit-transform: skew(60deg);
-		-moz-transform: skew(60deg);
-		transform: skew(60deg);
-	}
-	.content__head:after {
-		left: auto;
-		right: 20px;
-		-webkit-transform: skew(-60deg);
-		-moz-transform: skew(-60deg);
-		transform: skew(-60deg);
-	}
 
 
 .example {
 	margin: 25px;
 }
-	.example table {
-		width: 100%;
-		table-layout: fixed;
+	.example__left {
+		float: left;
+		width: 290px;
+		text-align: center;
 	}
 
-	.example__left {
-		width: 34%;
-		text-align: center;
-		padding-right: 30px;
+	.example__right {
+		margin-left: 320px;
 	}
 
 	.example__code {
@@ -172,10 +148,16 @@ h2 {
 		background-color: #fff;
 	}
 
+	.example h2 {
+		overflow: hidden;
+	}
+		.example h2 span {
+			float: left;
+			display: block;
+		}
+
 	.example__tabs {
-		*zoom: 1;
-		*display: inline;
-		display: inline-block;
+		display: block;
 		font-size: 14px;
 		vertical-align: top;
 	}
@@ -192,209 +174,20 @@ h2 {
 				padding: 0 5px 2px;
 				border-bottom: 0;
 				background-color: rgba(0,0,0,.1);
+				*background-color: #eee;
 			}
 
 
-
-.btn {
-	cursor: pointer;
-	*zoom: 1;
-	*display: inline;
-	display: inline-block;
-	position: relative;
-	overflow: hidden;
-	font-size: 20px;
-	font-family: Arial;
-	border-radius: 4px;
-	vertical-align: middle;
-}
-	.btn_browse {
-		border: 1px solid rgba(0,0,0,.2);
-		padding: 8px 20px;
-		background-color: #FFDC73;
-		background: -moz-linear-gradient(top,#FFE599 0%,#FFDC73);
-		background: -webkit-gradient(linear, left top, left bottom,from(#FFE599),to(#FFDC73));
-		box-shadow: 0 1px 1px rgba(255,255,255,1);
-	}
-		.btn_browse_small {
-			padding: 5px 10px;
-			font-size: 16px;
-		}
-
-		.btn_browse_small[aria-disabled] {
-			opacity: .5;
-		}
-
-	.btn_choose {
-		color: #fff;
-		border: 2px solid rgba(255,255,255,.4);
-		padding: 5px 10px;
-		text-shadow: 0 1px 1px rgba(0,0,0,.3);
-		background-color: rgba(0,0,0,.4);
-		*background-color: #aaa;
-	}
-
-	.btn__inp {
-		top: -10px;
-		right: -10px;
-		cursor: pointer;
-		filter: alpha(opacity=0);
-		opacity: 0;
-		font-size: 50px;
-		position: absolute;
-	}
-
-	.btn__progress {
-		top: 0;
-		left: 0;
-		height: 100%;
-		opacity: .5;
-		position: absolute;
-		background-color: #f60;
-	}
-
-
-.fileprogress {
-	padding: 1px;
-	height: 5px;
-	box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.3);
-	border-radius: 10px;
-	background-color: rgba(0,0,0,.5);
-}
-	.fileprogress__bar {
-		width: 0;
-		height: 100%;
-		border-radius: 10px;
-		background-color: orange;
-	}
-
-
-
-
-.userpic {
-	width: 200px;
-	height: 200px;
-	border: 2px solid rgba(0,0,0,.3);
-	display: inline-block;
-	position: relative;
-}
-	.userpic .btn {
-		margin-top: 150px;
-	}
-
-	.userpic__preview {
-		position: absolute;
-	}
-
-
-.b-upload {
-	white-space: nowrap;
-}
-	.b-upload__name,
-	.b-upload__size {
-		display: inline-block;
-		position: relative;
-		overflow: hidden;
-		max-width: 150px;
-		vertical-align: middle;
-	}
-		.b-upload__size {
-			color: #666;
-			font-size: 12px;
-		}
-
-	.b-upload .js-files:after {
-		clear: both;
-		content: '';
-		display: block;
-	}
-
-	.b-upload__dnd {
-		padding: 30px;
-		border-radius: 5px;
-		margin-bottom: 10px;
-		background-color: rgba(0,0,0,.1);
-	}
-		.b-upload__dnd_hover {
-			color: #fff;
-			background-color: orange;
-		}
-
-
-
-
-
-.b-thumb {
-	float: left;
-	margin: 3px;
-	padding: 5px;
-	overflow: hidden;
-	position: relative;
-	box-shadow: 0 0 2px rgba(0,0,0,.4);
-	background-color: #fff;
-}
-	.b-thumb__rotate {
-		top: 40%;
-		left: 50%;
-		width: 32px;
-		height: 32px;
-		cursor: pointer;
-		margin: -16px 0 0 -16px;
-		position: absolute;
-		background: url('http://cdn1.iconfinder.com/data/icons/duesseldorf/32/refresh.png');
-	}
-
-	.b-thumb__preview {
-		width: 80px;
-		height: 80px;
-		-moz-transition: -moz-transform .2s ease-in;
-	}
-		.b-thumb__preview__pic {
-			width: 100%;
-			height: 100%;
-			xbackground: url('http://www.rubaxa.org/screenshot/b27ae1b0bcdcd13a6728774ed505.png') 50% 50% no-repeat;
-		}
-
-	.b-thumb__name {
-		width: 80px;
-		overflow: hidden;
-		font-size: 12px;
-	}
-
-	.b-thumb__progress {
-		top: 75px;
-		left: 10px;
-		right: 10px;
-		position: absolute;
-	}
-
-
-.themodal-overlay {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	top: 0;
-	right: 0;
-	z-index: 100000;
+code {
+	font-family: monospace;
+	font-size: 12px;
+	border-radius: 5px;
+	max-width: 800px;
+	max-height: 400px;
 	overflow: auto;
-	background-color: rgba(0, 0, 0, 0.5);
+	background: rgba(255,255,255,.6);
+	color: black;
 }
-
-.lock {
-	overflow: hidden;
-}
-
-.popup {
-	margin: 25px;
-	float: left;
-	display: inline-block;
-	box-shadow: 0 0 5px #000;
-	background-color: #fff;
-}
-	.popup__body {
-		margin: 10px 10px 5px;
-	}
-
 
 
 
