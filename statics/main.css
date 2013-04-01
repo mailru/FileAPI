@@ -11,7 +11,7 @@ img {
 body {
 	color: #ddd;
 	font-size: 14px;
-	font-family: "Helvetica Neue", Helvetica;
+	font-family: 'Arail', sans-serif;
 	line-height: 140%;
 	background: #202227 url('body.png');
 }
@@ -26,7 +26,7 @@ body {
 	}
 
 .logo {
-	height: 200px;
+	height: 210px;
 	background: url('logo.png') center center no-repeat;
 }
 
@@ -71,12 +71,17 @@ body {
 h2 {
 	margin: 0 0 10px;
 	font-size: 40px;
-	font-weight: 300;
 }
 
 h3 {
+	color: #f1f1f1;
 	font-size: 30px;
-	font-weight: normal;
+	font-weight: 400;
+}
+
+h2, h3, h4 {
+	font-weight: 300;
+	font-family: 'Roboto', sans-serif;
 }
 
 .descr {
@@ -93,21 +98,23 @@ h3 {
 .fn {
 	margin: 10px 0 0;
 	font-size: 16px;
+	font-weight: 400;
 }
 	.fn__args {
-		font-weight: normal;
+		font-weight: 300;
 	}
+
+.args b {
+	font-weight: 400;
+}
 
 h2, h3, h4, .fn, .descr, .args {
 	text-shadow: 0 1px 1px #000;
 }
 
 
-code {
-	font-family: monospace;
-	border-radius: 5px;
-}
 .code {
+	color: #DDD;
 	font-size: 90%;
 	font-family: monospace;
 	border: 1px solid #666;
@@ -185,7 +192,7 @@ code {
 	max-width: 800px;
 	max-height: 400px;
 	overflow: auto;
-	background: rgba(255,255,255,.6);
+	background-image: url('content.png');
 	color: black;
 }
 
