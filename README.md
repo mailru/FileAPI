@@ -940,6 +940,53 @@ Submit Query
 
 ---
 
+<a name="server"></a>
+## Server settings
+
+<a name="server.CORS"></a>
+### CORS
+Enable CORS.
+
+```php
+<?
+	// Permitted types of request
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+
+    // Describe custom headers
+    header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type');
+
+    // A comma-separated list of domains
+    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+
+    if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
+        exit;
+    }
+
+    if( $_SERVER['REQUEST_METHOD'] == 'POST' ){
+        // ...
+    }
+```
+
+---
+
+<a name="server.chunked"></a>
+### Chunked file upload
+Client and server communicate to each other using the following HTTP headers and status codes.<br/>
+Client explicitly sets the following headers:<br/>
+<ul>
+	<li>Content-Range: bytes &lt;start-offset&gt;-&lt;end-offset&gt;/&lt;total&gt;</li>
+	<li>Content-Disposition: attachment; filename=&lt;file-name&gt;</li>
+</ul>
+Any other headers are set by a target browser and are not used by client. Library does not provide any facilities to track a file uniqueness across requests, it's left on developer's consideration.<br/>
+Client recognizes the following response codes:<br/>
+<ul>
+	<li>200, 201 - chunk is successfully saved</li>
+	<li>416, 500 - recoverable error, library tries to resend chunk 'chunkUploadRetry' times then fails</li>
+</ul>
+All the other codes - fatal error, user's involvement is recommend.
+
+---
+
 ## Buttons examples
 
 ### Base
@@ -998,7 +1045,9 @@ Stylized button.
 </div>
 ```
 
+
 ---
+
 
 ### Link
 Button like link.
@@ -1041,54 +1090,6 @@ Button like link.
     <input name="photo" type="file" accept="image/*" />
 </a>
 ```
-
-
----
-
-<a name="server"></a>
-## Server settings
-
-<a name="server.CORS"></a>
-### CORS
-Enable CORS.
-
-```php
-<?
-	// Permitted types of request
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-
-    // Describe custom headers
-    header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type');
-
-    // A comma-separated list of domains
-    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
-
-    if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
-        exit;
-    }
-
-    if( $_SERVER['REQUEST_METHOD'] == 'POST' ){
-        // ...
-    }
-```
-
----
-
-<a name="server.chunked"></a>
-### Chunked file upload
-Client and server communicate to each other using the following HTTP headers and status codes.<br/>
-Client explicitly sets the following headers:<br/>
-<ul>
-	<li>Content-Range: bytes &lt;start-offset&gt;-&lt;end-offset&gt;/&lt;total&gt;</li>
-	<li>Content-Disposition: attachment; filename=&lt;file-name&gt;</li>
-</ul>
-Any other headers are set by a target browser and are not used by client. Library does not provide any facilities to track a file uniqueness across requests, it's left on developer's consideration.<br/>
-Client recognizes the following response codes:<br/>
-<ul>
-	<li>200, 201 - chunk is successfully saved</li>
-	<li>416, 500 - recoverable error, library tries to resend chunk 'chunkUploadRetry' times then fails</li>
-</ul>
-All the other codes - fatal error, user's involvement is recommend.
 
 
 ---

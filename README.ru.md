@@ -940,6 +940,55 @@ Submit Query
 
 ---
 
+<a name="server"></a>
+## Server settings
+
+<a name="server.CORS"></a>
+### CORS
+Включение CORS.
+
+```php
+<?
+	// Permitted types of request
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+
+    // Describe custom headers
+    header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type');
+
+    // A comma-separated list of domains
+    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+
+    if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
+        exit;
+    }
+
+    if( $_SERVER['REQUEST_METHOD'] == 'POST' ){
+        // ...
+    }
+```
+
+---
+
+<a name="server.chunked"></a>
+### Chunked file upload
+Всё общение между клиентом и сервером ведётся на уровне HTTP заголовков.<br/>
+Для передачи отдельного chunk'а клиент устанавливает заголовки:<br/>
+<ul>
+	<li>Content-Range: bytes &lt;start-offset>-&lt;end-offset>/&lt;total></li>
+	<li>Content-Disposition: attachment; filename=&lt;file-name></li>
+</ul>
+Другие заголовки не используются, отслеживание уникальности имени передаваемого файла не реализуется и оставлено на усмотрение разработчика.<br/>
+В ответ на передаваемый chunk сервер может отвечать следующими кодами:<br/>
+<ul>
+	<li>200, 201 — chunk сохранён успешно</li>
+	<li>416, 500 — восстановимая ошибка</li>
+</ul>
+Остальные коды — фатальная ошибка, требуется вмешательство пользователя.
+
+
+
+---
+
 ## Buttons examples
 
 ### Base
@@ -1041,57 +1090,6 @@ Submit Query
     <input name="photo" type="file" accept="image/*" />
 </a>
 ```
-
-
----
-
-<a name="server"></a>
-## Server settings
-
-<a name="server.CORS"></a>
-### CORS
-Включение CORS.
-
-```php
-<?
-	// Permitted types of request
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-
-    // Describe custom headers
-    header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type');
-
-    // A comma-separated list of domains
-    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
-
-    if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
-        exit;
-    }
-
-    if( $_SERVER['REQUEST_METHOD'] == 'POST' ){
-        // ...
-    }
-```
-
----
-
-<a name="server.chunked"></a>
-### Chunked file upload
-Всё общение между клиентом и сервером ведётся на уровне HTTP заголовков.<br/>
-Для передачи отдельного chunk'а клиент устанавливает заголовки:<br/>
-<ul>
-	<li>Content-Range: bytes &lt;start-offset>-&lt;end-offset>/&lt;total></li>
-	<li>Content-Disposition: attachment; filename=&lt;file-name></li>
-</ul>
-Другие заголовки не используются, отслеживание уникальности имени передаваемого файла не реализуется и оставлено на усмотрение разработчика.<br/>
-В ответ на передаваемый chunk сервер может отвечать следующими кодами:<br/>
-<ul>
-	<li>200, 201 — chunk сохранён успешно</li>
-	<li>416, 500 — восстановимая ошибка</li>
-</ul>
-Остальные коды — фатальная ошибка, требуется вмешательство пользователя.
-
-
-
 
 
 
