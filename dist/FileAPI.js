@@ -1086,7 +1086,7 @@
 
 				// Append more files to the existing request
 				proxyXHR.append = function (files) {
-					files = api._getFilesDataArray(files);
+					files = api._getFilesDataArray([].concat(files));
 
 					_each(files, function (data) {
 						_total += data.size;
