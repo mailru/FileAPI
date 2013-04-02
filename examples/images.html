@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+
+
+		~~~ Демонстрация работы с изображениями ~~~
+		           (NativeJS + FileAPI)
+
+
+-->
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=1, maximum-scale=1" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<title>FileAPI :: Images :: example</title>
+
+	<script>
+		// Settings
+		var FileAPI = {
+			  debug: false // debug mode
+			, staticPath: '../dist/'
+		};
+	</script>
+
+	<script src="../dist/FileAPI.min.js"></script>
+	<script src="../plugins/FileAPI.exif.js"></script>
+
+</head>
+<body>
+
+	<style>
+		.btn {
+			*zoom: 1;
+			*display: inline;
+			display: inline-block;
+		}
+	</style>
+
+	<form name="image" style="padding: 10px 20px">
+		<h3>Select image:</h3>
+		<div class="btn js-fileapi-wrapper">
+			<input name="file" type="file" accept="image/*"/>
+		</div>
+
+		<div id="preview" style="display: none;">
+			<h4 style="margin-bottom: 5px">Watermark position</h4>
+			<div id="pos" style="padding: 10px 0;">
+			</div>
+
+			<h4>Preview</h4>
+			<div id="image"></div>
+
+			<h4 style="margin-bottom: 0">EXIF</h4>
+			<div id="exif"></div>
+		</div>
+	</form>
+
+
+	<script>
+		(function (){
+			var elms = document.forms.image;
+			var relative = 0;
+			var positions = ['<table>'];
+
+			FileAPI.each(['TOP', 'CENTER', 'BOTTOM'], function (x, i){
+				positions.push('<tr>');
+				FileAPI.each(['LEFT', 'CENTER', 'RIGHT'], function (y, j){
+					positions.push('<td><label><input type="radio" name="pos" value="'+ (i*3 + j) +'"/> '+x+'_'+y+'</label></td>');
+				});
+				positions.push('</tr>');
+			});
+
+
+			pos.innerHTML += positions.join('')+'</table>';
+
+
+			function _updWatermark(evt){
+				var file = FileAPI.getFiles(elms.file)[0];
+				relative = evt ? evt.target.value : relative;
+
+				FileAPI.Image(file)
+					.resize(300, 300, 'max')
+					.overlay({ x: 5, y: 5, src: '../statics/watermark.png', rel: relative })
+					.get(function (err, img){
+						image.innerHTML = '';
+						image.appendChild(img);
+					})
+				;
+			}
+
+
+			FileAPI.event.on(pos, 'change', _updWatermark);
+
+			FileAPI.event.on(elms.file, 'change', function (){
+				preview.style.display = '';
+				_updWatermark();
+
+				FileAPI.getInfo(FileAPI.getFiles(elms.file)[0], function (err, info){
+					var html = ['<table>'];
+					FileAPI.each(info && info.exif, function (val, key){
+						html.push('<tr><td>'+ key +'</td><td>'+ val +'</td></tr>');
+					});
+					exif.innerHTML = html.join('')+'</table>';
+				});
+			});
+		})();
+	</script>
+</body>
+</html>
