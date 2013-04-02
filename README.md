@@ -670,6 +670,11 @@ All the other codes - fatal error, user's involvement is recommend.
 
 
 ## Changelog
+### 1.2.4
+ * Fixed auto orientation image by EXIF (Flash)
+ * Fixed image dimensions after rotate (Flash)
+
+
 ### 1.2.3
  * [#77](https://github.com/mailru/FileAPI/pull/77): Fixed flash.abort(), [#75](https://github.com/mailru/FileAPI/issues/75)
  * - `FileAPI.addMime`
