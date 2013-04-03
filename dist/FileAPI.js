@@ -1171,8 +1171,9 @@
 
 						file.get(function (err, image){
 							// @todo: error
-							_addFile(image);
+							filename = filename || (new Date).toString()+'.png';
 
+							_addFile(image);
 							queue.next();
 						});
 					}
@@ -1719,6 +1720,10 @@
 			return	this.set({ overlay: images });
 		},
 
+		clone: function (){
+			return	new Image(this);
+		},
+
 		_load: function (image, fn){
 			var self = this;
 
@@ -1810,8 +1815,12 @@
 
 					api.event.off(img, 'error load abort', fn);
 
-					ctx.globalAlpha = over.opacity || 1;
-					ctx.drawImage(img, x, y, w, h);
+					try {
+						ctx.globalAlpha = over.opacity || 1;
+						ctx.drawImage(img, x, y, w, h);
+					}
+					catch (er){}
+
 					queue.next();
 				};
 				api.event.on(img, 'error load abort', fn);
@@ -2535,8 +2544,7 @@
 
 	Camera.prototype = {
 		isActive: function (){
-			var stream = this.stream;
-			return	stream ? stream.readyState == stream.LIVE : false;
+			return	!!this._active;
 		},
 
 
@@ -2551,6 +2559,7 @@
 				, _successId
 				, _failId
 				, _complete = function (err){
+					_this._active = !err;
 					clearTimeout(_failId);
 					clearTimeout(_successId);
 					api.event.off(video, 'loadedmetadata', _complete);
@@ -2562,12 +2571,12 @@
 				// Success
 				_this.stream = stream;
 
+//				api.event.on(video, 'loadedmetadata', function (){
+//					_complete(null);
+//				});
+
 				// Set camera stream
 				video.src = URL.createObjectURL(stream);
-
-				api.event.on(video, 'loadedmetadata', function (){
-					_complete(null);
-				});
 
 				// Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
 				// See crbug.com/110938.
@@ -2592,6 +2601,7 @@
 		 */
 		stop: function (){
 			try {
+				this._active = false;
 				this.video.pause();
 				this.stream.stop();
 			} catch( err ){ }
