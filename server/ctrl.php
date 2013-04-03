@@ -65,6 +65,7 @@ function fetchImages($files, &$images, $name = 'file'){
 				  'width'	=> $size[0]
 				, 'height'	=> $size[1]
 				, 'mime'	=> $mime
+				, 'size'	=> filesize($filename)
 				, 'dataURL'	=> 'data:'. $mime .';base64,'. $base64
 			);
 		}
