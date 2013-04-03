@@ -1,11 +1,13 @@
 package ru.mail.data
 {
+	import by.blooddy.crypto.Base64;
+	
 	import flash.display.BitmapData;
 	import flash.events.EventDispatcher;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
-
+	
 	import ru.mail.commands.DecodeBytesToBitmapCommand;
 	import ru.mail.commands.LoadFileCommand;
 	import ru.mail.commands.ResizeFileCommand;
@@ -13,9 +15,11 @@ package ru.mail.data
 	import ru.mail.data.vo.FileVO;
 	import ru.mail.data.vo.IFileVO;
 	import ru.mail.data.vo.ImageTransformVO;
+	import ru.mail.data.vo.OverlayVO;
 	import ru.mail.events.DecodeBytesToBitmapCompleteEvent;
 	import ru.mail.events.ImageTransformCompleteEvent;
 	import ru.mail.utils.ExifReader2;
+	import ru.mail.utils.LoggerJS;
 
 	/**
 	 * Produces images from file's source
@@ -76,8 +80,48 @@ package ru.mail.data
 			// check overlay
 			if ( imageTransform.overlay ) {
 				// todo: wait for all overlay images to load and then proceed
-
-				//onLoadImageAndOverlay(false, imageTransform);
+				var overlayLoadCounter:int = 0;
+				var overlay:OverlayVO;
+				
+				for (var i:uint = 0; i < imageTransform.overlay.length; i++) {
+					overlay = imageTransform.overlay[i];
+					overlayLoadCounter++;
+					
+					LoggerJS.log('overlay.src',overlay.src);
+					if ( overlay.src.match(/^data:/) ) {
+						// base64 string, just encode it to image
+						var bytes:ByteArray = Base64.decode(overlay.src);
+						// ByteArray to BitmapData
+						var decodeCommand:DecodeBytesToBitmapCommand = new DecodeBytesToBitmapCommand( bytes );
+						decodeCommand.addEventListener(DecodeBytesToBitmapCompleteEvent.TYPE, function(event:DecodeBytesToBitmapCompleteEvent):void {
+							event.currentTarget.removeEventListener(event.type, arguments.callee);
+							trace ("bitmap created, isSuccess", event.isSuccess);
+							if (event.isSuccess) {
+								overlay.imageData = new BitmapData( event.decodedBitmap.width, event.decodedBitmap.height );
+								overlay.imageData.copyPixels( event.decodedBitmap.bitmapData
+									, new Rectangle( 0, 0, event.decodedBitmap.width, event.decodedBitmap.height ), new Point( 0, 0 ));
+								event.decodedBitmap.bitmapData.dispose();
+							}
+							else {
+								LoggerJS.log('load overlay base64 error: '+event.error);
+							}
+							
+							if (--overlayLoadCounter < 1){
+								onLoadImageAndOverlay(false, imageTransform);
+							}
+						});
+						decodeCommand.execute();
+						
+					}
+					else {
+						// load image from url
+						// 1. load bytes
+						// 2. bitmapData
+					}
+				}
+				
+				if (overlayLoadCounter < 1) 
+					onLoadImageAndOverlay(false, imageTransform);
 			}
 		}
 
@@ -106,6 +150,11 @@ package ru.mail.data
 
 		private function onLoadImageAndOverlay(isFile:Boolean, imageTransform:ImageTransformVO):void
 		{
+			if (isFile)
+				isFileLoaded = true;
+			else 
+				isOverlayLoaded = true;
+			
 			if (isFileLoaded && isOverlayLoaded) {
 				checkImageData(imageTransform);
 			}
@@ -125,7 +174,6 @@ package ru.mail.data
 					event.currentTarget.removeEventListener(event.type, arguments.callee);
 					trace ("bitmap created, isSuccess", event.isSuccess);
 					if (event.isSuccess) {
-						file.imageData = event.decodedBitmap.bitmapData;
 						file.imageData = new BitmapData( event.decodedBitmap.width, event.decodedBitmap.height );
 						file.imageData.copyPixels( event.decodedBitmap.bitmapData
 							, new Rectangle( 0, 0, event.decodedBitmap.width, event.decodedBitmap.height ), new Point( 0, 0 ));

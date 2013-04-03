@@ -60,7 +60,7 @@ package ru.mail.data.vo
 			var overlayVO:OverlayVO;
 			for (var i:uint = 0; i < overlay.length; i++) {
 				item = overlay[i];
-				if ( item ) {
+				if ( item && item.src ) {
 					overlayVO = new OverlayVO(item);
 					this.overlay.push(overlayVO);
 				}
