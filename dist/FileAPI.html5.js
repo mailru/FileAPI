@@ -271,6 +271,7 @@
 			cors: false,
 			debug: false,
 			pingUrl: false,
+			multiFlash: false,
 
 			staticPath: './dist/',
 
@@ -2562,7 +2563,7 @@
 					_this._active = !err;
 					clearTimeout(_failId);
 					clearTimeout(_successId);
-					api.event.off(video, 'loadedmetadata', _complete);
+//					api.event.off(video, 'loadedmetadata', _complete);
 					callback && callback(err, _this);
 				}
 			;

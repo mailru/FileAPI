@@ -271,6 +271,7 @@
 			cors: false,
 			debug: false,
 			pingUrl: false,
+			multiFlash: false,
 
 			staticPath: './dist/',
 
@@ -2562,7 +2563,7 @@
 					_this._active = !err;
 					clearTimeout(_failId);
 					clearTimeout(_successId);
-					api.event.off(video, 'loadedmetadata', _complete);
+//					api.event.off(video, 'loadedmetadata', _complete);
 					callback && callback(err, _this);
 				}
 			;
@@ -2795,12 +2796,15 @@
 
 								var dummy = document.createElement('div');
 
+								dummy.id = '_' + _attr;
+
 								_css(dummy, {
 									  top: 1
 									, right: 1
 									, width: 5
 									, height: 5
 									, position: 'absolute'
+									, zIndex: 1e6+'' // set max zIndex
 								});
 
 								child.parentNode.insertBefore(dummy, child);
@@ -2839,6 +2843,7 @@
 
 
 				ready: function (){
+					api.log('FileAPI.Flash.ready!');
 					flash.ready = api.F;
 					flash.isReady = true;
 					flash.patch();
@@ -2854,6 +2859,12 @@
 					});
 				},
 
+
+				getEl: function (){
+					return	document.getElementById('_'+_attr);
+				},
+
+
 				getWrapper: function (node){
 					do {
 						if( /js-fileapi-wrapper/.test(node.className) ){
@@ -2863,49 +2874,66 @@
 					while( (node = node.parentNode) && (node !== document.body) );
 				},
 
+
 				mouseover: function (evt){
 					var target = api.event.fix(evt).target;
 
 					if( /input/i.test(target.nodeName) && target.type == 'file' ){
-						var state = target.getAttribute(_attr);
+						var
+							  state = target.getAttribute(_attr)
+							, wrapper = flash.getWrapper(target)
+						;
 
-						// check state
-						if( state == 'i' || state == 'r' ){
-							// publish fail
-							return	false;
-						}
-						else if( state != 'p' ){
-							// set "init" state
-							target.setAttribute(_attr, 'i');
+						if( api.multiFlash ){
+							// check state:
+							//   i — published
+							//   i — initialization
+							//   r — ready
+							if( state == 'i' || state == 'r' ){
+								// publish fail
+								return	false;
+							}
+							else if( state != 'p' ){
+								// set "init" state
+								target.setAttribute(_attr, 'i');
 
-							var
-								  dummy = document.createElement('div')
-								, wrapper = flash.getWrapper(target)
-							;
+								var dummy = document.createElement('div');
 
-							if( !wrapper ){
-								api.log('flash.mouseover.error: js-fileapi-wrapper not found');
-								return;
+								if( !wrapper ){
+									api.log('flash.mouseover.error: js-fileapi-wrapper not found');
+									return;
+								}
+
+								_css(dummy, {
+									  top:    0
+									, left:   0
+									, width:  target.offsetWidth + 100
+									, height: target.offsetHeight + 100
+									, zIndex: 1e6+'' // set max zIndex
+									, position: 'absolute'
+								});
+
+								wrapper.appendChild(dummy);
+								flash.publish(dummy, api.uid());
+
+								// set "publish" state
+								target.setAttribute(_attr, 'p');
 							}
 
-							_css(dummy, {
-								  top:    0
-								, left:   0
-								, width:  target.offsetWidth + 100
-								, height: target.offsetHeight + 100
-								, zIndex: 1e6+'' // set max zIndex
-								, position: 'absolute'
-							});
-
-
-							wrapper.appendChild(dummy);
-							flash.publish(dummy, api.uid());
-
-							// set "publish" state
-							target.setAttribute(_attr, 'p');
+							return	true;
 						}
+						else if( wrapper ){
+							// Use one flash element
+							var box = _getDimensions(wrapper);
 
-						return	true;
+							_css(flash.getEl(), box);
+
+							// Set current input
+							flash.curInp = target;
+						}
+					}
+					else if( !/object|embed/i.test(target.nodeName) ){
+						_css(flash.getEl(), { top: 1, left: 1, width: 5, height: 5 });
 					}
 				},
 
@@ -2937,8 +2965,10 @@
 					}
 				},
 
+
 				mouseenter: function (evt){
 					var node = flash.getInput(evt.flashId);
+
 					if( node ){
 						// Set multiple mode
 						flash.cmd(evt, 'multiple', node.getAttribute('multiple') != null);
@@ -2961,20 +2991,27 @@
 					}
 				},
 
+
 				get: function (id){
 					return	document[id] || window[id] || document.embeds[id];
 				},
 
+
 				getInput: function (id){
-					try {
-						var node = flash.getWrapper(flash.get(id));
-						if( node ){
-							return node.getElementsByTagName('input')[0];
+					if( api.multiFlash ){
+						try {
+							var node = flash.getWrapper(flash.get(id));
+							if( node ){
+								return node.getElementsByTagName('input')[0];
+							}
+						} catch (e){
+							api.log('Can not find "input" by flashId:', id, e);
 						}
-					} catch (e){
-						api.log('Can not find "input" by flashId:', id, e);
+					} else {
+						return	flash.curInp;
 					}
 				},
+
 
 				select: function (evt){
 					var
@@ -3399,6 +3436,21 @@
 			};
 		}
 
+
+		function _getDimensions(el){
+			var
+				  box = el.getBoundingClientRect()
+				, body = document.body
+				, docEl = (el && el.ownerDocument).documentElement
+			;
+
+			return {
+				  top:		box.top + (window.pageYOffset || docEl.scrollTop)  - (docEl.clientTop || body.clientTop || 0)
+				, left:		box.left + (window.pageXOffset || docEl.scrollLeft) - (docEl.clientLeft || body.clientLeft || 0)
+				, width:	box.right - box.left
+				, height:	box.bottom - box.top
+			};
+		}
 
 
 		// @export
