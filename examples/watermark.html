@@ -51,10 +51,19 @@
 
 
 	<style>
+		h4 {
+			margin-bottom: 0;
+		}
+
 		.btn {
 			*zoom: 1;
 			*display: inline;
 			display: inline-block;
+		}
+
+		.col {
+			float: left;
+			margin-left: 10px;
 		}
 	</style>
 
@@ -65,15 +74,45 @@
 		</div>
 
 		<div id="preview" style="display: none;">
-			<h4 style="margin-bottom: 5px">Watermark position</h4>
-			<div id="pos" style="padding: 10px 0;">
+
+			<div class="col">
+				<h4>Watermark position</h4>
+				<div id="pos" style="padding: 10px 0;">
+				</div>
+
+				<h4>Output result</h4>
+				<div id="output">
+					<label>
+						<input value="image/jpeg" type="radio" name="type"/>
+						image/jpeg
+					</label>
+					<label>
+						<input value="image/png" type="radio" name="type"/>
+						image/png
+					</label>
+					<br/>
+					<br/>
+
+					<input name="width" type="text" style="width: 50px; text-align: center"/> x
+					<input name="height" type="text" style="width: 50px; text-align: center"/>
+				</div>
 			</div>
 
-			<h4>Preview</h4>
-			<div id="image"></div>
+			<div class="col">
+				<h4>Preview</h4>
+				<div id="image"></div>
+			</div>
 
-			<h4 style="margin-bottom: 0">EXIF</h4>
-			<div id="exif"></div>
+			<div class="col">
+				<h4>Server response</h4>
+				<div id="server"></div>
+			</div>
+			<br clear="all"/>
+
+			<div>
+				<h4>EXIF</h4>
+				<div id="exif"></div>
+			</div>
 		</div>
 	</form>
 
@@ -81,13 +120,12 @@
 	<script>
 		(function (){
 			var elms = document.forms.image;
-			var relative = 0;
 			var positions = ['<table>'];
 
 			FileAPI.each(['TOP', 'CENTER', 'BOTTOM'], function (x, i){
 				positions.push('<tr>');
 				FileAPI.each(['LEFT', 'CENTER', 'RIGHT'], function (y, j){
-					positions.push('<td><label><input type="radio" name="pos" value="'+ (i*3 + j) +'"/> '+x+'_'+y+'</label></td>');
+					positions.push('<td><label><input type="radio" name="rel" value="'+ (i*3 + j) +'"/> '+x+'_'+y+'</label></td>');
 				});
 				positions.push('</tr>');
 			});
@@ -98,31 +136,73 @@
 
 			function _updWatermark(evt){
 				var file = FileAPI.getFiles(elms.file)[0];
-				relative = evt ? evt.target.value : relative;
+				var rel =  (FileAPI.filter(elms.rel, function (rel){ return rel.checked; })[0] || {}).value;
+				var type = (FileAPI.filter(elms.type, function (type){ return type.checked; })[0] || {}).value;
+				var overlay = { x: 5, y: 5, src: '../statics/watermark.png', rel: rel };
 
+				// Create preview
 				FileAPI.Image(file)
 					.resize(300, 300, 'max')
-					.overlay({ x: 5, y: 5, src: '../statics/watermark.png', rel: relative })
+					.overlay(overlay)
 					.get(function (err, img){
 						image.innerHTML = '';
 						image.appendChild(img);
 					})
 				;
+
+				// Upload
+				FileAPI.upload({
+					  url: 'http://rubaxa.org/FileAPI/server/ctrl.php'
+					, files: elms.file
+					, imageTransform: {
+						  width: elms.width.value|0
+						, height: elms.height.value|0
+						, preview: true
+						, type: type // Output type
+						, overlay: overlay // Add watermark
+					}
+					, complete: function (err, xhr){
+						if( err ){
+							allert('Ooops, server error.');
+						} else {
+							var res = JSON.parse(xhr.responseText);
+							FileAPI.each(res.images, function (file){
+								server.innerHTML = '<div><b>'+file.width+'x'+file.height+', '+file.mime+'</b></div>';
+								var img = new Image;
+								img.src = file.dataURL;
+								img.style.maxWidth = '300px';
+								server.appendChild(img);
+							});
+						}
+					}
+				});
 			}
 
 
 			FileAPI.event.on(pos, 'change', _updWatermark);
+			FileAPI.event.on(output, 'change', _updWatermark);
+			FileAPI.event.on(output, 'keyup', function (){
+				clearTimeout(this.pid);
+				this.pid = setTimeout(function (){
+					_updWatermark();
+				}, 1000);
+			});
+
 
 			FileAPI.event.on(elms.file, 'change', function (){
-				preview.style.display = '';
-				_updWatermark();
-
 				FileAPI.getInfo(FileAPI.getFiles(elms.file)[0], function (err, info){
 					var html = ['<table>'];
+
 					FileAPI.each(info && info.exif, function (val, key){
 						html.push('<tr><td>'+ key +'</td><td>'+ val +'</td></tr>');
 					});
 					exif.innerHTML = html.join('')+'</table>';
+
+					elms.width.value = info.width;
+					elms.height.value = info.height;
+
+					preview.style.display = '';
+					_updWatermark();
 				});
 			});
 		})();

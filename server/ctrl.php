@@ -58,7 +58,15 @@ function fetchImages($files, &$images, $name = 'file'){
 		list($mime)	= explode(';', @mime_content_type($filename));
 
 		if( strpos($mime, 'image') !== false ){
-			$images[$name] = getimagesize($filename);
+			$size = getimagesize($filename);
+			$base64 = base64_encode(file_get_contents($filename));
+
+			$images[$name] = array(
+				  'width'	=> $size[0]
+				, 'height'	=> $size[1]
+				, 'mime'	=> $mime
+				, 'dataURL'	=> 'data:'. $mime .';base64,'. $base64
+			);
 		}
 	}
 	else {
