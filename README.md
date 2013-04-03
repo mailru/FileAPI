@@ -527,7 +527,7 @@ All the other codes - fatal error, user's involvement is recommend.
 ```php
 <?
 	header('Access-Control-Allow-Methods: POST, OPTIONS');
-	header('Access-Control-Allow-Headers: Origin, X-Requested-With'); // and other custom headers
+	header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type'); // and other custom headers
 	header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']); // a comma-separated list of domains
 
 	if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
@@ -670,8 +670,30 @@ All the other codes - fatal error, user's involvement is recommend.
 
 
 ## Changelog
+### 1.2.4
+ * Fixed auto orientation image by EXIF (Flash)
+ * Fixed image dimensions after rotate (Flash)
+
+
+### 1.2.3
+ * [#77](https://github.com/mailru/FileAPI/pull/77): Fixed flash.abort(), [#75](https://github.com/mailru/FileAPI/issues/75)
+ * - `FileAPI.addMime`
+ * + `FileAPI.accept` — fallback for flash.
+
+
+### 1.2.2
+ * [#67](https://github.com/mailru/FileAPI/pull/67): Added correct httpStatus for upload fail, [#62](https://github.com/mailru/FileAPI/pull/68)
+ * [#68](https://github.com/mailru/FileAPI/pull/68) Added "Content-Type" for chunked upload, [#65](https://github.com/mailru/FileAPI/pull/65)
+ * [#69](https://github.com/mailru/FileAPI/issues/69): Fixed network down recovery
+ * Fixed progress event, [#66](https://github.com/mailru/FileAPI/issues/66)
+ * Increase flash stage size, [#73](https://github.com/mailru/FileAPI/pull/73)
+ * - array index from POST-param "name", [#72](https://github.com/mailru/FileAPI/issues/72)
+ * - dependency on FileAPI.Image for FileAPI.Flash
+
+
 ### 1.2.1
  * [#64](https://github.com/mailru/FileAPI/issues/64): Bufixed for [#63](https://github.com/mailru/FileAPI/issues/63)
+
 
 
 ### 1.2.0

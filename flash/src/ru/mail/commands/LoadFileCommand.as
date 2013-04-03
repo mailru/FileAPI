@@ -77,9 +77,6 @@ package ru.mail.commands
 			fileRef.removeEventListener( Event.COMPLETE, onLoadComplete);
 			fileRef.removeEventListener( IOErrorEvent.IO_ERROR, onLoadError );
 			fileRef.removeEventListener(ProgressEvent.PROGRESS, onProgress);
-			
-			fileRef = null;
-			file = null;
 		}
 		
 		private function onLoadError(event:IOErrorEvent):void

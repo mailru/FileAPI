@@ -14,6 +14,8 @@
 
 
 	if( strtoupper($_SERVER['REQUEST_METHOD']) == 'POST' ){
+		header('HTTP/1.1 201 Created');
+
 		$files	= FileAPI::getFiles();
 		$images = array();
 		fetchImages($files, $images);
@@ -149,8 +151,8 @@
 		<span style="padding: 0 30px">or</span>
 
 		<div class="b-button js-fileapi-wrapper">
-			<div class="b-button__text">jpg, jpeg & gif</div>
-			<input name="files" class="b-button__input" type="file" accept=".jpg,.jpeg,.gif" multiple />
+			<div class="b-button__text">gif, jpeg, png & etc.</div>
+			<input name="files" class="b-button__input" type="file" accept="image/*" multiple />
 		</div>
 
 	</div>

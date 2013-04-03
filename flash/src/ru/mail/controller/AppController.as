@@ -120,7 +120,7 @@ package ru.mail.controller
 		private function initView(graphicContext:Sprite):void
 		{
 			// init with some default dimensionsm then listen to Stage resize event
-			resizeView(graphicContext, 300, 50);
+			resizeView(graphicContext, 1000, 1000);
 			
 			// use hand cursor true
 			setCursor("pointer");
@@ -597,7 +597,8 @@ package ru.mail.controller
 						if (event.error.error.indexOf("#2038") > -1) {
 							_model.hasError = true;
 						}
-						_jsCaller.callJS( callback, {type:"error", message:event.error.getError() } );
+						_jsCaller.callJS( callback, {type:"error", message:event.error.getError(), status:event.error.httpStatus } ); 
+						//TODO replace with httpStatus, и вообще в complete статус передастся только через urlLoader, в случае fileReference никогда мы его не узнаем.
 					}
 					
 					uploadCommand.dispose();
@@ -647,7 +648,7 @@ package ru.mail.controller
 			}
 			_model.filesBuilder.removeFile(file);
 			file = null;
-			
+			LoggerJS.log("abort complete");
 		}
 		
 		/**
