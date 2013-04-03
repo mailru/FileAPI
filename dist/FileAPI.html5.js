@@ -1489,7 +1489,7 @@
 	function _simpleClone(obj){
 		var copy = {};
 		_each(obj, function (val, key){
-			if( val && (typeof val === 'object') ){
+			if( val && (typeof val === 'object') && (val.nodeType === void 0) ){
 				val = api.extend({}, val);
 			}
 			copy[key] = val;
@@ -1785,6 +1785,9 @@
 				, (deg == 90 || deg == 180 ? -dh : 0)
 				, dw, dh
 			);
+
+			dw = canvas.width;
+			dh = canvas.height;
 
 			// Apply overlay
 			overlay && api.each([].concat(overlay), function (over){

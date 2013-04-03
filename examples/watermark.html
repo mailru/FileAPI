@@ -28,7 +28,7 @@
 		};
 	</script>
 
-	<script src="../dist/FileAPI.min.js"></script>
+	<script src="../dist/FileAPI.js"></script>
 	<script src="../plugins/FileAPI.exif.js"></script>
 
 	<style>
@@ -67,7 +67,7 @@
 		}
 	</style>
 
-	<form name="image" style="padding: 10px 20px">
+	<form style="padding: 10px;">
 		<h3>Select image:</h3>
 		<div class="btn js-fileapi-wrapper">
 			<input name="file" type="file" accept="image/*"/>
@@ -77,7 +77,7 @@
 
 			<div class="col">
 				<h4>Watermark position</h4>
-				<div id="pos" style="padding: 10px 0;">
+				<div id="pos" style="font-size: 12px;">
 				</div>
 
 				<h4>Output result</h4>
@@ -119,7 +119,7 @@
 
 	<script>
 		(function (){
-			var elms = document.forms.image;
+			var elms = document.forms[0];
 			var positions = ['<table>'];
 
 			FileAPI.each(['TOP', 'CENTER', 'BOTTOM'], function (x, i){
@@ -163,11 +163,12 @@
 					}
 					, complete: function (err, xhr){
 						if( err ){
-							allert('Ooops, server error.');
+							alert('Oops, server error.');
 						} else {
 							var res = JSON.parse(xhr.responseText);
 							FileAPI.each(res.images, function (file){
-								server.innerHTML = '<div><b>'+file.width+'x'+file.height+', '+file.mime+'</b></div>';
+								server.innerHTML = '<div><b>'+file.width+'x'+file.height+', '+file.mime+', '+(file.size/1024).toFixed(3)+'KB</b></div>';
+
 								var img = new Image;
 								img.src = file.dataURL;
 								img.style.maxWidth = '300px';
