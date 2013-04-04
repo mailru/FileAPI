@@ -760,6 +760,7 @@ FileAPI.Image(imageFile)
 ### get(fn`:Function`)`:FileAPI.Image`
 Получить итоговое изображение.
 
+* fn — функция обратного вызова
 
 ---
 

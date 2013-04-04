@@ -760,6 +760,7 @@ FileAPI.Image(imageFile)
 ### get(fn`:Function`)`:FileAPI.Image`
 Get the final image.
 
+* fn — complete callback
 
 ---
 

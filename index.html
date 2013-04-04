@@ -29,7 +29,7 @@
 						<li><a href="./examples/userpic.html">Пример #2: userpic</a></li>
 						<li><a href="./examples/watermark.html">Пример #3: watermark</a></li>
 						<li><a href="./examples/webcam.html">Пример #4: webcam</a></li>
-						<li><a href="#en/{{ctx.relpath}}">{{ctx.lang == 'ru' ? 'English version' : 'Русская версия'}}</a></li>
+						<li><a href="#en/{{ctx.relpath}}">English version</a></li>
 					</ul>
 
 					<ul x:if="ctx.lang != 'ru'">
@@ -187,7 +187,7 @@
 
 
 		xtpl.mod('txt.hl', function (text){
-			return	text.replace(/`([^`]+)`/g, '<span class="code">$1</span>');
+			return	text ? text.replace(/`([^`]+)`/g, '<span class="code">$1</span>') : '';
 		});
 
 
