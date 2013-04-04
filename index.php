@@ -73,7 +73,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>FileAPI :: TEST</title>
 
-	<script>var FileAPI = { debug: true };</script>
+	<script>var FileAPI = { debug: true, onlyFlash: true };</script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 
 	<script src="./FileAPI.js" type="text/javascript"></script>
