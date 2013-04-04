@@ -27,6 +27,7 @@ package ru.mail.communication
 				ExternalInterface.addCallback("cmd", parseCmd);
 			}
 			catch (e:Error)	{
+				LoggerJS.log('add js cmd callback error: '+e.toString() );
 				trace ("{JSCallbackPresenter} - unable to set callback, error:", e.message);
 			}
 		}
@@ -41,6 +42,7 @@ package ru.mail.communication
 		 */		
 		protected function parseCmd(command:String, data:Object):Boolean
 		{
+			LoggerJS.log('parseCmd, command: '+command);
 			switch (command)
 			{
 				case "accept":
@@ -100,7 +102,6 @@ package ru.mail.communication
 					appController.imageTransform(data.id, data.matrix, data.callback);
 					break;
 				default:
-					trace ("JSCallbackPresenter - cannot parse command: "+command);
 					LoggerJS.log("cannot parse command: "+command);
 					break;
 			}
