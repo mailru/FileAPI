@@ -5,6 +5,7 @@ package
 	import flash.display.StageQuality;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.UncaughtErrorEvent;
 	
 	import ru.mail.controller.AppController;
 	
@@ -48,7 +49,9 @@ package
 			
 			// initiate controller
 			_controller = new AppController(_graphicContext, parseFlashVars());
-			stage.addEventListener(Event.RESIZE, _controller.onStageResize)
+			// add some global listeners
+			stage.addEventListener(Event.RESIZE, _controller.onStageResize);
+			loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, _controller.onUncaughtError);
 		}
 		
 		/**

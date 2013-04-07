@@ -6,11 +6,14 @@ package ru.mail.data
 	import flash.events.EventDispatcher;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
 	
 	import ru.mail.commands.DecodeBytesToBitmapCommand;
 	import ru.mail.commands.LoadFileCommand;
 	import ru.mail.commands.ResizeFileCommand;
+	import ru.mail.commands.graphicloader.SimpleGraphicLoader;
+	import ru.mail.commands.graphicloader.events.GraphicLoaderCompleteEvent;
 	import ru.mail.data.vo.ErrorVO;
 	import ru.mail.data.vo.FileVO;
 	import ru.mail.data.vo.IFileVO;
@@ -80,7 +83,7 @@ package ru.mail.data
 			}
 
 			// check overlay
-			if ( imageTransform.overlay ) {
+			if ( imageTransform && imageTransform.overlay ) {
 				// todo: wait for all overlay images to load and then proceed
 				var overlayLoadCounter:int = 0;
 				var overlay:OverlayVO;
@@ -89,7 +92,7 @@ package ru.mail.data
 					overlay = imageTransform.overlay[i];
 					overlayLoadCounter++;
 					
-					LoggerJS.log('overlay.src',overlay.src);
+					LoggerJS.log('overlay.src : '+overlay.src);
 					if ( overlay.src.match(/^data:/) ) {
 						// base64 string, just encode it to image
 						var bytes:ByteArray = Base64.decode(overlay.src);
@@ -118,12 +121,30 @@ package ru.mail.data
 					else {
 						// load image from url
 						// 1. load bytes
+						var loadOverlayLoader:SimpleGraphicLoader = new SimpleGraphicLoader(10);
+						loadOverlayLoader.addEventListener(GraphicLoaderCompleteEvent.TYPE, function(event:GraphicLoaderCompleteEvent):void {
+							event.currentTarget.removeEventListener(event.type, arguments.callee);
+							LoggerJS.log('ImageFactory load overlay image, success: '+event.isSuccess);
+							if (event.isSuccess) {
+								LoggerJS.log('event.content '+!!(event.content as ByteArray)+' '+!!(event.content as BitmapData));
+								var bytes:ByteArray = event.content as ByteArray;
+							} else {
+								if (--overlayLoadCounter < 1){
+									onLoadImageAndOverlay(false, imageTransform);
+								}
+							}
+						});
+						LoggerJS.log('ImageFactory load overlay image, src = '+overlay.src);
+						loadOverlayLoader.loadGraphic(new URLRequest(overlay.src));
 						// 2. bitmapData
 					}
 				}
 				
 				if (overlayLoadCounter < 1) 
 					onLoadImageAndOverlay(false, imageTransform);
+			} else {
+				LoggerJS.log('ImageFactory no overlay provided');
+				onLoadImageAndOverlay(false, imageTransform);
 			}
 		}
 

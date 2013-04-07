@@ -27,7 +27,7 @@ package ru.mail.data.vo
 			this.h = item.h|0;
 			this.rel = item.rel|0;
 			this.opacity = item.opacity||1;
-			this.src = src;
+			this.src = item.src;
 		}
 	}
 }

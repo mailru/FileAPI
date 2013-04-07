@@ -10,6 +10,7 @@ package ru.mail.controller
 	import flash.events.ProgressEvent;
 	import flash.events.TextEvent;
 	import flash.events.TimerEvent;
+	import flash.events.UncaughtErrorEvent;
 	import flash.net.FileFilter;
 	import flash.net.URLRequest;
 	import flash.system.Security;
@@ -350,6 +351,7 @@ package ru.mail.controller
 		
 		public function onStageResize(event:Event):void
 		{
+			// disabled. Now flash has very big size (oh, yeah!) but cropped by its html container
 			//resizeView (_view, (event.target as Stage).stageWidth, (event.target as Stage).stageHeight);
 		}
 		
@@ -357,6 +359,22 @@ package ru.mail.controller
 		{
 			// enable rollout
 			dispatchEvent(new MouseListenerEngineCommand(true));
+		}
+		
+		/**
+		 * Global Error Events Listener <br>
+		 * Listen for all uncaught events and log them.
+		 * 
+		 * public: subscription is in the main application file.
+		 *  
+		 * @param event
+		 * 
+		 */		
+		public function onUncaughtError(event:UncaughtErrorEvent):void 
+		{
+			if (event && event.error) {
+				LoggerJS.log("Uncaught error: "+(event.error as Object).toString());
+			}
 		}
 		
 		//===================================================
@@ -538,9 +556,10 @@ package ru.mail.controller
 					}
 				});
 				
-				imageFactory.createImage( trans? new ImageTransformVO(trans.sx, trans.sy, trans.sw, trans.sh, trans.dw, trans.dh, trans.deg) : null );
+				imageFactory.createImage( trans? new ImageTransformVO(trans.sx, trans.sy, trans.sw, trans.sh, trans.dw, trans.dh, trans.deg, trans.type, trans.quality, [trans.overlay]) : null );
 				}
 			catch (e:Error){
+				LoggerJS.log('imageFactory createImage error: '+e.toString());
 				_jsCaller.notifyJSErrors(new ErrorVO(e.toString()));
 			}
 		}
