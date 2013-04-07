@@ -47,10 +47,22 @@ package ru.mail.communication
 					appController.setTypeFilter(data.toString());
 					break;
 				case "upload":
-					/* cmd("upload", {id:12312, url:, name:UploadDataFieldName
-					    , data:URLVariables, headers:Object
-						, imageOriginal: Boolean, // send original or transformed
-						, imageTransform: Object, // transformObject
+					/* cmd("upload", {url:, data:URLVariables, headers:Object
+						,files: {'filename[original]': { 
+													id
+													, name
+													, matrix:{
+														sx , ...
+														,dh
+														,deg
+														, type:'image/png'
+														, quality: 1 // качество jpeg
+														,overlay: [  // массив изображений, которые нужно разместить:
+														{ x: 0, y: 0, opacity: .5, src: '...' }
+														, { x: 0, y: 0, w: 120, h: 30, opacity: 1, src: '...' }
+														]
+													} }
+								, 'filename[XL]': { id, name, matrix:null } }
 					    , callback:jsHandler}) */
 					// headers: {  'Content-Type': 'application/x-mru-upload' , 'Content-Disposition': '...' , ...}
 					appController.uploadFile(data.url 

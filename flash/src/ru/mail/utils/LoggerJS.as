@@ -10,7 +10,7 @@ package ru.mail.utils
 		
 		public static function log(str:String):void
 		{
-//			trace ("# LoggerJs.log",args);
+			trace ("# LoggerJs.log",str);
 			var data:Object = {type:"log", target:str};
 			JSCaller.jsCaller.callJS(JSCaller.callback, data);
 		}

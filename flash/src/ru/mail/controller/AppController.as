@@ -550,7 +550,26 @@ package ru.mail.controller
 		 * @param uploadPostData - URLVariables
 		 * @param headers - custom request headers for URLLoader
 		 * @param files - object with files uids and matrix objects <br>
-		 *  exapmle - files: {'filename[original]': { id, name, matrix:null }, 'filename[XL]': { id, name, matrix:{...} } }
+		 *  exapmle - files: {
+		 * 			'filename[original]': { 
+		 * 							id
+		 * 							, name
+		 * 							, matrix:null
+		 * 			, 'filename[XL]': { id
+		 * 								, name
+		 * 								, matrix:{
+		 * 									sx
+		 * 									...
+		 * 									,deg
+		 * 									, type:'image/png'
+		 * 									, quality: 1 // jpeg quality, от 0 до 1
+		 * 									, overlay: [  // an array of images to place over the image:
+		 * 										{ x: 0, y: 0, opacity: .5, src: '...' // base64 or url }
+		 * 										, { x: 0, y: 0, w: 120, h: 30, opacity: 1, src: '...' }
+		 * 										 ]
+		 * 								}
+		 * 							 } 
+		 * 						}
 		 * 	when there is only 1 file with null matrix, file will be uploaded using fileReference
 		 * @param callback
 		 * 

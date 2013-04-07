@@ -70,7 +70,7 @@ package ru.mail.commands
 			{
 				filesPool[s] = INIT;
 				count++;
-				if (!useMultiple && (files[s].matrix != null || count > 1)) {
+				if (!useMultiple && (files[s].matrix != null || files[s].overlay != null || count > 1)) {
 					// if there are several files or at least one with matrix, we cannot use fileReference
 					useMultiple = true;
 				}

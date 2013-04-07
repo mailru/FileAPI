@@ -207,8 +207,8 @@ package ru.mail.commands
 				var resizedImageData:ByteArray;
 				
 				// encode image
-				if (file.fileType.toLowerCase() == 'jpg' || file.fileType.toLowerCase() == 'jpeg') {
-					resizedImageData = JPEGEncoder.encode(imageMap, 90);
+				if ( imageTransform.type == ImageTransformVO.TYPE_JPEG ) {
+					resizedImageData = JPEGEncoder.encode(imageMap, uint(imageTransform.quality*100) );
 				}
 				else {
 					// use png encoder by default
