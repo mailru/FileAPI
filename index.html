@@ -44,15 +44,15 @@
 				</div>
 
 				<div class="menu" x:repeat="item in ctx.api">
-					<a x:attr-getter="ctx.relpath+ctx.lang" href="#{{ctx.lang}}/{{item.label}}" class="menu__name">{{item['class']}}</a>
+					<a x:attr-getter="ctx.lang" href="#{{ctx.lang}}/{{item.label}}" class="menu__name">{{item['class']}}</a>
 					<ul>
 						<li x:repeat="prop in item.props">
-							<a x:attr-getter="ctx.lang + prop.label" href="#{{ctx.lang}}/{{prop.label}}">{{prop.name}}</a>
+							<a x:attr-getter="ctx.lang" href="#{{ctx.lang}}/{{prop.label}}">{{prop.name}}</a>
 						</li>
 					</ul>
 					<ul>
 						<li x:repeat="(name, item) in item.fn">
-							<a x:attr-getter="ctx.rlangelpath + item.label" href="#{{ctx.lang}}/{{item.label}}">{{name}}</a>
+							<a x:attr-getter="ctx.lang" href="#{{ctx.lang}}/{{item.label}}">{{name}}</a>
 						</li>
 					</ul>
 				</div>

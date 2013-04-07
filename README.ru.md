@@ -18,7 +18,7 @@
 ### getFiles(input`:HTMLInputElement|Event|$.Event`)`:Array`
 Получить список файлов из `input` элемента, или `event`, также поддерживается `jQuery`.
 
-* input — `HTMLInputElement`, `change` and `drop` события, `jQuery` коллекция или `jQuery.Event`
+* input — `HTMLInputElement`, `change` и `drop` события, `jQuery` коллекция или `jQuery.Event`
 
 ```js
 var el = document.getElement('my-input');
@@ -137,7 +137,7 @@ FileAPI.event.on(el, 'change', function (evt/**Event*/){
 <a name="FileAPI.addInfoReader"></a>
 ### addInfoReader(mime`:RegExp`, handler`:Function`)`:void`
 Добавить обработчик, для сбора информации о файле.
-см. также: FileAPI.getInfo and FileAPI.filterFiles.
+см. также: FileAPI.getInfo и FileAPI.filterFiles.
 
 * mime — маска mime-type
 * handler — функция, принимает два аргумента: `file` объект и `complete` функция обратного вызова
