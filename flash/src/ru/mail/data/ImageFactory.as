@@ -60,6 +60,7 @@ package ru.mail.data
 					loadFileCommand.addEventListener(ImageTransformCompleteEvent.TYPE, function(event:ImageTransformCompleteEvent):void{
 						event.currentTarget.removeEventListener(event.type, arguments.callee);
 						trace ("loadCommand complete", event.isSuccess);
+						LoggerJS.log('ImageFactory loadFile complete, success '+ event.isSuccess);
 						loadCommand = null;
 						if(event.isSuccess) {
 							onLoadImageAndOverlay(true, imageTransform);
@@ -68,6 +69,7 @@ package ru.mail.data
 							complete( false, event.data, event.error );
 						}
 					});
+					LoggerJS.log('ImageFactory loadFile');
 					if (!(file as FileVO).loadCommand)
 						loadFileCommand.execute();
 					(file as FileVO).loadCommand = loadFileCommand;
@@ -173,6 +175,7 @@ package ru.mail.data
 				decodeCommand.addEventListener(DecodeBytesToBitmapCompleteEvent.TYPE, function(event:DecodeBytesToBitmapCompleteEvent):void {
 					event.currentTarget.removeEventListener(event.type, arguments.callee);
 					trace ("bitmap created, isSuccess", event.isSuccess);
+					LoggerJS.log('ImageFactory bitmap created, success '+ event.isSuccess);
 					if (event.isSuccess) {
 						file.imageData = new BitmapData( event.decodedBitmap.width, event.decodedBitmap.height );
 						file.imageData.copyPixels( event.decodedBitmap.bitmapData
@@ -185,6 +188,7 @@ package ru.mail.data
 						complete( false, null, event.error );
 					}
 				});
+				LoggerJS.log('ImageFactory create Bitmap');
 				decodeCommand.execute();
 			}
 			else {
@@ -209,6 +213,7 @@ package ru.mail.data
 				
 				resizeCommand.addEventListener(ImageTransformCompleteEvent.TYPE, function(event:ImageTransformCompleteEvent):void {
 					event.currentTarget.removeEventListener(event.type, arguments.callee);
+					LoggerJS.log('ImageFactory resize complete, success '+ event.isSuccess);
 					if (event.isSuccess) {
 						complete(true, event.data);
 					}
@@ -216,7 +221,7 @@ package ru.mail.data
 						complete(false, null, event.error);
 					}
 				});
-				
+				LoggerJS.log('ImageFactory resize');
 				resizeCommand.execute();
 			}
 		}
