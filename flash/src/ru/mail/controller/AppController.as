@@ -89,6 +89,8 @@ package ru.mail.controller
 			// parse flashvars
 			_options = options;
 			JSCaller.callback = getJsFunctionName(options, JSCaller.callback);
+			// logger
+			LoggerJS.enable(!!options["debug"]);
 			// error store prefix
 			_model.storeKey = options["storeKey"];
 			LoggerJS.log("storeKey="+_model.storeKey);
