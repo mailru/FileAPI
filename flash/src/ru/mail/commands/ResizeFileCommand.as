@@ -5,13 +5,17 @@ package ru.mail.commands
 	
 	import flash.display.BitmapData;
 	import flash.events.EventDispatcher;
+	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
+	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
 	
 	import ru.mail.data.vo.ErrorVO;
 	import ru.mail.data.vo.IFileVO;
 	import ru.mail.data.vo.ImageTransformVO;
+	import ru.mail.data.vo.OverlayVO;
 	import ru.mail.events.ImageTransformCompleteEvent;
+	import ru.mail.utils.LoggerJS;
 
 	/**
 	 * Resize and rotate image using imageTransform object 
@@ -46,6 +50,7 @@ package ru.mail.commands
 			}
 			
 			if (!needResize()) {
+				LoggerJS.log('ResizeImageCommand no need to resize');
 				complete(true, file.fileData);
 			}
 			
@@ -76,6 +81,9 @@ package ru.mail.commands
 				&& imageTransform.dw == imageTransform.sw
 				&& imageTransform.dh == imageTransform.sh
 				&& imageTransform.deg == 0
+				&& imageTransform.type == ImageTransformVO.TYPE_PNG
+				&& imageTransform.quality == 1
+				&& imageTransform.overlay.length == 0
 				) 
 			{
 				// transformed image equals original
@@ -102,6 +110,7 @@ package ru.mail.commands
 		{
 			try
 			{
+				LoggerJS.log('ResizeFileCommand tranform image');
 				var fullImageMap:BitmapData = file.imageData; //shortcut
 				var matrix:Matrix;
 				var currentImageMap:BitmapData;
@@ -189,11 +198,50 @@ package ru.mail.commands
 				// resize with bilinear interpolation
 				resizedImageMap.draw( currentImageMap, matrix, null, null, null, true );
 				
-				encodeImage(resizedImageMap);
+				applyOverlay(resizedImageMap);
 			}
-			catch( e:Error ){
+			catch( e:Error ) {
 				complete( false, null, new ErrorVO(e.toString()) );
 			}			
+		}
+		
+		private function applyOverlay(imageMap:BitmapData):void {
+			try {
+				LoggerJS.log('ResizeFileCommand applyOverlay, overlays count: '+imageTransform.overlay.length);
+				// TODO:
+				for (var i:uint = 0; i < imageTransform.overlay.length; i++) {
+					var overlay:OverlayVO = imageTransform.overlay[i];
+					if (!overlay || !overlay.imageData) {
+						LoggerJS.log('ResizeFileCommand applyOverlay: no overlay image!');
+						continue;
+					}
+					// move:
+					// center  |  right  |  left
+					var x:Number = (overlay.rel == 1 || overlay.rel == 4 || overlay.rel == 7) ? (imageMap.width - overlay.w + overlay.x)/2 
+							: (overlay.rel == 2 || overlay.rel == 5 || overlay.rel == 8 ? imageMap.width - (overlay.w + overlay.x) 
+							: overlay.x);
+					// center  |  bottom  |  top
+					var y:Number = (overlay.rel == 3 || overlay.rel == 4 || overlay.rel == 5) ? (imageMap.height - overlay.h + overlay.y)/2 
+							: (overlay.rel >= 6 ? imageMap.height - (overlay.h + overlay.y)
+							: overlay.y);
+					var matrix:Matrix = new Matrix();
+					matrix.identity();
+					matrix.translate(x,y);
+					// alpha:
+					var colorTransform:ColorTransform = new ColorTransform(1, 1, 1, overlay.opacity);
+					// clip:
+					// note adding translation x y, because clipRect is in the image's coordinates, not the overlay's.
+					var clipRect:Rectangle = new Rectangle(x/*+overlay.x*/, y/*+overlay.y*/, overlay.w, overlay.h);
+					// draw:
+					imageMap.draw(overlay.imageData, matrix, colorTransform, null, clipRect);
+				}
+				
+				// success
+				encodeImage(imageMap);
+			}
+			catch( e:Error ) {
+				complete( false, null, new ErrorVO(e.toString()) );
+			}	
 		}
 		
 		/**
@@ -204,6 +252,7 @@ package ru.mail.commands
 		private function encodeImage(imageMap:BitmapData):void 
 		{
 			try {
+				LoggerJS.log('ResizeFileCommand encode image, type '+imageTransform.type);
 				var resizedImageData:ByteArray;
 				
 				// encode image

@@ -49,6 +49,7 @@
 		public function loadGraphic( request:URLRequest ):void 
 		{	
 			//trace( "SimpleGraphicLoader.loadGraphic() ", request.url ) ;
+			LoggerJS.log('SimpleGraphicLoader loadGraphic '+request.url);
 			_timeoutTimer.start() ;
 			try
 			{
@@ -57,12 +58,14 @@
 			}
 			catch( e:Error )	
 			{
+				LoggerJS.log('SimpleGraphicLoader Error '+e.toString());
 				_complete( !_SUCCESS, new ErrorVO( e.toString() ) );
 			}
 		}			
 		
 		private function _complete( isSuccess:Boolean, error:ErrorVO = null ):void 
 		{	//trace( "SimpleGraphicLoader._complete() ", isSuccess ) ;	
+			LoggerJS.log('SimpleGraphicLoader _complete, isSuccess = '+isSuccess+', error = '+(error?error.error:""));
 			_timeoutTimer.stop() ;
 			
 			dispatchEvent( new GraphicLoaderCompleteEvent( isSuccess, _getContent(), error ) ) ;

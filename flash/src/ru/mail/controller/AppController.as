@@ -556,7 +556,7 @@ package ru.mail.controller
 					}
 				});
 				
-				imageFactory.createImage( trans? new ImageTransformVO(trans.sx, trans.sy, trans.sw, trans.sh, trans.dw, trans.dh, trans.deg, trans.type, trans.quality, [trans.overlay]) : null );
+				imageFactory.createImage( trans? new ImageTransformVO(trans.sx, trans.sy, trans.sw, trans.sh, trans.dw, trans.dh, trans.deg, trans.type, trans.quality, (trans.overlay is Array)? trans.overlay : [trans.overlay]) : null );
 				}
 			catch (e:Error){
 				LoggerJS.log('imageFactory createImage error: '+e.toString());

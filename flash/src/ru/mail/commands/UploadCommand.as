@@ -128,7 +128,7 @@ package ru.mail.commands
 				checkFilesPool();
 			});
 			
-			imageFactory.createImage( trans? new ImageTransformVO(trans.sx, trans.sy, trans.sw, trans.sh, trans.dw, trans.dh, trans.deg) : null );
+			imageFactory.createImage( trans? new ImageTransformVO(trans.sx, trans.sy, trans.sw, trans.sh, trans.dw, trans.dh, trans.deg, trans.type, trans.quality, (trans.overlay is Array)? trans.overlay : [trans.overlay]) : null );
 		}
 		
 		

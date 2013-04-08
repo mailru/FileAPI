@@ -125,13 +125,17 @@ package ru.mail.data
 						loadOverlayLoader.addEventListener(GraphicLoaderCompleteEvent.TYPE, function(event:GraphicLoaderCompleteEvent):void {
 							event.currentTarget.removeEventListener(event.type, arguments.callee);
 							LoggerJS.log('ImageFactory load overlay image, success: '+event.isSuccess);
-							if (event.isSuccess) {
-								LoggerJS.log('event.content '+!!(event.content as ByteArray)+' '+!!(event.content as BitmapData));
-								var bytes:ByteArray = event.content as ByteArray;
+							if (event.isSuccess && event.content != null) {
+								overlay.imageData = new BitmapData( event.content.width, event.content.height );
+								overlay.imageData.copyPixels( event.content.bitmapData
+									, new Rectangle( 0, 0, event.content.width, event.content.height ), new Point( 0, 0 ));
+								event.content.bitmapData.dispose();
+								LoggerJS.log('ImageFactory load overlay image success, overlay image: w='+overlay.imageData.width+', h='+overlay.imageData.height);
 							} else {
-								if (--overlayLoadCounter < 1){
-									onLoadImageAndOverlay(false, imageTransform);
-								}
+								LoggerJS.log('ImageFactory load overlay image error: '+event.error);
+							}
+							if (--overlayLoadCounter < 1){
+								onLoadImageAndOverlay(false, imageTransform);
 							}
 						});
 						LoggerJS.log('ImageFactory load overlay image, src = '+overlay.src);
