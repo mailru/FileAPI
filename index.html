@@ -150,10 +150,10 @@
 										</li>
 									</ul>
 
-									<div x:highlight="fn.code.type" x:if="fn.code">
-										<pre>
-											<code>{{fn.code.source[ctx.lang]}}</code>
-										</pre>
+									<div
+										x:if="fn.code"
+										data-type="{{fn.code.type}}"
+										x:highlight="fn.code.source[ctx.lang]">
 									</div>
 
 									<div style="height: 20px;"></div>
@@ -176,11 +176,14 @@
 		/** @namespace hljs -- highlight.js */
 		if( window.hljs ){
 			xtpl.decl('highlight', {
-				init: function (el, type){
-					if( el ){
-						el.className += ' language-' + (type == 'js' ? 'javascript' : type);
-						hljs.highlightBlock(el);
-					}
+				init: function (el, code){
+					var type = $.attr(el, 'data-type');
+					el.className += ' language-' + (type == 'js' ? 'javascript' : type);
+					el.innerHTML = '<pre><code>'+code+'</code></pre>';
+					hljs.highlightBlock(el);
+				},
+				update: function (el, code){
+					this.init(el, code);
 				}
 			});
 		}
@@ -226,7 +229,7 @@
 				ctx.lang = lang;
 				ctx.relpath = href.replace(/^.+\//, '');
 
-				ctx.$apply && ctx.$apply();
+				ctx.$apply && ctx.$apply(_updScroll);
 			}).trigger('hashchange');
 
 
