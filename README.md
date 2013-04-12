@@ -673,6 +673,8 @@ All the other codes - fatal error, user's involvement is recommend.
 ### 1.2.4
  * Fixed auto orientation image by EXIF (Flash)
  * Fixed image dimensions after rotate (Flash)
+ * [#82](https://github.com/mailru/FileAPI/issues/82): "undefined" data-fields cause exceptions
+ * [#83](https://github.com/mailru/FileAPI/issues/83): Allow requests without files
 
 
 ### 1.2.3

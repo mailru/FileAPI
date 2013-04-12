@@ -14,8 +14,6 @@
 
 
 	if( strtoupper($_SERVER['REQUEST_METHOD']) == 'POST' ){
-		header('HTTP/1.1 201 Created');
-
 		$files	= FileAPI::getFiles();
 		$images = array();
 		fetchImages($files, $images);
@@ -265,6 +263,7 @@
 						data: {
 							  num: 10
 							, str: "foo"
+							, 'undefined': void 0
 						},
 						files: {
 							  photos: FileAPI.filter(files, function (file){ return /^image/.test(file.type) })
