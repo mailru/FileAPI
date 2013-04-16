@@ -675,6 +675,7 @@ All the other codes - fatal error, user's involvement is recommend.
  * Fixed image dimensions after rotate (Flash)
  * [#82](https://github.com/mailru/FileAPI/issues/82): "undefined" data-fields cause exceptions
  * [#83](https://github.com/mailru/FileAPI/issues/83): Allow requests without files
+ * [#84](https://github.com/mailru/FileAPI/pull/84): Fixed connection abort when waiting for connection recovery
 
 
 ### 1.2.3
