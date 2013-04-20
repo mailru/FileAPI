@@ -671,7 +671,9 @@ All the other codes - fatal error, user's involvement is recommend.
 
 ## Changelog
 ### 1.2.5
+ * [#86](https://github.com/mailru/FileAPI/issues/86): Smarter upload recovery
  * [#87](https://github.com/mailru/FileAPI/issues/87): Fixed upload files into browsers that do not support FormData
+
 
 ### 1.2.4
  * Fixed auto orientation image by EXIF (Flash)
