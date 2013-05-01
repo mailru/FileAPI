@@ -14,12 +14,12 @@ package
 	 * @author v.demidov
 	 * 
 	 */	
-	public class FlashFileAPI extends Sprite
+	public class FileAPI_flash extends Sprite
 	{
 		private var _controller:AppController;
 		private var _graphicContext:Sprite = new Sprite();
 		
-		public function FlashFileAPI()
+		public function FileAPI_flash()
 		{
 			if (stage) {
 				init();
