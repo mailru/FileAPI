@@ -9,6 +9,8 @@
 	<allow-access-from domain="*.rubaxa.org" secure="false"/>
 	<allow-access-from domain="github.com" secure="false"/>
 	<allow-access-from domain="*.github.com" secure="false"/>
+	<allow-access-from domain="github.io" secure="false"/>
+	<allow-access-from domain="*.github.io" secure="false"/>
 	<allow-access-from domain="mail.ru" secure="false"/>
 	<allow-access-from domain="*.mail.ru" secure="false"/>
 	<allow-access-from domain="imgsmail.ru" secure="false"/>

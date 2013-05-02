@@ -1111,11 +1111,20 @@ Button like link.
 </ul>
 
 
+### 1.2.5
+ * [#86](https://github.com/mailru/FileAPI/issues/86): Smarter upload recovery
+ * [#87](https://github.com/mailru/FileAPI/issues/87): Fixed upload files into browsers that do not support FormData
+ * Fixed support "accept" attribute for Flash.
+ * Fixed detection of HTML5 support for FireFox 3.6
+ * + FileAPI.html5 option, default "true"
+
+
 ### 1.2.4
-<ul>
-	<li>Fixed auto orientation image by EXIF (Flash)</li>
-	<li>Fixed image dimensions after rotate (Flash)</li>
-</ul>
+ * Fixed auto orientation image by EXIF (Flash)
+ * Fixed image dimensions after rotate (Flash)
+ * [#82](https://github.com/mailru/FileAPI/issues/82): "undefined" data-fields cause exceptions
+ * [#83](https://github.com/mailru/FileAPI/issues/83): Allow requests without files
+ * [#84](https://github.com/mailru/FileAPI/pull/84): Fixed connection abort when waiting for connection recovery
 
 
 ### 1.2.3
