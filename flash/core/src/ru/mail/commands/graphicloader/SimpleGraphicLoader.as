@@ -19,11 +19,11 @@
 	
 	public class SimpleGraphicLoader extends EventDispatcher implements IGraphicLoader
 	{
-		private var _timeoutTimer:Timer = new Timer( _TIMEOUT, 1 ) ; // to keep off endless waiting 		
-		private var _loader:Loader = new Loader() ;	
+		private var _timeoutTimer:Timer = new Timer( _TIMEOUT, 1 ); // to keep off endless waiting
+		private var _loader:Loader = new Loader();
 		
-		private var _TIMEOUT:uint = 60 * 1000 ; // timeout in millisecond: minutes * secs per min * millisecs per sec
-		private const _SUCCESS:Boolean = true ;
+		private var _TIMEOUT:uint = 60 * 1000; // timeout in millisecond: minutes * secs per min * millisecs per sec
+		private const _SUCCESS:Boolean = true;
 		
 		public function SimpleGraphicLoader( timeOutInSeconds:uint = 60 )
 		{
@@ -32,7 +32,7 @@
 			_TIMEOUT = timeOutInSeconds * 1000;
 			_timeoutTimer = new Timer( _TIMEOUT, 1 ) ;
 			_timeoutTimer.addEventListener( TimerEvent.TIMER
-			, function( e:TimerEvent ):void{ _complete( _getContent() != null ); } ) ;
+			, function( e:TimerEvent ):void{ _complete( _getContent() != null, new ErrorVO('SimpleGraphicLoader loadGraphic timeout') ); } ) ;
 		}
 		
 		public function cancel():void
@@ -54,7 +54,7 @@
 			try
 			{
 				import flash.system.LoaderContext ;
-				_loader.load( request, new LoaderContext( true ) ) ;	
+				_loader.load( request, new LoaderContext( true ) ) ;
 			}
 			catch( e:Error )	
 			{
@@ -88,7 +88,7 @@
 	
 		private function _addURLLoaderListeners( dispatcher:IEventDispatcher ):void 
 		 {
-            dispatcher.addEventListener( Event.INIT, function( e:Event ):void{ _complete( _SUCCESS ); } );            
+            dispatcher.addEventListener( Event.INIT, function( e:Event ):void{ _complete( _SUCCESS ); } );
             dispatcher.addEventListener( SecurityErrorEvent.SECURITY_ERROR, function( e:Event ):void{ _complete( !_SUCCESS, new ErrorVO(e.toString()) ); } );
             dispatcher.addEventListener( IOErrorEvent.IO_ERROR, function( e:Event ):void{ _complete( !_SUCCESS, new ErrorVO(e.toString()) ); } );
 			dispatcher.addEventListener( ProgressEvent.PROGRESS

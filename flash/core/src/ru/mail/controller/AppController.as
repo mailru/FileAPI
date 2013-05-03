@@ -67,6 +67,11 @@ package ru.mail.controller
 		private var readyTimerCount:int = 0;
 		
 		/**
+		 * Controller for managing camera swf
+		 */		
+		public var cameraController:CameraController;
+		
+		/**
 		 * 
 		 * @param graphicContext
 		 * @param options {callback, ping}
@@ -99,6 +104,11 @@ package ru.mail.controller
 			// get flashId from flashvars
 			if (options["flashId"]) {
 				JSCaller.flashId = options["flashId"];
+			}
+			// use camera
+			_model.useCamera = !!options["useCamera"];
+			if (_model.useCamera) {
+				setupCamera();
 			}
 			
 			setupChain();
@@ -154,17 +164,19 @@ package ru.mail.controller
 		 */
 		private function setupChain():void 
 		{
-			// init factory
-			var factory:EnginesFactory = EnginesFactory.getEnginesFactory();
-			var engine:AbstractEngine = null;
-			
-			engine = factory.getFactory(SelectFilesEngine.TYPE);
-			_chainRoot = engine;
-			engine.addEventListener(CommandCompleteEvent.TYPE, onFilesSelected);
-			
-			engine = factory.getFactory(MouseListenerEngine.TYPE);
-			_chainRoot.addEngine(engine);
-			(engine as MouseListenerEngine).view = _view;
+			if (!_model.useCamera) {
+				// init factory
+				var factory:EnginesFactory = EnginesFactory.getEnginesFactory();
+				var engine:AbstractEngine = null;
+				
+				engine = factory.getFactory(SelectFilesEngine.TYPE);
+				_chainRoot = engine;
+				engine.addEventListener(CommandCompleteEvent.TYPE, onFilesSelected);
+				
+				engine = factory.getFactory(MouseListenerEngine.TYPE);
+				_chainRoot.addEngine(engine);
+				(engine as MouseListenerEngine).view = _view;
+			}
 		}
 		
 		private function configureListeners():void
@@ -180,6 +192,11 @@ package ru.mail.controller
 				engine.addEventListener(AbstractEngineCommand.COMMAND_EVENT_TYPE, onEngineCommand);
 				engine = engine.next;
 			}
+		}
+		
+		private function setupCamera():void
+		{
+			cameraController = new CameraController(_view);
 		}
 		
 		/**
@@ -375,7 +392,7 @@ package ru.mail.controller
 		public function onUncaughtError(event:UncaughtErrorEvent):void 
 		{
 			if (event && event.error) {
-				LoggerJS.log("Uncaught error: "+(event.error as Object).toString());
+				LoggerJS.log("Uncaught error: "+event.error);
 			}
 		}
 		
