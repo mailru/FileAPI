@@ -23,7 +23,7 @@ package
 				addEventListener(Event.ADDED_TO_STAGE, init);
 			
 		}
-		
+
 		public function init(e:Event = null):void 
 		{
 			if(e)
@@ -31,17 +31,7 @@ package
 			
 			stage.scaleMode = StageScaleMode.SHOW_ALL;
 			stage.align = StageAlign.TOP_LEFT;
-			//			
-			//			var camera:Camera = Camera.getCamera();
-			//			
-			//			if (camera != null) {
-			//				camera.addEventListener(ActivityEvent.ACTIVITY, activityHandler);
-			//				video = new Video(camera.width * 2, camera.height * 2);
-			//				video.attachCamera(camera);
-			//				addChild(video);
-			//			} else {
-			//				trace("You need a camera.");
-			//			}
+
 			// init camera
 			camera = Camera.getCamera();
 			if (camera != null) {
@@ -55,7 +45,7 @@ package
 			
 			
 			// test
-			var tf:TextField = new TextField();
+			/*var tf:TextField = new TextField();
 			tf.text = 'on';
 			tf.x = 10;
 			tf.width = 30;
@@ -80,7 +70,7 @@ package
 			tf.addEventListener(MouseEvent.CLICK, function(event:MouseEvent):void {
 				shot();
 			});
-			addChild(tf);
+			addChild(tf);*/
 		}
 		
 		public function toggleCamera(on:Boolean):void {
@@ -104,40 +94,26 @@ package
 			}
 		}
 		
-		public function shot():void {
+		public function shot():BitmapData {
 			if (video) {
 				trace('click!', video.width, stage.stageWidth);
 				try{
 					var bm:BitmapData = new BitmapData(video.width,video.height);
 					bm.draw(video);
-					var bitmap:Bitmap = new Bitmap(bm);
-					bitmap.x = 30;
-					bitmap.y = 30;
-					addChild(bitmap);
+					return bm;
 				} catch(error:Error) {
 					trace('error',error.toString() );
+					return null;
 				}
 			}
-			else {
-				trace('video must be turned on');
-			}
-			
+			return null;
 		}
 		
 		private function onCameraStatus(event:StatusEvent):void {
 			trace('status event:',event.toString() );
-			video = null;
-			if (event.code == 'Camera.Unmuted') {
-				// todo: report ok
-			} else if (event.code == 'Camera.Muted') {
-				// todo: report user denied
-			} else {
-				// todo: report this strange thing
-			}
-		}
-		
-		private function activityHandler(event:ActivityEvent):void {
-			trace("activityHandler: " + event);
+			video = null; // turn off video
+			// redispatch
+			dispatchEvent(event.clone());
 		}
 	}
 }

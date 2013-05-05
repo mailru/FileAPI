@@ -113,6 +113,16 @@ package ru.mail.communication
 					//});
 					appController.imageTransform(data.id, data.matrix, data.callback);
 					break;
+				// camera:
+				case "camera.on":
+					appController.cameraController.cameraOn(data.callback);
+					break;
+				case "camera.off":
+					appController.cameraController.cameraOff();
+					break;
+				case "shot":
+					appController.cameraController.shot(data.callback);
+					break;
 				default:
 					LoggerJS.log("cannot parse command: "+command);
 					break;

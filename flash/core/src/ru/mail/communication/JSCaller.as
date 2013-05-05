@@ -188,6 +188,21 @@ package ru.mail.communication
 		}
 		
 		/**
+		 * Notify JS about camera status event
+		 * @param error: if <code>null</code>, then status if OK.
+		 * 
+		 */		
+		public function notifyCameraStatus(error:String):void
+		{
+			try {
+				ExternalInterface.call(callback, { type:'camera', error:error, flashId:flashId });
+			}
+			catch (e:Error) {
+				trace ("notifyCameraStatus error", e);
+			}
+		}
+		
+		/**
 		 * Notify JS about errors not related to load and upload process
 		 * 
 		 * Load and upload errors are handled in special callbacks, so use callJS() for them
