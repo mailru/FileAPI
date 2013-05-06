@@ -2790,4 +2790,4 @@
 	// @export
 	api.Camera = Camera;
 })(window, FileAPI);
-if( typeof define === "function" && define.amd ){ define("fileapi", [], function (){ return fileapi; }); }
+if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }

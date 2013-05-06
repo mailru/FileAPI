@@ -3525,4 +3525,4 @@
 		dataURICheck.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 	})();
 })(window, window.jQuery, FileAPI);
-if( typeof define === "function" && define.amd ){ define("fileapi", [], function (){ return fileapi; }); }
+if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }

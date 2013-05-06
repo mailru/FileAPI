@@ -40,7 +40,7 @@ module.exports = function (grunt){
 					' * <%= pkg.description %>\n' +
 					' */\n\n',
 
-				footer: 'if( typeof define === "function" && define.amd ){ define("<%= pkg.name %>", [], function (){ return <%= pkg.name %>; }); }'
+				footer: 'if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }'
 			},
 
 			all: {
