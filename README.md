@@ -13,6 +13,35 @@
 ## FileAPI
 A set of javascript tools for working with files.
 
+
+<a name="FileAPI.setup"></a>
+### Setup
+Connecting the library to your project.
+If you need a CORS, then edit the `crossdomain.xml` and put it in the root of remote domain.
+
+```html
+	<script>
+		window.FileAPI = {
+			  debug: false   // debug mode, see Console
+			, cors: true     // if used CORS
+			, staticPath: '/js/FileAPI/dist/' // path to '*.swf'
+		};
+	</script>
+	<script src="/js/FileAPI/dist/FileAPI.min.js"></script>
+
+	<!-- OR -->
+
+	<script>
+		window.FileAPI = { /* options */ };
+		require(['FileAPI'], function (FileAPI){
+			// ...
+		});
+	</script>
+```
+
+---
+
+
 <a name="FileAPI.getFiles"></a>
 ### getFiles(input`:HTMLInputElement|Event|$.Event`)`:Array`
 Get files from `input` element or `event` object, also support `jQuery`.
@@ -31,6 +60,7 @@ FileAPI.event.on(el, function (evt/**Event*/){
 ```
 
 ---
+
 
 <a name="FileAPI.getInfo"></a>
 ### getInfo(file`:Object`, callback`:Function`)`:void`
@@ -988,8 +1018,10 @@ All the other codes - fatal error, user's involvement is recommend.
 
 ---
 
+<a name="buttons.examples"></a>
 ## Buttons examples
 
+<a name="buttons.examples.base"></a>
 ### Base
 Simple input[type="file"]
 
@@ -1001,6 +1033,7 @@ Simple input[type="file"]
 
 ---
 
+<a name="buttons.examples.button"></a>
 ### Button
 Stylized button.
 
@@ -1050,6 +1083,7 @@ Stylized button.
 ---
 
 
+<a name="buttons.examples.link"></a>
 ### Link
 Button like link.
 
@@ -1102,9 +1136,10 @@ Button like link.
 ### 2.0.0
 <ul>
 	<li>+ FileAPI.Camera (HTML5 and Flash fallback)</li>
-	<li>+ jquery.fileapi.js</li>
+	<li>+ jquery.fileapi.js, see <a href="http://rubaxa.github.io/jquery.fileapi/">demo</a></li>
 	<li>+ npm support</li>
 	<li>+ grunt support</li>
+	<li>+ requirejs support</li>
 	<li>+ [#80](https://https://github.com/mailru/FileAPI/issues/80): FileAPI.Image.fn.overlay</li>
  	<li>`imageTransform` — now supports: `crop`, `type`, `quality` and `overlay` properties.</li>
 	<li>Improved the documentation</li>
@@ -1112,19 +1147,22 @@ Button like link.
 
 
 ### 1.2.5
- * [#86](https://github.com/mailru/FileAPI/issues/86): Smarter upload recovery
- * [#87](https://github.com/mailru/FileAPI/issues/87): Fixed upload files into browsers that do not support FormData
- * Fixed support "accept" attribute for Flash.
- * Fixed detection of HTML5 support for FireFox 3.6
- * + FileAPI.html5 option, default "true"
-
+<ul>
+	<li>[#86](https://github.com/mailru/FileAPI/issues/86): Smarter upload recovery</li>
+	<li>[#87](https://github.com/mailru/FileAPI/issues/87): Fixed upload files into browsers that do not support FormData</li>
+	<li>Fixed support "accept" attribute for Flash.</li>
+	<li>Fixed detection of HTML5 support for FireFox 3.6</li>
+	<li> + FileAPI.html5 option, default "true"</li>
+</ul>
 
 ### 1.2.4
- * Fixed auto orientation image by EXIF (Flash)
- * Fixed image dimensions after rotate (Flash)
- * [#82](https://github.com/mailru/FileAPI/issues/82): "undefined" data-fields cause exceptions
- * [#83](https://github.com/mailru/FileAPI/issues/83): Allow requests without files
- * [#84](https://github.com/mailru/FileAPI/pull/84): Fixed connection abort when waiting for connection recovery
+<ul>
+	<li>Fixed auto orientation image by EXIF (Flash)</li>
+	<li>Fixed image dimensions after rotate (Flash)</li>
+	<li>[#82](https://github.com/mailru/FileAPI/issues/82): "undefined" data-fields cause exceptions</li>
+	<li>[#83](https://github.com/mailru/FileAPI/issues/83): Allow requests without files</li>
+	<li>[#84](https://github.com/mailru/FileAPI/pull/84): Fixed connection abort when waiting for connection recovery</li>
+</ul>
 
 
 ### 1.2.3

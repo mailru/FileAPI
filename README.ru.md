@@ -14,6 +14,35 @@
 Набор JavaScript инструментов для работы с файлами.
 
 
+<a name="FileAPI.setup"></a>
+### Setup
+Подключение библиотеки к проекту.
+Если вы собираетесь использовать CORS, то отредактируйте файл `crossdomain.xml` и
+разместите в коре удаленного домена.
+
+```html
+	<script>
+		window.FileAPI = {
+			  debug: false   // дебаг режим, смотрите Console
+			, cors: true     // если используете CORS
+			, staticPath: '/js/FileAPI/dist/' // путь к '*.swf'
+		};
+	</script>
+	<script src="/js/FileAPI/dist/FileAPI.min.js"></script>
+
+	<!-- ИЛИ -->
+
+	<script>
+		window.FileAPI = { /* etc. */ };
+		require(['FileAPI'], function (FileAPI){
+			// ...
+		});
+	</script>
+```
+
+---
+
+
 <a name="FileAPI.getFiles"></a>
 ### getFiles(input`:HTMLInputElement|Event|$.Event`)`:Array`
 Получить список файлов из `input` элемента, или `event`, также поддерживается `jQuery`.

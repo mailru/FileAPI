@@ -97,13 +97,12 @@
 									<x:v mod="txt.hl" output="text" bind="true">prop.descr[ctx.lang] || prop.descr.en</x:v>
 								</div>
 
-								<div x:if="prop.code" x:highlight="prop.code.type">
-									<pre>
-										<code>
-											{{prop.code.source[ctx.lang]}}
-										</code>
-									</pre>
+								<div
+									x:if="prop.code"
+									data-type="{{prop.code.type}}"
+									x:highlight="prop.code.source[ctx.lang]">
 								</div>
+
 								<div x:if="prop.code" style="height: 20px;"></div>
 							</div>
 
@@ -179,7 +178,8 @@
 				init: function (el, code){
 					var type = $.attr(el, 'data-type');
 					el.className += ' language-' + (type == 'js' ? 'javascript' : type);
-					el.innerHTML = '<pre><code>'+code+'</code></pre>';
+					el.innerHTML = '<pre><code></code></pre>';
+					el.firstChild.firstChild.appendChild(document.createTextNode(code));
 					hljs.highlightBlock(el);
 				},
 				update: function (el, code){
@@ -190,7 +190,8 @@
 
 
 		xtpl.mod('txt.hl', function (text){
-			return	text ? text.replace(/`([^`]+)`/g, '<span class="code">$1</span>') : '';
+			text = text ? text.replace(/`([^`]+)`/g, '<span class="code">$1</span>') : '';
+			return	text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2">$1</a>');
 		});
 
 
