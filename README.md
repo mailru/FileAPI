@@ -670,11 +670,15 @@ All the other codes - fatal error, user's involvement is recommend.
 
 
 ## Changelog
+ * [#90](https://github.com/mailru/FileAPI/issues/90): Fixed `progress` event
+
+
 ### 1.2.5
  * [#86](https://github.com/mailru/FileAPI/issues/86): Smarter upload recovery
  * [#87](https://github.com/mailru/FileAPI/issues/87): Fixed upload files into browsers that do not support FormData
  * Fixed support "accept" attribute for Flash.
  * Fixed detection of HTML5 support for FireFox 3.6
+ * + FileAPI.html5 option, default "true"
 
 
 ### 1.2.4
