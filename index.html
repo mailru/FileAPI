@@ -444,7 +444,7 @@
 								$Layer.find('.js-img').html('Ooops.');
 							}
 							else {
-								FileAPI.Image(file).preview(300).get(function (err, img){
+								FileAPI.Image(file).preview(300).rotate('auto').get(function (err, img){
 									$Layer.find('.js-img').append(img);
 								});
 							}
@@ -480,6 +480,7 @@
 					if( file ){
 						file.xhr = FileAPI.upload({
 							url: 'http://www.rubaxa.org/index.php',
+							imageAutoOrientation: true,
 							files: { file: file },
 							upload: function (){
 								FU._getEl(file).addClass('b-file_upload');
