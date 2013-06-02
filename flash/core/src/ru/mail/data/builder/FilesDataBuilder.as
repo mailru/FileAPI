@@ -1,9 +1,11 @@
 package ru.mail.data.builder
 {
+	import flash.display.BitmapData;
 	import flash.net.FileReference;
 	
 	import ru.mail.data.AbstractImageFactory;
 	import ru.mail.data.vo.FileVO;
+	import ru.mail.data.vo.PhotoFileVO;
 
 	/**
 	 * Create and store files
@@ -59,6 +61,28 @@ package ru.mail.data.builder
 			
 			return fileVO;
 		}*/
+		
+		public function createPhotoFileVO(image:BitmapData, fileID:String = '', addToCollection:Boolean = true):PhotoFileVO
+		{
+			if (image == null) {
+				throw new Error("FilesDataBuilder - createPhotoFileVO: image BitmapData is null");
+			}
+			
+			// create
+			var fileVO:PhotoFileVO = new PhotoFileVO();
+			// set props
+			fileVO.imageData = image;
+			fileVO.fileID = fileID;
+			//fileVO.imageFactory = new ImageFactory(fileVO, true);
+			fileVO.abstractImageFactory = new AbstractImageFactory(fileVO);
+			// add
+			if(addToCollection)
+			{
+				addFile(fileVO);
+			}
+			
+			return fileVO;
+		}
 		
 	}
 }

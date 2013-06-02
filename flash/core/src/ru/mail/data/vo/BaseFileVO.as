@@ -5,7 +5,7 @@ package ru.mail.data.vo
 
 	/**
 	 * This class contains almost all information about the file. The difference is only the source of data - 
-	 * it can be fileReference or loaded from url.
+	 * it can be fileReference or loaded from url or image from web camera.
 	 * load from url isn't implemented now.
 	 *  
 	 * @author v.demidov

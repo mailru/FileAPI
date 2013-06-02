@@ -75,7 +75,7 @@ package ru.mail.data.vo
 				if ( fileNameParts.length < 2 )
 					return fileName;
 				
-				return fileNameParts[0] + 'jpg';
+				return fileNameParts[0] + 'png';
 			}
 		}
 		
