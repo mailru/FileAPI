@@ -95,9 +95,9 @@
 }(window));
 
 /*jslint evil: true */
-/*global window, Image, Blob, XMLHttpRequest, URL, webkitURL, ActiveXObject */
+/*global window, Image, URL, webkitURL, ActiveXObject */
 
-(function (window, jQuery, undef){
+(function (window, undef){
 	'use strict';
 
 	var
@@ -110,11 +110,16 @@
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
 		apiURL = (window.createObjectURL && window) || (window.URL && URL.revokeObjectURL && URL) || (window.webkitURL && webkitURL),
 
+		Blob = window.Blob,
 		File = window.File,
 		FileReader = window.FileReader,
 		FormData = window.FormData,
 
-		html5 =    !!(File && (FileReader && window.Uint8Array || FormData))
+
+		XMLHttpRequest = window.XMLHttpRequest,
+		jQuery = window.jQuery,
+
+		html5 =    !!(File && (FileReader && (window.Uint8Array || FormData || XMLHttpRequest.prototype.sendAsBinary)))
 				&& !(/safari\//.test(userAgent) && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
 
 		cors = html5 && ('withCredentials' in (new XMLHttpRequest)),
@@ -269,6 +274,7 @@
 			version: '2.0.0b',
 
 			cors: false,
+			html5: true,
 			debug: false,
 			pingUrl: false,
 			multiFlash: false,
@@ -317,11 +323,15 @@
 			getXHR: function (){
 				var xhr;
 
-				if( window.XMLHttpRequest ){
+				if( XMLHttpRequest ){
 					xhr = new XMLHttpRequest;
 				}
 				else if( window.ActiveXObject ){
-					try { xhr = new ActiveXObject('MSXML2.XMLHttp.3.0'); } catch (e) { }
+					try {
+						xhr = new ActiveXObject('MSXML2.XMLHttp.3.0');
+					} catch (e) {
+						xhr = new ActiveXObject('Microsoft.XMLHTTP');
+					}
 				}
 
 				return  xhr;
@@ -999,6 +1009,11 @@
 						, _fileOptions = _simpleClone(options)
 					;
 
+					if( _file && _file.name === api.expando ){
+						_file = null;
+						api.log('[warn] FileAPI.upload() — called without files');
+					}
+
 					if( ( proxyXHR.statusText != 'abort' || proxyXHR.current ) && data ){
 					    // Mark active job
 					    _complete = false;
@@ -1007,7 +1022,7 @@
 						proxyXHR.currentFile = _file;
 
 						// Prepare file options
-						options.prepare(_file, _fileOptions);
+						_file && options.prepare(_file, _fileOptions);
 
 						_this._getFormData(_fileOptions, data, function (form){
 							if( !_loaded ){
@@ -1017,12 +1032,12 @@
 
 							var xhr = new api.XHR(api.extend({}, _fileOptions, {
 
-								upload: function (){
+								upload: _file ? function (){
 									// emit "fileupload" event
 									options.fileupload(_file, xhr, _fileOptions);
-								},
+								} : noop,
 
-								progress: function (evt){
+								progress: _file ? function (evt){
 									if( !_fileLoaded ){
 										// emit "fileprogress" event
 										options.fileprogress({
@@ -1038,27 +1053,29 @@
 											, loaded: proxyXHR.loaded = (_loaded + data.size * (evt.loaded/evt.total))|0
 										}, _file, xhr, _fileOptions);
 									}
-								},
+								} : noop,
 
 								complete: function (err){
+									// fixed throttle event
+									_fileLoaded = true;
+
 									_each(_xhrPropsExport, function (name){
 										proxyXHR[name] = xhr[name];
 									});
 
-									data.loaded	= data.total;
+									if( _file ){
+										data.loaded	= data.total;
 
-									// emulate 100% "progress"
-									this.progress(data);
+										// emulate 100% "progress"
+										this.progress(data);
 
-									// bytes loaded
-									_loaded += data.size; // data.size != data.total, it's desirable fix this
-									proxyXHR.loaded = _loaded;
+										// bytes loaded
+										_loaded += data.size; // data.size != data.total, it's desirable fix this
+										proxyXHR.loaded = _loaded;
 
-									// emit "filecomplete" event
-									options.filecomplete(err, xhr, _file, _fileOptions);
-
-									// fixed throttle event
-									_fileLoaded = true;
+										// emit "filecomplete" event
+										options.filecomplete(err, xhr, _file, _fileOptions);
+									}
 
 									// upload next file
 									_nextFile.call(_this);
@@ -1086,13 +1103,18 @@
 
 
 				// Append more files to the existing request
-				proxyXHR.append = function (files) {
+				// first - add them to the queue head/tail
+				proxyXHR.append = function (files, first) {
 					files = api._getFilesDataArray([].concat(files));
 
 					_each(files, function (data) {
 						_total += data.size;
 						proxyXHR.files.push(data.file);
-						dataArray.push(data);
+						if (first) {
+							dataArray.unshift(data);
+						} else {
+							dataArray.push(data);
+						}
 					});
 
 					if( _complete ){
@@ -1149,6 +1171,11 @@
 						});
 					}
 				});
+
+				if( !files.length ){
+					// Create fake `file` object
+					files.push({ file: { name: api.expando } });
+				}
 
 				return	files;
 			},
@@ -1218,7 +1245,7 @@
 							queue.next();
 						});
 					}
-					else {
+					else if( filename !== api.expando ){
 						Form.append(name, file, filename);
 					}
 				})(file);
@@ -1630,7 +1657,7 @@
 	// @configuration
 	if( !api.flashUrl ){ api.flashUrl = api.staticPath + 'FileAPI.flash.swf'; }
 	if( !api.flashImageUrl ){ api.flashImageUrl = api.staticPath + 'FileAPI.flash.image.swf'; }
-})(window, window.jQuery);
+})(window, void 0);
 
 /*global window, FileAPI, document */
 
@@ -2032,9 +2059,9 @@
 		append: function (name, blob, file, type){
 			this.items.push({
 				  name: name
-				, blob: blob && blob.blob || blob
-				, file: file || blob.name
-				, type:	type || blob.type
+				, blob: blob && blob.blob || (blob == void 0 ? '' : blob)
+				, file: blob && (file || blob.name)
+				, type:	blob && (type || blob.type)
 			});
 		},
 
@@ -2054,7 +2081,7 @@
 				api.log('FileAPI.Form.toHtmlData');
 				this.toHtmlData(fn);
 			}
-			else if( this.multipart ){
+			else if( this.multipart || !FormData ){
 				api.log('FileAPI.Form.toMultipartData');
 				this.toMultipartData(fn);
 			}
@@ -2134,7 +2161,7 @@
 				}
 
 				data.start = -1;
-				data.end = -1;
+				data.end = data.file.FileAPIReadPosition || -1;
 				data.retry = 0;
 			});
 		},
@@ -2164,6 +2191,7 @@
 
 		toMultipartData: function (fn){
 			this._to([], fn, function (file, data, queue, boundary){
+				queue.inc();
 				_converFile(file, function (file, blob){
 					data.push(
 						  '--_' + boundary + ('\r\nContent-Disposition: form-data; name="'+ file.name +'"'+ (file.file ? '; filename="'+ encodeURIComponent(file.file) +'"' : '')
@@ -2172,6 +2200,7 @@
 						+ '\r\n'+ (file.file ? blob : encodeURIComponent(blob))
 						+ '\r\n')
 					);
+					queue.next();
 				});
 			}, api.expando);
 		}
@@ -2182,6 +2211,16 @@
 		var blob = file.blob, filename = file.file;
 
 		if( filename ){
+			if( !blob.toDataURL ){
+				// The Blob is not an image.
+				api.readAsBinaryString(blob, function (evt){
+					if( evt.type == 'load' ){
+						fn(file, evt.result);
+					}
+				});
+				return;
+			}
+
 			var
 				  mime = { 'image/jpeg': '.jpe?g', 'image/png': '.png' }
 				, type = mime[file.type] ? file.type : 'image/png'
@@ -2190,6 +2229,7 @@
 			;
 
 			if( !filename.match(new RegExp(ext+'$', 'i')) ){
+				// Does not change the current extension, but add a new one.
 				filename += ext.replace('?', '');
 			}
 
@@ -2202,11 +2242,12 @@
 				}, type, quality);
 			}
 			else {
-				blob = api.toBinaryString(blob.toDataURL(type, quality));
+				fn(file, api.toBinaryString(blob.toDataURL(type, quality)));
 			}
 		}
-
-		return	blob;
+		else {
+			fn(file, blob);
+		}
 	}
 
 
@@ -2294,6 +2335,7 @@
 		},
 
 		_send: function (options, data){
+
 			var _this = this, xhr, uid = _this.uid, url = options.url;
 
 			api.log('XHR._send:', data);
@@ -2352,6 +2394,10 @@
 			}
 			else {
 				// html5
+				if (this.xhr && this.xhr.aborted) {
+					api.log("Error: already aborted");
+					return;
+				}
 				xhr = _this.xhr = api.getXHR();
 
 				if (data.params) {
@@ -2387,6 +2433,8 @@
 					}
 
 					xhr.onreadystatechange = function (){
+						var lkb = parseInt(xhr.getResponseHeader('X-Last-Known-Byte'), 10);
+
 						_this.status     = xhr.status;
 						_this.statusText = xhr.statusText;
 						_this.readyState = xhr.readyState;
@@ -2411,9 +2459,7 @@
 									options.pause(data.file, options);
 
 									// smart restart if server reports about the last known byte
-									var lkb = xhr.getResponseHeader('X-Last-Known-Byte');
 									api.log("X-Last-Known-Byte: " + lkb);
-
 									if (lkb) {
 										data.end = parseInt(lkb, 10);
 									} else {
@@ -2436,6 +2482,14 @@
 									_this.end(xhr.status);
 								} else {
 									// next chunk
+
+									// shift position if server reports about the last known byte
+									api.log("X-Last-Known-Byte: " + lkb);
+									if (lkb) {
+										data.end = lkb;
+									}
+									data.file.FileAPIReadPosition = data.end;
+
 									setTimeout(function () {
 									    _this._send(options, data);
 									}, 0);
@@ -2446,7 +2500,7 @@
 					};
 
 					data.start = data.end + 1;
-					data.end = Math.min(data.start + options.chunkSize, data.size ) - 1;
+					data.end = Math.max(Math.min(data.start + options.chunkSize, data.size ) - 1, data.start);
                     
 					var slice;
 					(slice = 'slice') in data.file || (slice = 'mozSlice') in data.file || (slice = 'webkitSlice') in data.file;
@@ -2736,4 +2790,4 @@
 	// @export
 	api.Camera = Camera;
 })(window, FileAPI);
-if( typeof define === "function" && define.amd ){ define("fileapi", [], function (){ return fileapi; }); }
+if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }

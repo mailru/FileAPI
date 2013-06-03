@@ -14,11 +14,40 @@
 Набор JavaScript инструментов для работы с файлами.
 
 
+<a name="FileAPI.setup"></a>
+### Setup
+Подключение библиотеки к проекту.
+Если вы собираетесь использовать CORS, то отредактируйте файл `crossdomain.xml` и
+разместите в коре удаленного домена.
+
+```html
+	<script>
+		window.FileAPI = {
+			  debug: false   // дебаг режим, смотрите Console
+			, cors: true     // если используете CORS
+			, staticPath: '/js/FileAPI/dist/' // путь к '*.swf'
+		};
+	</script>
+	<script src="/js/FileAPI/dist/FileAPI.min.js"></script>
+
+	<!-- ИЛИ -->
+
+	<script>
+		window.FileAPI = { /* etc. */ };
+		require(['FileAPI'], function (FileAPI){
+			// ...
+		});
+	</script>
+```
+
+---
+
+
 <a name="FileAPI.getFiles"></a>
 ### getFiles(input`:HTMLInputElement|Event|$.Event`)`:Array`
 Получить список файлов из `input` элемента, или `event`, также поддерживается `jQuery`.
 
-* input — `HTMLInputElement`, `change` and `drop` события, `jQuery` коллекция или `jQuery.Event`
+* input — `HTMLInputElement`, `change` и `drop` события, `jQuery` коллекция или `jQuery.Event`
 
 ```js
 var el = document.getElement('my-input');
@@ -137,7 +166,7 @@ FileAPI.event.on(el, 'change', function (evt/**Event*/){
 <a name="FileAPI.addInfoReader"></a>
 ### addInfoReader(mime`:RegExp`, handler`:Function`)`:void`
 Добавить обработчик, для сбора информации о файле.
-см. также: FileAPI.getInfo and FileAPI.filterFiles.
+см. также: FileAPI.getInfo и FileAPI.filterFiles.
 
 * mime — маска mime-type
 * handler — функция, принимает два аргумента: `file` объект и `complete` функция обратного вызова
