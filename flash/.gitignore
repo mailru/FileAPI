@@ -1,0 +1,14 @@
+#.gitignore
+
+core/bin-debug
+core/bin-release
+
+core/.actionScriptProperties
+
+core/.project
+
+camera/bin-debug
+camera/bin-release
+
+camera/.actionScriptProperties
+camera/.project
