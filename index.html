@@ -11,10 +11,10 @@
 	<link rel="stylesheet" href="statics/main.css"/>
 	<link href="http://fonts.googleapis.com/css?family=Roboto:300,400" rel="stylesheet" type="text/css"/>
 
-	<script src="//code.jquery.com/jquery-1.8.2.min.js"></script>
+	<script src="//code.jquery.com/jquery-1.8.2.js"></script>
 	<script>!window.jQuery && document.write('<script src="/js/jquery.dev.js"><'+'/script>');</script>
 
-	<script src="http://xtpl.ru/js/xtpl.min.js"></script>
+	<script src="/js/xtpl.min.js"></script>
 </head>
 <body class="body">
 
@@ -29,7 +29,7 @@
 						<li><a href="./examples/userpic.html">Пример #2: userpic</a></li>
 						<li><a href="./examples/watermark.html">Пример #3: watermark</a></li>
 						<li><a href="./examples/webcam.html">Пример #4: webcam</a></li>
-						<li><a href="#en/{{ctx.relpath}}">English version</a></li>
+						<li><a x:attr-getter="ctx.relpath" href="#en/{{ctx.relpath}}">English version</a></li>
 					</ul>
 
 					<ul x:if="ctx.lang != 'ru'">
@@ -39,20 +39,20 @@
 						<li><a href="./examples/userpic.html">Example #2: userpic</a></li>
 						<li><a href="./examples/watermark.html">Example #3: watermark</a></li>
 						<li><a href="./examples/webcam.html">Example #4: webbam</a></li>
-						<li><a href="#ru/{{ctx.relpath}}">Русская версия</a></li>
+						<li><a x:attr-getter="ctx.relpath" href="#ru/{{ctx.relpath}}">Русская версия</a></li>
 					</ul>
 				</div>
 
 				<div class="menu" x:repeat="item in ctx.api">
-					<a href="#{{ctx.lang}}/{{item.label}}" class="menu__name">{{item['class']}}</a>
+					<a x:attr-getter="ctx.lang" href="#{{ctx.lang}}/{{item.label}}" class="menu__name">{{item['class']}}</a>
 					<ul>
 						<li x:repeat="prop in item.props">
-							<a href="#{{ctx.lang}}/{{prop.label}}">{{prop.name}}</a>
+							<a x:attr-getter="ctx.lang" href="#{{ctx.lang}}/{{prop.label}}">{{prop.name}}</a>
 						</li>
 					</ul>
 					<ul>
 						<li x:repeat="(name, item) in item.fn">
-							<a href="#{{ctx.lang}}/{{item.label}}">{{name}}</a>
+							<a x:attr-getter="ctx.lang" href="#{{ctx.lang}}/{{item.label}}">{{name}}</a>
 						</li>
 					</ul>
 				</div>
@@ -68,7 +68,7 @@
 				<div class="logo"></div>
 
 				<div x:repeat="item in ctx.api">
-					<a name="{{ctx.lang}}/{{item.label}}"></a>
+					<a x:attr-getter="ctx.lang + item.label" name="{{ctx.lang}}/{{item.label}}"></a>
 
 					<h3>{{item['class']}}</h3>
 
@@ -80,7 +80,7 @@
 
 						<div style="margin-left: 20px;">
 							<div x:repeat="prop in item.props">
-								<a name="{{ctx.lang}}/{{prop.label}}"></a>
+								<a x:attr-getter="ctx.lang + prop.label" name="{{ctx.lang}}/{{prop.label}}"></a>
 								<h4 class="fn" data-anchor="prop">
 									<x:switch select="prop.type">
 										<x:case test="-1">
@@ -97,19 +97,18 @@
 									<x:v mod="txt.hl" output="text" bind="true">prop.descr[ctx.lang] || prop.descr.en</x:v>
 								</div>
 
-								<div x:if="prop.code" x:highlight="prop.code.type">
-									<pre>
-										<code>
-											{{prop.code.source[ctx.lang]}}
-										</code>
-									</pre>
+								<div
+									x:if="prop.code"
+									data-type="{{prop.code.type}}"
+									x:highlight="prop.code.source[ctx.lang]">
 								</div>
+
 								<div x:if="prop.code" style="height: 20px;"></div>
 							</div>
 
 							<div x:repeat="fn in item.fn">
 								<div x:repeat="variant in fn.variants">
-									<a name="{{ctx.lang}}/{{fn.label}}"></a>
+									<a x:attr-getter="ctx.lang + fn.label" name="{{ctx.lang}}/{{fn.label}}"></a>
 
 									<h4 data-anchor="fn" class="fn">
 										<span class="fn__name">{{fn.name}}</span>
@@ -150,10 +149,10 @@
 										</li>
 									</ul>
 
-									<div x:highlight="fn.code.type" x:if="fn.code">
-										<pre>
-											<code>{{fn.code.source[ctx.lang]}}</code>
-										</pre>
+									<div
+										x:if="fn.code"
+										data-type="{{fn.code.type}}"
+										x:highlight="fn.code.source[ctx.lang]">
 									</div>
 
 									<div style="height: 20px;"></div>
@@ -176,18 +175,23 @@
 		/** @namespace hljs -- highlight.js */
 		if( window.hljs ){
 			xtpl.decl('highlight', {
-				init: function (el, type){
-					if( el ){
-						el.className += ' language-' + (type == 'js' ? 'javascript' : type);
-						hljs.highlightBlock(el);
-					}
+				init: function (el, code){
+					var type = $.attr(el, 'data-type');
+					el.className += ' language-' + (type == 'js' ? 'javascript' : type);
+					el.innerHTML = '<pre><code></code></pre>';
+					el.firstChild.firstChild.appendChild(document.createTextNode(code));
+					hljs.highlightBlock(el);
+				},
+				update: function (el, code){
+					this.init(el, code);
 				}
 			});
 		}
 
 
 		xtpl.mod('txt.hl', function (text){
-			return	text ? text.replace(/`([^`]+)`/g, '<span class="code">$1</span>') : '';
+			text = text ? text.replace(/`([^`]+)`/g, '<span class="code">$1</span>') : '';
+			return	text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2">$1</a>');
 		});
 
 
@@ -234,6 +238,8 @@
 				ctx.api = json;
 				ctx.$apply(_updScroll);
 			});
+
+			window.ctx = ctx;
 		});
 	</script>
 </body>

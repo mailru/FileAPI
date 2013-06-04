@@ -25,6 +25,13 @@ body {
 		background-image: url('body__top.png');
 	}
 
+a {
+	color: #ddd;
+}
+	a:hover {
+		color: #fff;
+	}
+
 .logo {
 	height: 210px;
 	background: url('logo.png') center center no-repeat;
