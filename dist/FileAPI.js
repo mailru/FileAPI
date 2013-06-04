@@ -118,7 +118,7 @@
 				&& !(/safari\//.test(userAgent) && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
 
 		cors = html5 && ('withCredentials' in (new XMLHttpRequest)),
-		
+
 		chunked = html5 && !!Blob && !!(Blob.prototype.webkitSlice || Blob.prototype.mozSlice || Blob.prototype.slice),
 
 		// https://github.com/blueimp/JavaScript-Canvas-to-Blob
@@ -1348,7 +1348,7 @@
 
 		} // api
 	;
-	
+
 
 	function _emit(target, fn, name, res, ext){
 		var evt = {
@@ -2369,7 +2369,7 @@
 					xhr.setRequestHeader(key, val);
 				});
 
-				
+
 				if ( options._chunked ) {
 					// chunked upload
 					if( xhr.upload ){
@@ -2396,7 +2396,7 @@
 								_this['response'+k]  = xhr['response'+k];
 							}
 							xhr.onreadystatechange = null;
-                            
+
 							if (!xhr.status || xhr.status - 201 > 0) {
 							    api.log("Error: " + xhr.status);
 								// some kind of error
@@ -2447,16 +2447,16 @@
 
 					data.start = data.end + 1;
 					data.end = Math.min(data.start + options.chunkSize, data.size ) - 1;
-                    
+
 					var slice;
 					(slice = 'slice') in data.file || (slice = 'mozSlice') in data.file || (slice = 'webkitSlice') in data.file;
 
 					xhr.setRequestHeader("Content-Range", "bytes " + data.start + "-" + data.end + "/" + data.size);
 					xhr.setRequestHeader("Content-Disposition", 'attachment; filename=' + encodeURIComponent(data.name));
 					xhr.setRequestHeader("Content-Type", data.type || "application/octet-stream");
-                    
+
 					slice = data.file[slice](data.start, data.end + 1);
-                 
+
 					xhr.send(slice);
 					slice = null;
 				} else {
@@ -2467,7 +2467,7 @@
 							options.progress(evt, _this, options);
 						}, 100), false);
 					}
-				    
+
 					xhr.onreadystatechange = function (){
 						_this.status     = xhr.status;
 						_this.statusText = xhr.statusText;
@@ -2498,7 +2498,7 @@
 
 						}
 					} else {
-						// FormData 
+						// FormData
 						xhr.send(data);
 					}
 				}
@@ -2530,9 +2530,23 @@
 
 		getMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia,
 
-		html5 = !!getMedia
+		html5 = false && !!getMedia
 	;
 
+	function _wrap(flash, fn){
+			var id = fn.wid = api.uid();
+			flash._fn[id] = fn;
+			return	'FileAPI.Flash._fn.'+id;
+		}
+
+
+		function _unwrap(flash, fn){
+			try {
+				flash._fn[fn.wid] = null;
+				delete	flash._fn[fn.wid];
+			}
+			catch(e){}
+		}
 
 	// Support "media"
 	api.support.media = html5;
@@ -2568,32 +2582,46 @@
 				}
 			;
 
-			getMedia.call(navigator, { video: true }, function (stream/**LocalMediaStream*/){
-				// Success
-				_this.stream = stream;
+			if (html5) {
+				getMedia.call(navigator, { video: true }, function (stream/**LocalMediaStream*/){
+					// Success
+					_this.stream = stream;
 
-//				api.event.on(video, 'loadedmetadata', function (){
-//					_complete(null);
-//				});
+	//				api.event.on(video, 'loadedmetadata', function (){
+	//					_complete(null);
+	//				});
 
-				// Set camera stream
-				video.src = URL.createObjectURL(stream);
+					// Set camera stream
+					video.src = URL.createObjectURL(stream);
 
-				// Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
-				// See crbug.com/110938.
-				_successId = setInterval(function (){
-					if( _detectVideoSignal(video) ){
-						_complete(null);
-					}
-				}, 1000);
+					// Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
+					// See crbug.com/110938.
+					_successId = setInterval(function (){
+						if( _detectVideoSignal(video) ){
+							_complete(null);
+						}
+					}, 1000);
 
-				_failId = setTimeout(function (){
-					_complete('timeout');
-				}, 5000);
+					_failId = setTimeout(function (){
+						_complete('timeout');
+					}, 5000);
 
-				// Go-go-go!
-				video.play();
-			}, _complete/*error*/);
+					// Go-go-go!
+					video.play();
+				}, _complete/*error*/);
+			}
+			else {
+				var flash = api.Flash
+					, id = flash.getEl().id.replace('_','');
+				console.log('camera.start flash id: '+id);
+				flash.cmd(id, 'camera.on', {
+					callback: _wrap(flash,function _(evt){
+								_unwrap(flash, _);
+								console.log('camera.on callback:', evt.error)
+								_complete(null)
+							})
+				})
+			}
 		},
 
 
@@ -2603,8 +2631,15 @@
 		stop: function (){
 			try {
 				this._active = false;
-				this.video.pause();
-				this.stream.stop();
+				if (html5){
+					this.video.pause();
+					this.stream.stop();
+					}
+				else {
+					var flash = api.Flash
+						, id = flash.getEl().id.replace('_','');
+					flash.cmd(id, 'camera.off');
+				}
 			} catch( err ){ }
 		},
 
@@ -2613,8 +2648,20 @@
 		 * Create screenshot
 		 * @return {FileAPI.Camera.Shot}
 		 */
-		shot: function (){
-			return	new Shot(this.video);
+		shot: function (callback){
+			if (html5) {
+				callback(new Shot(this.video));
+			} else {
+				var flash = api.Flash
+					, id = flash.getEl().id.replace('_','');
+				flash.cmd(id, 'shot', {
+					callback: _wrap(flash,function _(data){
+								_unwrap(flash, _);
+								console.log('on shot:', data)
+								callback(data);
+							})
+				});
+			}
 		}
 	};
 
@@ -2687,7 +2734,44 @@
 			}
 		}
 		else {
-			callback('not_support_camera');
+			// flash
+			api.Flash.onReady = function() {
+				var video = api.Flash.getEl();
+
+				// Set dimensions
+				video.style.width	= _px(options.width);
+				video.style.height	= _px(options.height);
+
+				// Clean container
+				if( window.jQuery ){
+					jQuery(el).empty();
+				} else {
+					el.innerHTML = '';
+				}
+
+				// Add "camera" to container
+				el.appendChild(video);
+			}
+
+			api.Flash.camera = function(evt) {
+				api.log('flash camera ready', evt);
+				if (evt.error) {
+					callback(evt.error);
+				}
+				else {
+					cam = Camera.get(el);
+					if( options.start ){
+						cam.start(callback);
+					}
+					else {
+						callback(null, cam);
+					}
+				}
+
+			};
+			api.log('qweqwe',api.Flash);
+
+			//callback('not_support_camera');
 		}
 	};
 
@@ -2799,12 +2883,14 @@
 								dummy.id = '_' + _attr;
 
 								_css(dummy, {
-									  top: 1
-									, right: 1
-									, width: 5
-									, height: 5
-									, position: 'absolute'
-									, zIndex: 1e6+'' // set max zIndex
+									  /*
+									  top: 50
+																		  , right: 1
+																		  , width: 640
+																		  , height: 480
+																		  , position: 'absolute'
+																		  ,*/
+									   zIndex: 1e6+'' // set max zIndex
 								});
 
 								child.parentNode.insertBefore(dummy, child);
@@ -2838,6 +2924,8 @@
 							+ '&flashId='+ id
 							+ '&storeKey='+ navigator.userAgent.match(/\d/ig).join('') +'_'+ api.version
 							+ (flash.isReady || (api.pingUrl ? '&ping='+api.pingUrl : ''))
+							+ (api.debug ? '&debug=1' : '')
+							+ '&useCamera=1'
 					});
 				},
 
@@ -2876,6 +2964,7 @@
 
 
 				mouseover: function (evt){
+					return;
 					var target = api.event.fix(evt).target;
 
 					if( /input/i.test(target.nodeName) && target.type == 'file' ){
@@ -2933,7 +3022,7 @@
 						}
 					}
 					else if( !/object|embed/i.test(target.nodeName) ){
-						_css(flash.getEl(), { top: 1, left: 1, width: 5, height: 5 });
+						_css(flash.getEl(), { top: 1, left: 1, width: 640, height: 480 });
 					}
 				},
 
@@ -2948,6 +3037,7 @@
 						}
 
 						flash.ready();
+						flash['onReady'](evt);
 						setTimeout(function (){ flash.mouseenter(evt); }, 50);
 						return	true;
 					}
@@ -2967,6 +3057,7 @@
 
 
 				mouseenter: function (evt){
+					return;
 					var node = flash.getInput(evt.flashId);
 
 					if( node ){
