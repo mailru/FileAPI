@@ -46,7 +46,7 @@ package ru.mail.data.vo
 		
 		public function get imageData():BitmapData
 		{
-			return image;
+			return _image;
 		}
 		
 		public function set imageData(bd:BitmapData):void

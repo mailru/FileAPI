@@ -121,7 +121,7 @@ package ru.mail.communication
 					appController.cameraController.cameraOff();
 					break;
 				case "shot":
-					appController.cameraController.shot(data.callback);
+					return appController.cameraController.shot();
 					break;
 				default:
 					LoggerJS.log("cannot parse command: "+command);
