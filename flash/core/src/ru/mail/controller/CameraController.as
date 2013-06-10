@@ -1,10 +1,7 @@
 package ru.mail.controller
 {
 	import flash.display.BitmapData;
-	import flash.display.Loader;
 	import flash.display.Sprite;
-	import flash.events.Event;
-	import flash.events.ProgressEvent;
 	import flash.events.StatusEvent;
 	import flash.net.URLRequest;
 	
@@ -12,6 +9,7 @@ package ru.mail.controller
 	import ru.mail.commands.graphicloader.events.GraphicLoaderCompleteEvent;
 	import ru.mail.communication.JSCaller;
 	import ru.mail.data.AttachmentsModel;
+	import ru.mail.data.vo.PhotoFileVO;
 	import ru.mail.utils.LoggerJS;
 
 	public class CameraController
@@ -50,14 +48,26 @@ package ru.mail.controller
 			_cameraSwf.toggleCamera(false);
 		}
 		
-		public function shot(callback:String):void
+		public function shot():Object
 		{
 			LoggerJS.log('smile please!');
 			var bm:BitmapData = _cameraSwf.shot();
+			var result:Object = {};
 			if (bm == null) {
-				_jsCaller.callJS(callback, {error:'shot error'});
+				LoggerJS.log('shot image error');
+				result.error = 'create shot fail';
 			}
-			LoggerJS.log('shot image w:'+bm.width+', h:'+bm.height);
+			else {
+				LoggerJS.log('shot image w:'+bm.width+', h:'+bm.height);
+				var fileVO:PhotoFileVO = _model.filesBuilder.createPhotoFileVO(bm);
+				result.id = fileVO.fileID;
+				result.type = fileVO.fileType;
+				result.size = fileVO.fileSize;
+				result.width = fileVO.imageData.width;
+				result.height = fileVO.imageData.height;
+			}
+			
+			return result;
 		}
 		
 		// ============= init ================
