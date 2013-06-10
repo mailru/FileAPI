@@ -40,7 +40,7 @@ package ru.mail.communication
 		 * @return 
 		 * 
 		 */		
-		protected function parseCmd(command:String, data:Object):Boolean
+		protected function parseCmd(command:String, data:Object):Object
 		{
 			LoggerJS.log('parseCmd, command: '+command);
 			switch (command)
