@@ -598,7 +598,7 @@
 			 *
 			 * @param {File} file
 			 * @param {String} encoding
-			 * @param {Function} fn
+			 * @param {Function} [fn]
 			 */
 			readAsText: function(file, encoding, fn){
 				if( !fn ){
@@ -613,15 +613,16 @@
 			/**
 			 * Convert image or canvas to DataURL
 			 *
-			 * @param   {Element}   el    Image or Canvas element
+			 * @param   {Element}  el      Image or Canvas element
+			 * @param   {String}   [type]  mime-type
 			 * @return  {String}
 			 */
-			toDataURL: function (el){
+			toDataURL: function (el, type){
 				if( typeof el == 'string' ){
 					return  el;
 				}
 				else if( el.toDataURL ){
-					return  el.toDataURL('image/png');
+					return  el.toDataURL(type || 'image/png');
 				}
 			},
 
@@ -767,7 +768,7 @@
 			/**
 			 * Get file list
 			 *
-			 * @param	{HTMLInput|Event}	input
+			 * @param	{HTMLInputElement|Event}	input
 			 * @param	{String|Function}	[filter]
 			 * @param	{Function}			[callback]
 			 * @return	{Array|Null}
@@ -967,7 +968,7 @@
 
 
 				if( options.imageAutoOrientation && !options.imageTransform ){
-					options.imageTransform	= { rotate: 'auto' };
+					options.imageTransform = { rotate: 'auto' };
 				}
 
 
@@ -1197,9 +1198,9 @@
 					if( file.image ){ // This is a FileAPI.Image
 						queue.inc();
 
-						file.get(function (err, image){
+						file.toData(function (err, image){
 							// @todo: error
-							filename = filename || (new Date).toString()+'.png';
+							filename = filename || (new Date).getTime()+'.png';
 
 							_addFile(image);
 							queue.next();
@@ -1217,7 +1218,6 @@
 							if( isOrignTrans && !err ){
 								if( !dataURLtoBlob && !api.flashEngine ){
 									// Canvas.toBlob or Flash not supported, use multipart
-//									images[0] = api.toBinaryString(images[0]);
 									Form.multipart = true;
 								}
 
@@ -1227,7 +1227,6 @@
 								if( !err ){
 									_each(images, function (image, idx){
 										if( !dataURLtoBlob && !api.flashEngine ){
-//											image = api.toBinaryString(image);
 											Form.multipart = true;
 										}
 
@@ -1416,7 +1415,7 @@
 			try {
 				// ReadAs ...
 				if( encoding ){
-					Reader['readAs'+as](encoding, file);
+					Reader['readAs'+as](file, encoding);
 				}
 				else {
 					Reader['readAs'+as](file);
@@ -2041,7 +2040,7 @@
 	api.Image = Image;
 })(FileAPI, document);
 
-/*global window, FileAPI */
+/*global window, navigator, FileAPI */
 
 (function (api, window){
 	"use strict";
@@ -2051,6 +2050,7 @@
 		, FormData = window.FormData
 		, Form = function (){ this.items = []; }
 		, encodeURIComponent = window.encodeURIComponent
+		, isPhantomJS = /phantomjs/i.test(navigator.userAgent)// @todo: fixed it
 	;
 
 
@@ -2081,7 +2081,7 @@
 				api.log('FileAPI.Form.toHtmlData');
 				this.toHtmlData(fn);
 			}
-			else if( this.multipart || !FormData ){
+			else if( isPhantomJS || this.multipart || !FormData ){
 				api.log('FileAPI.Form.toMultipartData');
 				this.toMultipartData(fn);
 			}
@@ -2137,7 +2137,7 @@
 				if( file.blob.toBlob ){
 				    // canvas
 					queue.inc();
-					_converFile(file, function (file, blob){
+					_convertFile(file, function (file, blob){
 						data.name = file.name;
 						data.file = blob;
 						data.size = blob.length;
@@ -2170,7 +2170,7 @@
 			this._to(new FormData, fn, function (file, data, queue){
 				if( file.blob && file.blob.toBlob ){
 					queue.inc();
-					_converFile(file, function (file, blob){
+					_convertFile(file, function (file, blob){
 						data.append(file.name, blob, file.file);
 						queue.next();
 					});
@@ -2192,7 +2192,7 @@
 		toMultipartData: function (fn){
 			this._to([], fn, function (file, data, queue, boundary){
 				queue.inc();
-				_converFile(file, function (file, blob){
+				_convertFile(file, function (file, blob){
 					data.push(
 						  '--_' + boundary + ('\r\nContent-Disposition: form-data; name="'+ file.name +'"'+ (file.file ? '; filename="'+ encodeURIComponent(file.file) +'"' : '')
 						+ (file.file ? '\r\nContent-Type: '+ (file.type || 'application/octet-stream') : '')
@@ -2201,13 +2201,13 @@
 						+ '\r\n')
 					);
 					queue.next();
-				});
+				}, true);
 			}, api.expando);
 		}
 	};
 
 
-	function _converFile(file, fn){
+	function _convertFile(file, fn, useBinaryString){
 		var blob = file.blob, filename = file.file;
 
 		if( filename ){
@@ -2236,7 +2236,7 @@
 			file.file = filename;
 			file.type = type;
 
-			if( blob.toBlob ){
+			if( !useBinaryString && blob.toBlob ){
 				blob.toBlob(function (blob){
 					fn(file, blob);
 				}, type, quality);
@@ -2713,9 +2713,26 @@
 		}
 
 
-		if( html5 ){
+		var doneFn = function (err){
+			if( err ){
+				callback(err);
+			}
+			else {
+				// Get camera
+				var cam = Camera.get(el);
+				if( options.start ){
+					cam.start(callback);
+				}
+				else {
+					callback(null, cam);
+				}
+			}
+		};
+
+
+		if( api.html5 && html5 ){
 			// Create video element
-			var video = document.createElement('video'), cam;
+			var video = document.createElement('video');
 
 			// Set dimensions
 			video.style.width	= _px(options.width);
@@ -2731,18 +2748,17 @@
 			// Add "camera" to container
 			el.appendChild(video);
 
-			// Get camera
-			cam = Camera.get(el);
-			if( options.start ){
-				cam.start(callback);
-			}
-			else {
-				callback(null, cam);
-			}
+			// end
+			doneFn();
 		}
 		else {
-			callback('not_support_camera');
+			Camera.fallback(el, options, doneFn);
 		}
+	};
+
+
+	Camera.fallback = function (el, options, callback){
+		callback('not_support_camera');
 	};
 
 
@@ -2750,11 +2766,12 @@
 	 * @class	FileAPI.Camera.Shot
 	 */
 	var Shot = function (video){
-		var shot = new api.Image(video);
+		var canvas	= video.nodeName ? toCanvas(video) : video;
+		var shot	= api.Image(canvas);
 		shot.type	= 'image/png';
-		shot.width	= video.videoWidth;
-		shot.height	= video.videoHeight;
-		shot.size	= shot.width * shot.height * 4;
+		shot.width	= canvas.width;
+		shot.height	= canvas.height;
+		shot.size	= canvas.width * canvas.height * 4;
 		return	shot;
 	};
 
@@ -2773,6 +2790,20 @@
 
 	/**
 	 * @private
+	 * @param	{HTMLVideoElement}	video
+	 * @returns	{Canvas}
+	 */
+	function toCanvas(video){
+		var canvas		= document.createElement('canvas');
+		canvas.width	= video.videoWidth;
+		canvas.height	= video.videoHeight;
+		canvas.getContext('2d').drawImage(video, 0, 0);
+		return	canvas;
+	}
+
+
+	/**
+	 * @private
 	 * @param	{HTMLVideoElement} video
 	 * @return	{Boolean}
 	 */
@@ -2780,14 +2811,16 @@
 		var canvas = document.createElement('canvas'), ctx, res = false;
 		try {
 			ctx = canvas.getContext('2d');
-			ctx.drawImage(video, 0, 0);
+			ctx.drawImage(video, 0, 0, 1, 1);
 			res = ctx.getImageData(0, 0, 1, 1).data[4] != 255;
 		}
 		catch( e ){}
 		return	res;
 	}
 
+
 	// @export
-	api.Camera = Camera;
+	Camera.Shot	= Shot;
+	api.Camera	= Camera;
 })(window, FileAPI);
 if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }

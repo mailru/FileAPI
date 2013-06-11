@@ -8,7 +8,8 @@
 
 	<script>
 		var FileAPI = {
-			  debug: false
+			  html5: true
+			, debug: false
 			, staticPath: '../dist/'
 		};
 	</script>
@@ -26,6 +27,8 @@
 	<input id="startBtn" type="button" value="  START  " style="font-size: 20px;" />
 
 	<div xid="qunit-fixture" style="margin: 30px;">
+			<div id="web-cam" style="width: 320px; height: 240px; float: right;"></div>
+
 		<form name="upload">
 			<div class="js-fileapi-wrapper">1px.gif -- <input name="1px.gif" type="file" /></div>
 			<div class="js-fileapi-wrapper">hello.txt -- <input name="hello.txt" type="file" /></div>

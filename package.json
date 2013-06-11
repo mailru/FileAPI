@@ -10,7 +10,7 @@
 		"eventemitter2": "~0.4.9",
 		"semver": "~1.0.14",
 		"temporary": "~0.0.4",
-		"phantomjs": "~1.9.0-1"
+		"phantomjs": "latest"
 	},
 	"description": "FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.",
 	"main": "dist/FileAPI.js",

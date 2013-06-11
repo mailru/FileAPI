@@ -34,6 +34,19 @@ module.exports = function (grunt){
 			}
 		},
 
+		qunit: {
+			options: {
+				files: {
+					  '1px.gif':	['tests/files/1px.gif']
+					, 'hello.txt':	['tests/files/hello.txt']
+					, 'image.jpg':	['tests/files/image.jpg']
+					, 'dino.png':	['tests/files/dino.png']
+					, 'multiple':	['tests/files/1px.gif', 'tests/files/hello.txt', 'tests/files/image.jpg', 'tests/files/dino.png', 'tests/files/lebowski.json']
+				}
+			},
+			all: ['tests/*.html']
+		},
+
 		concat: {
 			options: {
 				banner: '/*! <%= pkg.name %> <%= pkg.version %> - <%= pkg.license %> | <%= pkg.repository.url %>\n' +
@@ -88,10 +101,13 @@ module.exports = function (grunt){
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 
 
-	// "npm test" runs these tasks
-	grunt.registerTask('test', ['jshint']);
+	// Load custom QUnit task, based on grunt-contrib-qunit, but support "files" option.
+	grunt.loadTasks('./tests/grunt-task/');
 
+	// "npm build" runs these tasks
+	grunt.registerTask('build', ['concat', 'uglify']);
+	grunt.registerTask('fast-test', ['qunit']);
+	grunt.registerTask('test', ['jshint', 'build', 'fast-test']);
 
-	// Default task.
-	grunt.registerTask('default', ['test', 'concat', 'uglify']);
+	grunt.registerTask('default', ['test']);
 };
