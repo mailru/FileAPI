@@ -123,7 +123,7 @@
 				&& !(/safari\//.test(userAgent) && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
 
 		cors = html5 && ('withCredentials' in (new XMLHttpRequest)),
-
+		
 		chunked = html5 && !!Blob && !!(Blob.prototype.webkitSlice || Blob.prototype.mozSlice || Blob.prototype.slice),
 
 		// https://github.com/blueimp/JavaScript-Canvas-to-Blob
@@ -598,7 +598,7 @@
 			 *
 			 * @param {File} file
 			 * @param {String} encoding
-			 * @param {Function} fn
+			 * @param {Function} [fn]
 			 */
 			readAsText: function(file, encoding, fn){
 				if( !fn ){
@@ -613,15 +613,16 @@
 			/**
 			 * Convert image or canvas to DataURL
 			 *
-			 * @param   {Element}   el    Image or Canvas element
+			 * @param   {Element}  el      Image or Canvas element
+			 * @param   {String}   [type]  mime-type
 			 * @return  {String}
 			 */
-			toDataURL: function (el){
+			toDataURL: function (el, type){
 				if( typeof el == 'string' ){
 					return  el;
 				}
 				else if( el.toDataURL ){
-					return  el.toDataURL('image/png');
+					return  el.toDataURL(type || 'image/png');
 				}
 			},
 
@@ -767,7 +768,7 @@
 			/**
 			 * Get file list
 			 *
-			 * @param	{HTMLInput|Event}	input
+			 * @param	{HTMLInputElement|Event}	input
 			 * @param	{String|Function}	[filter]
 			 * @param	{Function}			[callback]
 			 * @return	{Array|Null}
@@ -967,7 +968,7 @@
 
 
 				if( options.imageAutoOrientation && !options.imageTransform ){
-					options.imageTransform	= { rotate: 'auto' };
+					options.imageTransform = { rotate: 'auto' };
 				}
 
 
@@ -1197,9 +1198,9 @@
 					if( file.image ){ // This is a FileAPI.Image
 						queue.inc();
 
-						file.get(function (err, image){
+						file.toData(function (err, image){
 							// @todo: error
-							filename = filename || (new Date).toString()+'.png';
+							filename = filename || (new Date).getTime()+'.png';
 
 							_addFile(image);
 							queue.next();
@@ -1217,7 +1218,6 @@
 							if( isOrignTrans && !err ){
 								if( !dataURLtoBlob && !api.flashEngine ){
 									// Canvas.toBlob or Flash not supported, use multipart
-//									images[0] = api.toBinaryString(images[0]);
 									Form.multipart = true;
 								}
 
@@ -1227,7 +1227,6 @@
 								if( !err ){
 									_each(images, function (image, idx){
 										if( !dataURLtoBlob && !api.flashEngine ){
-//											image = api.toBinaryString(image);
 											Form.multipart = true;
 										}
 
@@ -1375,7 +1374,7 @@
 
 		} // api
 	;
-
+	
 
 	function _emit(target, fn, name, res, ext){
 		var evt = {
@@ -1416,7 +1415,7 @@
 			try {
 				// ReadAs ...
 				if( encoding ){
-					Reader['readAs'+as](encoding, file);
+					Reader['readAs'+as](file, encoding);
 				}
 				else {
 					Reader['readAs'+as](file);
@@ -2041,7 +2040,7 @@
 	api.Image = Image;
 })(FileAPI, document);
 
-/*global window, FileAPI */
+/*global window, navigator, FileAPI */
 
 (function (api, window){
 	"use strict";
@@ -2051,6 +2050,7 @@
 		, FormData = window.FormData
 		, Form = function (){ this.items = []; }
 		, encodeURIComponent = window.encodeURIComponent
+		, isPhantomJS = /phantomjs/i.test(navigator.userAgent)// @todo: fixed it
 	;
 
 
@@ -2081,7 +2081,7 @@
 				api.log('FileAPI.Form.toHtmlData');
 				this.toHtmlData(fn);
 			}
-			else if( this.multipart || !FormData ){
+			else if( isPhantomJS || this.multipart || !FormData ){
 				api.log('FileAPI.Form.toMultipartData');
 				this.toMultipartData(fn);
 			}
@@ -2137,7 +2137,7 @@
 				if( file.blob.toBlob ){
 				    // canvas
 					queue.inc();
-					_converFile(file, function (file, blob){
+					_convertFile(file, function (file, blob){
 						data.name = file.name;
 						data.file = blob;
 						data.size = blob.length;
@@ -2170,7 +2170,7 @@
 			this._to(new FormData, fn, function (file, data, queue){
 				if( file.blob && file.blob.toBlob ){
 					queue.inc();
-					_converFile(file, function (file, blob){
+					_convertFile(file, function (file, blob){
 						data.append(file.name, blob, file.file);
 						queue.next();
 					});
@@ -2192,7 +2192,7 @@
 		toMultipartData: function (fn){
 			this._to([], fn, function (file, data, queue, boundary){
 				queue.inc();
-				_converFile(file, function (file, blob){
+				_convertFile(file, function (file, blob){
 					data.push(
 						  '--_' + boundary + ('\r\nContent-Disposition: form-data; name="'+ file.name +'"'+ (file.file ? '; filename="'+ encodeURIComponent(file.file) +'"' : '')
 						+ (file.file ? '\r\nContent-Type: '+ (file.type || 'application/octet-stream') : '')
@@ -2201,13 +2201,13 @@
 						+ '\r\n')
 					);
 					queue.next();
-				});
+				}, true);
 			}, api.expando);
 		}
 	};
 
 
-	function _converFile(file, fn){
+	function _convertFile(file, fn, useBinaryString){
 		var blob = file.blob, filename = file.file;
 
 		if( filename ){
@@ -2236,7 +2236,7 @@
 			file.file = filename;
 			file.type = type;
 
-			if( blob.toBlob ){
+			if( !useBinaryString && blob.toBlob ){
 				blob.toBlob(function (blob){
 					fn(file, blob);
 				}, type, quality);
@@ -2415,7 +2415,7 @@
 					xhr.setRequestHeader(key, val);
 				});
 
-
+				
 				if ( options._chunked ) {
 					// chunked upload
 					if( xhr.upload ){
@@ -2444,7 +2444,7 @@
 								_this['response'+k]  = xhr['response'+k];
 							}
 							xhr.onreadystatechange = null;
-
+                            
 							if (!xhr.status || xhr.status - 201 > 0) {
 							    api.log("Error: " + xhr.status);
 								// some kind of error
@@ -2501,16 +2501,16 @@
 
 					data.start = data.end + 1;
 					data.end = Math.max(Math.min(data.start + options.chunkSize, data.size ) - 1, data.start);
-
+                    
 					var slice;
 					(slice = 'slice') in data.file || (slice = 'mozSlice') in data.file || (slice = 'webkitSlice') in data.file;
 
 					xhr.setRequestHeader("Content-Range", "bytes " + data.start + "-" + data.end + "/" + data.size);
 					xhr.setRequestHeader("Content-Disposition", 'attachment; filename=' + encodeURIComponent(data.name));
 					xhr.setRequestHeader("Content-Type", data.type || "application/octet-stream");
-
+                    
 					slice = data.file[slice](data.start, data.end + 1);
-
+                 
 					xhr.send(slice);
 					slice = null;
 				} else {
@@ -2521,7 +2521,7 @@
 							options.progress(evt, _this, options);
 						}, 100), false);
 					}
-
+				    
 					xhr.onreadystatechange = function (){
 						_this.status     = xhr.status;
 						_this.statusText = xhr.statusText;
@@ -2552,7 +2552,7 @@
 
 						}
 					} else {
-						// FormData
+						// FormData 
 						xhr.send(data);
 					}
 				}
@@ -2584,23 +2584,9 @@
 
 		getMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia,
 
-		html5 = false && !!getMedia
+		html5 = !!getMedia
 	;
 
-	function _wrap(flash, fn){
-			var id = fn.wid = api.uid();
-			flash._fn[id] = fn;
-			return	'FileAPI.Flash._fn.'+id;
-		}
-
-
-		function _unwrap(flash, fn){
-			try {
-				flash._fn[fn.wid] = null;
-				delete	flash._fn[fn.wid];
-			}
-			catch(e){}
-		}
 
 	// Support "media"
 	api.support.media = html5;
@@ -2636,46 +2622,32 @@
 				}
 			;
 
-			if (html5) {
-				getMedia.call(navigator, { video: true }, function (stream/**LocalMediaStream*/){
-					// Success
-					_this.stream = stream;
+			getMedia.call(navigator, { video: true }, function (stream/**LocalMediaStream*/){
+				// Success
+				_this.stream = stream;
 
-	//				api.event.on(video, 'loadedmetadata', function (){
-	//					_complete(null);
-	//				});
+//				api.event.on(video, 'loadedmetadata', function (){
+//					_complete(null);
+//				});
 
-					// Set camera stream
-					video.src = URL.createObjectURL(stream);
+				// Set camera stream
+				video.src = URL.createObjectURL(stream);
 
-					// Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
-					// See crbug.com/110938.
-					_successId = setInterval(function (){
-						if( _detectVideoSignal(video) ){
-							_complete(null);
-						}
-					}, 1000);
+				// Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
+				// See crbug.com/110938.
+				_successId = setInterval(function (){
+					if( _detectVideoSignal(video) ){
+						_complete(null);
+					}
+				}, 1000);
 
-					_failId = setTimeout(function (){
-						_complete('timeout');
-					}, 5000);
+				_failId = setTimeout(function (){
+					_complete('timeout');
+				}, 5000);
 
-					// Go-go-go!
-					video.play();
-				}, _complete/*error*/);
-			}
-			else {
-				var flash = api.Flash
-					, id = flash.getEl().id.replace('_','');
-				console.log('camera.start flash id: '+id);
-				flash.cmd(id, 'camera.on', {
-					callback: _wrap(flash,function _(evt){
-								_unwrap(flash, _);
-								console.log('camera.on callback:', evt.error)
-								_complete(null)
-							})
-				})
-			}
+				// Go-go-go!
+				video.play();
+			}, _complete/*error*/);
 		},
 
 
@@ -2685,15 +2657,8 @@
 		stop: function (){
 			try {
 				this._active = false;
-				if (html5){
-					this.video.pause();
-					this.stream.stop();
-					}
-				else {
-					var flash = api.Flash
-						, id = flash.getEl().id.replace('_','');
-					flash.cmd(id, 'camera.off');
-				}
+				this.video.pause();
+				this.stream.stop();
 			} catch( err ){ }
 		},
 
@@ -2702,20 +2667,8 @@
 		 * Create screenshot
 		 * @return {FileAPI.Camera.Shot}
 		 */
-		shot: function (callback){
-			if (html5) {
-				callback(new Shot(this.video));
-			} else {
-				var flash = api.Flash
-					, id = flash.getEl().id.replace('_','');
-				flash.cmd(id, 'shot', {
-					callback: _wrap(flash,function _(data){
-								_unwrap(flash, _);
-								console.log('on shot:', data)
-								callback(data);
-							})
-				});
-			}
+		shot: function (){
+			return	new Shot(this.video);
 		}
 	};
 
@@ -2760,9 +2713,26 @@
 		}
 
 
-		if( html5 ){
+		var doneFn = function (err){
+			if( err ){
+				callback(err);
+			}
+			else {
+				// Get camera
+				var cam = Camera.get(el);
+				if( options.start ){
+					cam.start(callback);
+				}
+				else {
+					callback(null, cam);
+				}
+			}
+		};
+
+
+		if( api.html5 && html5 ){
 			// Create video element
-			var video = document.createElement('video'), cam;
+			var video = document.createElement('video');
 
 			// Set dimensions
 			video.style.width	= _px(options.width);
@@ -2778,55 +2748,17 @@
 			// Add "camera" to container
 			el.appendChild(video);
 
-			// Get camera
-			cam = Camera.get(el);
-			if( options.start ){
-				cam.start(callback);
-			}
-			else {
-				callback(null, cam);
-			}
+			// end
+			doneFn();
 		}
 		else {
-			// flash
-			api.Flash.onReady = function() {
-				var video = api.Flash.getEl();
-
-				// Set dimensions
-				video.style.width	= _px(options.width);
-				video.style.height	= _px(options.height);
-
-				// Clean container
-				if( window.jQuery ){
-					jQuery(el).empty();
-				} else {
-					el.innerHTML = '';
-				}
-
-				// Add "camera" to container
-				el.appendChild(video);
-			}
-
-			api.Flash.camera = function(evt) {
-				api.log('flash camera ready', evt);
-				if (evt.error) {
-					callback(evt.error);
-				}
-				else {
-					cam = Camera.get(el);
-					if( options.start ){
-						cam.start(callback);
-					}
-					else {
-						callback(null, cam);
-					}
-				}
-
-			};
-			api.log('qweqwe',api.Flash);
-
-			//callback('not_support_camera');
+			Camera.fallback(el, options, doneFn);
 		}
+	};
+
+
+	Camera.fallback = function (el, options, callback){
+		callback('not_support_camera');
 	};
 
 
@@ -2834,11 +2766,12 @@
 	 * @class	FileAPI.Camera.Shot
 	 */
 	var Shot = function (video){
-		var shot = new api.Image(video);
+		var canvas	= video.nodeName ? toCanvas(video) : video;
+		var shot	= api.Image(canvas);
 		shot.type	= 'image/png';
-		shot.width	= video.videoWidth;
-		shot.height	= video.videoHeight;
-		shot.size	= shot.width * shot.height * 4;
+		shot.width	= canvas.width;
+		shot.height	= canvas.height;
+		shot.size	= canvas.width * canvas.height * 4;
 		return	shot;
 	};
 
@@ -2857,6 +2790,20 @@
 
 	/**
 	 * @private
+	 * @param	{HTMLVideoElement}	video
+	 * @returns	{Canvas}
+	 */
+	function toCanvas(video){
+		var canvas		= document.createElement('canvas');
+		canvas.width	= video.videoWidth;
+		canvas.height	= video.videoHeight;
+		canvas.getContext('2d').drawImage(video, 0, 0);
+		return	canvas;
+	}
+
+
+	/**
+	 * @private
 	 * @param	{HTMLVideoElement} video
 	 * @return	{Boolean}
 	 */
@@ -2864,15 +2811,17 @@
 		var canvas = document.createElement('canvas'), ctx, res = false;
 		try {
 			ctx = canvas.getContext('2d');
-			ctx.drawImage(video, 0, 0);
+			ctx.drawImage(video, 0, 0, 1, 1);
 			res = ctx.getImageData(0, 0, 1, 1).data[4] != 255;
 		}
 		catch( e ){}
 		return	res;
 	}
 
+
 	// @export
-	api.Camera = Camera;
+	Camera.Shot	= Shot;
+	api.Camera	= Camera;
 })(window, FileAPI);
 
 /**
@@ -2937,14 +2886,12 @@
 								dummy.id = '_' + _attr;
 
 								_css(dummy, {
-									  /*
-									  top: 50
-																		  , right: 1
-																		  , width: 640
-																		  , height: 480
-																		  , position: 'absolute'
-																		  ,*/
-									   zIndex: 1e6+'' // set max zIndex
+									  top: 1
+									, right: 1
+									, width: 5
+									, height: 5
+									, position: 'absolute'
+									, zIndex: 1e6+'' // set max zIndex
 								});
 
 								child.parentNode.insertBefore(dummy, child);
@@ -2967,20 +2914,22 @@
 				 *
 				 * @param {HTMLElement} el
 				 * @param {String} id
+				 * @param {Object} [opts]
 				 */
-				publish: function (el, id){
+				publish: function (el, id, opts){
+					opts = opts || {};
 					el.innerHTML = _makeFlashHTML({
 						  id: id
 						, src: _getUrl(api.flashUrl, 'r=' + api.version)
 //						, src: _getUrl('http://v.demidov.boom.corp.mail.ru/uploaderfileapi/FlashFileAPI.swf?1')
-						, wmode: 'transparent'
-						, flashvars: 'callback=FileAPI.Flash.event'
+						, wmode: opts.camera ? '' : 'transparent'
+						, flashvars: 'callback=' + (opts.onEvent || 'FileAPI.Flash.onEvent')
 							+ '&flashId='+ id
 							+ '&storeKey='+ navigator.userAgent.match(/\d/ig).join('') +'_'+ api.version
 							+ (flash.isReady || (api.pingUrl ? '&ping='+api.pingUrl : ''))
-							+ (api.debug ? '&debug=1' : '')
-							+ '&useCamera=1'
-					});
+							+ (opts.camera ? '&useCamera=1' : '')
+//							+ '&debug=1'
+					}, opts);
 				},
 
 
@@ -3018,7 +2967,6 @@
 
 
 				mouseover: function (evt){
-					return;
 					var target = api.event.fix(evt).target;
 
 					if( /input/i.test(target.nodeName) && target.type == 'file' ){
@@ -3076,11 +3024,11 @@
 						}
 					}
 					else if( !/object|embed/i.test(target.nodeName) ){
-						_css(flash.getEl(), { top: 1, left: 1, width: 640, height: 480 });
+						_css(flash.getEl(), { top: 1, left: 1, width: 5, height: 5 });
 					}
 				},
 
-				event: function (evt){
+				onEvent: function (evt){
 					var type = evt.type;
 
 					if( type == 'ready' ){
@@ -3091,7 +3039,6 @@
 						}
 
 						flash.ready();
-						flash['onReady'](evt);
 						setTimeout(function (){ flash.mouseenter(evt); }, 50);
 						return	true;
 					}
@@ -3111,7 +3058,6 @@
 
 
 				mouseenter: function (evt){
-					return;
 					var node = flash.getInput(evt.flashId);
 
 					if( node ){
@@ -3264,7 +3210,7 @@
 						},
 
 						_load: function (file, fn){
-							api.log('FileAPI.Image._load:', file);
+							api.log('Flash.Image._load:', file);
 
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
@@ -3339,6 +3285,72 @@
 									, matrix:	matrix
 								});
 							}
+						}
+					});
+
+
+					// FileAPI.Camera:statics
+					api.Camera.fallback = function (el, options, callback){
+						var camId = api.uid();
+						api.log('Flash.Camera.publish: ' + camId);
+						flash.publish(el, camId, api.extend(options, {
+							camera: true,
+							onEvent: _wrap(function _(evt){
+								if( evt.type == 'camera' ){
+									_unwrap(_);
+
+									if( evt.error ){
+										api.log('Flash.Camera.publish.error: ' + evt.error);
+										callback(evt.error);
+									}
+									else {
+										api.log('Flash.Camera.publish.success: ' + camId);
+										callback(null);
+									}
+								}
+							})
+						}));
+					};
+
+
+					// FileAPI.Camera:proto
+					_inherit(api.Camera.prototype, {
+						_id: function (){
+							return	this.video.id;
+						},
+
+						start: function (callback){
+							var _this = this;
+							flash.cmd(this._id(), 'camera.on', {
+								callback: _wrap(function _(evt){
+									_unwrap(_);
+
+									if( evt.error ){
+										api.log('Flash.camera.on.error:' + evt.error);
+										callback(evt.error, _this);
+									}
+									else {
+										api.log('Flash.camera.on.success: ' + _this._id());
+										_this.active = true;
+										callback(null, _this);
+									}
+								})
+							});
+						},
+
+						stop: function (){
+							this.active = false;
+							flash.cmd(this._id(), 'camera.off');
+						},
+
+						shot: function (){
+							api.log('Flash.Camera.shot:', this._id());
+
+							var shot = flash.cmd(this._id(), 'shot', {});
+							shot.type = 'image/png';
+							shot.flashId = this._id();
+
+							return	new api.Camera.Shot(shot);
 						}
 					});
 
