@@ -49,9 +49,20 @@ package ru.mail.communication
 		 * @param data object with all nesessary data
 		 * 
 		 */		
-		public function callJS(_callback:String, data:Object, data2:Object = null):void
+		public function callJS(_callback:String, data:Object, data2:Object = null, withId:Boolean = false):void
 		{
 			try {
+				if (withId) {
+					if (!data) {
+						// new
+						data = {flashId:flashId};
+					}
+					else {
+						// add
+						data.flashId = flashId;
+					}
+				}
+				
 				// pass data to given callback
 				if (data2) {
 					ExternalInterface.call(_callback, data, data2);

@@ -2,6 +2,7 @@ package ru.mail.controller
 {
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.events.StatusEvent;
 	import flash.net.URLRequest;
 	
@@ -35,10 +36,12 @@ package ru.mail.controller
 		{
 			LoggerJS.log('camera.on called');
 			try {
+				_cameraSwf.addEventListener('Camera.On', function(event:Event):void {
+					_jsCaller.callJS(callback, {error:null}, null, true);
+				});
 				_cameraSwf.toggleCamera(true);
-				_jsCaller.callJS(callback, {error:null});
 			} catch (e:Error) {
-				_jsCaller.callJS(callback, {error:e.toString()});
+				_jsCaller.callJS(callback, {error:e.toString()}, null, true);
 			}
 		}
 		
