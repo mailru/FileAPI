@@ -335,12 +335,14 @@
 								}
 
 								FileAPI.each(result.images, function (dataURL, name){
-									$('<div/>')
-										.append('<div><b>'+name+'</b></div>')
-										.append($(new Image).attr('src', dataURL))
-										.css({ margin: 5, border: '1px dotted #666', padding: 5 })
-										.appendTo('body')
-									;
+									FileAPI.newImage(dataURL, function (err, img){
+										$('<div/>')
+											.append('<div><b>'+name+'</b></div>')
+											.append(img)
+											.css({ margin: 5, border: '1px dotted #666', padding: 5 })
+											.appendTo('body')
+										;
+									});
 								});
 
 								document.getElementById('Log').innerHTML += '<pre style="font-size: 11px;">'+xhr.responseText.substr(0, 200)+'</pre>';

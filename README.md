@@ -529,6 +529,7 @@ All the other codes - fatal error, user's involvement is recommend.
 	header('Access-Control-Allow-Methods: POST, OPTIONS');
 	header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type'); // and other custom headers
 	header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']); // a comma-separated list of domains
+	header('Access-Control-Allow-Credentials: true');
 
 	if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
 		exit;
@@ -670,11 +671,17 @@ All the other codes - fatal error, user's involvement is recommend.
 
 
 ## Changelog
+ * [#91](https://github.com/mailru/FileAPI/issues/91): replace `new Image` to `FileAPI.newImage`
+ * + FileAPI.withCredentials: true
+ * [#90](https://github.com/mailru/FileAPI/issues/90): Fixed `progress` event
+
+
 ### 1.2.5
  * [#86](https://github.com/mailru/FileAPI/issues/86): Smarter upload recovery
  * [#87](https://github.com/mailru/FileAPI/issues/87): Fixed upload files into browsers that do not support FormData
  * Fixed support "accept" attribute for Flash.
  * Fixed detection of HTML5 support for FireFox 3.6
+ * + FileAPI.html5 option, default "true"
 
 
 ### 1.2.4
