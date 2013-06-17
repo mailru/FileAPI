@@ -647,9 +647,11 @@ package ru.mail.controller
 			
 			if (file.uploadCommand) {
 				(file.uploadCommand as UploadCommand).cancel();
+				file.uploadCommand = null;
 			}
 			if (file.loadCommand) {
 				(file.loadCommand as LoadFileCommand).cancel();
+				file.loadCommand = null;
 			}
 			if (_model.timeout && !force) {
 				LoggerJS.log("abort remove set timeout");
