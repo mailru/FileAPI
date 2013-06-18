@@ -80,6 +80,25 @@ package ru.mail.data
 			_hasError = false;
 		}
 		
+		private var _timeout:int = 0;
+		/**
+		 * timeout for removing file
+		 * When calling cmd.abort(), do not delete file immediately, but wait for some time.
+		 * If file is called for upload or something, cancel timeout and do not remove file 
+		 * @return
+		 *
+		 */
+		public function get timeout():int
+		{
+			return _timeout;
+		}
+
+		public function set timeout(value:int):void
+		{
+			_timeout = int(value) || 0;
+		}
+
+
 		/**
 		 * @private Constructor 
 		 */
