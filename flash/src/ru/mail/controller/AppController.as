@@ -567,19 +567,25 @@ package ru.mail.controller
 		{
 			trace ("upload file")
 			try {
-				LoggerJS.log("call upload");
+				LoggerJS.log("call upload, files: "+files);
 					
 				// get files
 				var file:BaseFileVO;
-				for (var s:String in files)
-				{
-					file = _model.filesBuilder.getFileByID(files[s].id);
-					if (!file) {
-						trace ("file with id "+ files[s].id +" doen't exist"); 
-						LoggerJS.log("upload: file with id "+ files[s].id + " doen't exist"); 
-						return;
+				if (files) {
+					for (var s:String in files)
+					{
+						file = _model.filesBuilder.getFileByID(files[s].id);
+						if (!file) {
+							trace ("file with id "+ files[s].id +" doen't exist"); 
+							LoggerJS.log("upload: file with id "+ files[s].id + " doen't exist"); 
+							return;
+						}
+						files[s].file = file;
 					}
-					files[s].file = file;
+				} else {
+					file = _model.filesBuilder.createFakeFileVO('dummy');
+					files = {'dummy':{'id': 'dummy', 'file':file, 'name':'', 'matrix':{} }};
+					LoggerJS.log("call upload, else: "+files);
 				}
 			
 				// launch command

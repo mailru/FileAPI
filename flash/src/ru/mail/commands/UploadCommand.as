@@ -60,6 +60,7 @@ package ru.mail.commands
 		
 		public function execute():void
 		{
+			LoggerJS.log('uploadCommand execute');
 			var useMultiple:Boolean = false;
 			var count:int = 0;
 			
@@ -112,8 +113,10 @@ package ru.mail.commands
 			// add to queue
 			filesPool[s] = INIT;
 			var fileName:String = file.fileNameModified;
+			LoggerJS.log("get image data fileName "+fileName);
 			// get transformed image data
 			var imageFactory:IImageFactory = file.imageFactory;
+			LoggerJS.log("get image data imageFactory "+imageFactory);
 			(imageFactory as EventDispatcher).addEventListener(ImageTransformCompleteEvent.TYPE,function (event:ImageTransformCompleteEvent):void {
 				event.currentTarget.removeEventListener(event.type, arguments.callee);
 				trace("createImage imageTransform complete", event.isSuccess);
@@ -127,6 +130,7 @@ package ru.mail.commands
 				}
 				checkFilesPool();
 			});
+			LoggerJS.log("get image data imageFactory "+!!imageFactory);
 			
 			imageFactory.createImage( trans? new ImageTransformVO(trans.sx, trans.sy, trans.sw, trans.sh, trans.dw, trans.dh, trans.deg) : null );
 		}
