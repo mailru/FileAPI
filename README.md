@@ -681,6 +681,7 @@ All the other codes - fatal error, user's involvement is recommend.
  * [#91](https://github.com/mailru/FileAPI/issues/91): replace `new Image` to `FileAPI.newImage`
  * + FileAPI.withCredentials: true
  * [#90](https://github.com/mailru/FileAPI/issues/90): Fixed `progress` event
+ * [#105](https://github.com/mailru/FileAPI/issues/105): Fixed `image/jpg` -> `image/jpeg`
 
 
 ### 1.2.5
