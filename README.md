@@ -682,6 +682,7 @@ All the other codes - fatal error, user's involvement is recommend.
  * + FileAPI.withCredentials: true
  * [#90](https://github.com/mailru/FileAPI/issues/90): Fixed `progress` event
  * [#105](https://github.com/mailru/FileAPI/issues/105): Fixed `image/jpg` -> `image/jpeg`
+ * [#108](https://github.com/mailru/FileAPI/issues/108): Check width/height before resize by type(min/max)
 
 
 ### 1.2.5
