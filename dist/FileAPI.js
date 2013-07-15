@@ -17,7 +17,7 @@
  */
 
 /*jslint nomen: true, regexp: true */
-/*global window, atob, Blob, ArrayBuffer, Uint8Array, define */
+/*global window, atob, Blob, ArrayBuffer, Uint8Array */
 
 (function (window) {
     'use strict';
@@ -85,17 +85,12 @@
             };
         }
     }
-    if (typeof define === 'function' && define.amd) {
-        define(function () {
-            return dataURLtoBlob;
-        });
-    } else {
-        window.dataURLtoBlob = dataURLtoBlob;
-    }
-}(window));
+
+    window.dataURLtoBlob = dataURLtoBlob;
+})(window);
 
 /*jslint evil: true */
-/*global window, Image, URL, webkitURL, ActiveXObject */
+/*global window, URL, webkitURL, ActiveXObject */
 
 (function (window, undef){
 	'use strict';
@@ -120,7 +115,7 @@
 		jQuery = window.jQuery,
 
 		html5 =    !!(File && (FileReader && (window.Uint8Array || FormData || XMLHttpRequest.prototype.sendAsBinary)))
-				&& !(/safari\//.test(userAgent) && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
+				&& !(/safari\//i.test(userAgent) && !/chrome\//i.test(userAgent) && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
 
 		cors = html5 && ('withCredentials' in (new XMLHttpRequest)),
 		
@@ -278,11 +273,18 @@
 			debug: false,
 			pingUrl: false,
 			multiFlash: false,
+			flashAbortTimeout: 0,
+			withCredentials: true,
 
 			staticPath: './dist/',
 
 			flashUrl: 0, // @default: './FileAPI.flash.swf'
 			flashImageUrl: 0, // @default: './FileAPI.flash.image.swf'
+
+			ext2mime: {
+				  jpg: 'image/jpeg'
+				, tif: 'image/tiff'
+			},
 
 			// Fallback for flash
 			accept: {
@@ -320,6 +322,29 @@
 				}
 			},
 
+			/**
+			 * Create new image
+			 *
+			 * @param {String} [src]
+			 * @param {Function} [fn]   1. error -- boolean, 2. img -- Image element
+			 * @returns {HTMLElement}
+			 */
+			newImage: function (src, fn){
+				var img = document.createElement('img');
+				if( fn ){
+					api.event.one(img, 'error load', function (evt){
+						fn(evt.type == 'error', img);
+						img = null;
+					});
+				}
+				img.src = src;
+				return	img;
+			},
+
+			/**
+			 * Get XHR
+			 * @returns {XMLHttpRequest}
+			 */
 			getXHR: function (){
 				var xhr;
 
@@ -693,8 +718,7 @@
 				}
 				else {
 					// Created image
-					var img = new Image;
-					img.src = file.dataURL || file;
+					var img = api.newImage(file.dataURL || file);
 					api.readAsImage(img, fn, progress);
 				}
 			},
@@ -723,7 +747,7 @@
 				_each(accept, function (ext, type){
 					ext = new RegExp(ext.replace(/\s/g, '|'), 'i');
 					if( ext.test(file.type) ){
-						file.type = type.split('/')[0] +'/'+ file.type;
+						file.type = api.ext2mime[file.type] || type.split('/')[0] +'/'+ file.type;
 					}
 				});
 
@@ -997,6 +1021,7 @@
 				// Set upload status props
 				proxyXHR.total	= _total;
 				proxyXHR.loaded	= 0;
+				proxyXHR.filesLeft = dataArray.length;
 
 				// emit "beforeupload"  event
 				options.beforeupload(proxyXHR, options);
@@ -1009,6 +1034,8 @@
 						, _fileLoaded = false
 						, _fileOptions = _simpleClone(options)
 					;
+
+					proxyXHR.filesLeft = dataArray.length;
 
 					if( _file && _file.name === api.expando ){
 						_file = null;
@@ -1085,7 +1112,11 @@
 
 
 							// ...
-							proxyXHR.abort = function (current){ this.current = current; xhr.abort(); };
+							proxyXHR.abort = function (current){
+								if (!current) { dataArray.length = 0; }
+								this.current = current;
+								xhr.abort();
+							};
 
 							// Start upload
 							xhr.send(form);
@@ -1117,6 +1148,8 @@
 							dataArray.push(data);
 						}
 					});
+
+					proxyXHR.statusText = "";
 
 					if( _complete ){
 						_nextFile.call(_this);
@@ -1893,7 +1926,11 @@
 				}
 			}
 			else if( type ){
-				if( type == 'min' ){
+				if( !(sw > dw || sh > dh) ){
+					dw = sw;
+					dh = sh;
+				}
+				else if( type == 'min' ){
 					dw = round(sf < df ? min(sw, dw) : dh*sf);
 					dh = round(sf < df ? dw/sf : min(sh, dh));
 				}
@@ -2405,7 +2442,10 @@
 				}
 
 				xhr.open('POST', url, true);
-				xhr.withCredential = "true";
+
+				if( api.withCredentials ){
+					xhr.withCredentials = "true";
+				}
 
 				if( !options.headers || !options.headers['X-Requested-With'] ){
 					xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
@@ -2830,7 +2870,7 @@
  * @flash-developer  "Vladimir Demidov" <v.demidov@corp.mail.ru>
  */
 
-/*global window, Image, ActiveXObject, FileAPI */
+/*global window, ActiveXObject, FileAPI */
 (function (window, jQuery, api){
 	"use strict";
 
@@ -2927,6 +2967,7 @@
 							+ '&flashId='+ id
 							+ '&storeKey='+ navigator.userAgent.match(/\d/ig).join('') +'_'+ api.version
 							+ (flash.isReady || (api.pingUrl ? '&ping='+api.pingUrl : ''))
+							+ '&timeout='+api.flashAbortTimeout
 							+ (opts.camera ? '&useCamera=1' : '')
 //							+ '&debug=1'
 					}, opts);
@@ -3250,12 +3291,7 @@
 											}, base64, fn);
 										}
 										else {
-											var img = new Image;
-											api.event.one(img, 'error abort load', function (evt){
-												fn(evt.type != 'load' && evt.type, img);
-												img = null;
-											});
-											img.src = 'data:'+ file.type +';base64,'+ base64;
+											api.newImage('data:'+ file.type +';base64,'+ base64, fn);
 										}
 									})
 								});
@@ -3619,13 +3655,10 @@
 
 
 		// Check dataURI support
-		var dataURICheck = new Image;
-		api.event.one(dataURICheck, 'error load', function (){
-			api.support.dataURI = !(dataURICheck.width != 1 || dataURICheck.height != 1);
-			dataURICheck = null;
+		api.newImage('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', function (err, img){
+			api.support.dataURI = !(img.width != 1 || img.height != 1);
 			flash.init();
 		});
-		dataURICheck.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 	})();
 })(window, window.jQuery, FileAPI);
 if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }

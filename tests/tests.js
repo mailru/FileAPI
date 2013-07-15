@@ -27,7 +27,7 @@ module('FileAPI');
 			fn(src.file);
 		}
 		else {
-			var img = new Image;
+			var img = document.createElement('img');
 			img.onload = function (){
 				fn(img);
 			};
@@ -38,9 +38,17 @@ module('FileAPI');
 
 	function toCanvas(img){
 		var canvas = document.createElement('canvas');
-		canvas.width = img.width || img.videoWidth;
-		canvas.height = img.height || img.videoHeight;
-		canvas.getContext('2d').drawImage(img, 0, 0);
+		if( img ){
+			canvas.width = img.width || img.videoWidth;
+			canvas.height = img.height || img.videoHeight;
+			var ctx = canvas.getContext('2d');
+			try {
+				ctx.drawImage(img, 0, 0);
+			} catch (err){
+				console.log(err.toString());
+				console.log(err.stack);
+			}
+		}
 		return	canvas;
 	}
 
@@ -48,7 +56,7 @@ module('FileAPI');
 	function imageEqual(left, right, text, callback){
 		loadImage(left, function (left){
 			left.setAttribute('style', 'border: 2px solid red; padding: 2px;');
-			document.body.appendChild(left);
+			document.body.appendChild(left.cloneNode());
 
 			loadImage(right, function (right){
 				right.setAttribute('style', 'border: 2px solid blue; padding: 2px;');

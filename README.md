@@ -989,6 +989,9 @@ Enable CORS.
     // A comma-separated list of domains
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
 
+	// Allow cookie
+	header('Access-Control-Allow-Credentials: true');
+
     if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
         exit;
     }
@@ -1009,10 +1012,17 @@ Client explicitly sets the following headers:<br/>
 	<li>Content-Disposition: attachment; filename=&lt;file-name&gt;</li>
 </ul>
 Any other headers are set by a target browser and are not used by client. Library does not provide any facilities to track a file uniqueness across requests, it's left on developer's consideration.<br/>
-Client recognizes the following response codes:<br/>
+Response codes:
 <ul>
-	<li>200, 201 - chunk is successfully saved</li>
-	<li>416, 500 - recoverable error, library tries to resend chunk 'chunkUploadRetry' times then fails</li>
+	<li>200 - last chunk is uploaded</li>
+	<li>201 - chunk is successfully saved</li>
+	<li>416 - range is not acceptable error, recoverable</li>
+	<li>500 - server error, recoverable</li>
+</ul>
+For recoverable errors server tries to resend chunk `chunkUploadRetry` times then fails.<br/
+Response headers:
+<ul>
+	<li>X-Last-Known-Byte: int, library tries to resend chunk from the given offset. Applicable to response codes 200 and 416</li>
 </ul>
 All the other codes - fatal error, user's involvement is recommend.
 
@@ -1145,6 +1155,15 @@ Button like link.
 	<li>Improved the documentation</li>
 </ul>
 
+### 1.2.6
+<ul>
+	<li>[#91](https://github.com/mailru/FileAPI/issues/91): replace `new Image` to `FileAPI.newImage`</li>
+	<li>+ FileAPI.withCredentials: true</li>
+	<li>[#90](https://github.com/mailru/FileAPI/issues/90): Fixed `progress` event</li>
+	<li>[#105](https://github.com/mailru/FileAPI/issues/105): Fixed `image/jpg` -> `image/jpeg`</li>
+	<li>[#108](https://github.com/mailru/FileAPI/issues/108): Check width/height before resize by type(min/max)</li>
+</ul>
+
 
 ### 1.2.5
 <ul>
@@ -1154,6 +1173,7 @@ Button like link.
 	<li>Fixed detection of HTML5 support for FireFox 3.6</li>
 	<li> + FileAPI.html5 option, default "true"</li>
 </ul>
+
 
 ### 1.2.4
 <ul>
