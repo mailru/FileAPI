@@ -14,45 +14,45 @@
 	<script src="//code.jquery.com/jquery-1.8.2.js"></script>
 	<script>!window.jQuery && document.write('<script src="/js/jquery.dev.js"><'+'/script>');</script>
 
-	<script src="/js/xtpl.min.js"></script>
+	<script src="./statics/xtpl.min.js"></script>
 </head>
 <body class="body">
 
-	<x:tpl ctrl="main">
+	<script x-ctrl="main" type="text/xtpl-xml">
 		<div id="sidebar" class="sidebar">
 			<div>
 				<div class="menu">
 					<ul x:if="ctx.lang == 'ru'">
 						<li><a href="https://github.com/mailru/FileAPI">Репозиторий на GitHub</a></li>
-						<li><a href="http://rubaxa.github.com/jquery.fileapi/">jQuery Plugin</a></li>
+						<li><a href="http://rubaxa.github.io/jquery.fileapi/">jQuery Plugin</a></li>
 						<li><a href="./examples/demo.html">Пример #1: demo</a></li>
 						<li><a href="./examples/userpic.html">Пример #2: userpic</a></li>
 						<li><a href="./examples/watermark.html">Пример #3: watermark</a></li>
 						<li><a href="./examples/webcam.html">Пример #4: webcam</a></li>
-						<li><a x:attr-getter="ctx.relpath" href="#en/{{ctx.relpath}}">English version</a></li>
+						<li><a href="#en/{{ctx.relpath}}">English version</a></li>
 					</ul>
 
 					<ul x:if="ctx.lang != 'ru'">
 						<li><a href="https://github.com/mailru/FileAPI">GitHub repository</a></li>
-						<li><a href="http://rubaxa.github.com/jquery.fileapi/">jQuery Plugin</a></li>
+						<li><a href="http://rubaxa.github.io/jquery.fileapi/">jQuery Plugin</a></li>
 						<li><a href="./examples/base.html">Example #1: demo</a></li>
 						<li><a href="./examples/userpic.html">Example #2: userpic</a></li>
 						<li><a href="./examples/watermark.html">Example #3: watermark</a></li>
 						<li><a href="./examples/webcam.html">Example #4: webbam</a></li>
-						<li><a x:attr-getter="ctx.relpath" href="#ru/{{ctx.relpath}}">Русская версия</a></li>
+						<li><a href="#ru/{{ctx.relpath}}">Русская версия</a></li>
 					</ul>
 				</div>
 
 				<div class="menu" x:repeat="item in ctx.api">
-					<a x:attr-getter="ctx.lang" href="#{{ctx.lang}}/{{item.label}}" class="menu__name">{{item['class']}}</a>
+					<a href="#{{ctx.lang}}/{{item.label}}" class="menu__name">{{item['class']}}</a>
 					<ul>
 						<li x:repeat="prop in item.props">
-							<a x:attr-getter="ctx.lang" href="#{{ctx.lang}}/{{prop.label}}">{{prop.name}}</a>
+							<a href="#{{ctx.lang}}/{{prop.label}}">{{prop.name}}</a>
 						</li>
 					</ul>
 					<ul>
 						<li x:repeat="(name, item) in item.fn">
-							<a x:attr-getter="ctx.lang" href="#{{ctx.lang}}/{{item.label}}">{{name}}</a>
+							<a href="#{{ctx.lang}}/{{item.label}}">{{name}}</a>
 						</li>
 					</ul>
 				</div>
@@ -68,47 +68,38 @@
 				<div class="logo"></div>
 
 				<div x:repeat="item in ctx.api">
-					<a x:attr-getter="ctx.lang + item.label" name="{{ctx.lang}}/{{item.label}}"></a>
+					<a name="{{ctx.lang}}/{{item.label}}"></a>
 
 					<h3>{{item['class']}}</h3>
 
 					<div style="margin-bottom: 30px;">
 						<div>
-							<x:v mod="txt.hl" output="text" bind="true">item.descr[ctx.lang]</x:v>
+							{*item.descr[ctx.lang] | markdown*}
 						</div>
 						<br/>
 
 						<div style="margin-left: 20px;">
 							<div x:repeat="prop in item.props">
-								<a x:attr-getter="ctx.lang + prop.label" name="{{ctx.lang}}/{{prop.label}}"></a>
+								<a name="{{ctx.lang}}/{{prop.label}}"></a>
 								<h4 class="fn" data-anchor="prop">
-									<x:switch select="prop.type">
-										<x:case test="-1">
-											{{prop.name}}
-										</x:case>
-
-										<x:default>
-											{{prop.name}}:
-											<span class="type">{{prop.type}}</span>
-										</x:default>
-									</x:switch>
+									<x:value>prop.name</x:value>
+									<x:if test="prop.type != -1">
+										<x:text value=": "/>
+										<span class="type">{{prop.type}}</span>
+									</x:if>
 								</h4>
+
 								<div class="descr">
-									<x:v mod="txt.hl" output="text" bind="true">prop.descr[ctx.lang] || prop.descr.en</x:v>
+									{*prop.descr[ctx.lang] | markdown*}
 								</div>
 
-								<div
-									x:if="prop.code"
-									data-type="{{prop.code.type}}"
-									x:highlight="prop.code.source[ctx.lang]">
-								</div>
-
+								<div x:if="prop.code" x:highlight="prop.code.source[ctx.lang]"></div>
 								<div x:if="prop.code" style="height: 20px;"></div>
 							</div>
 
 							<div x:repeat="fn in item.fn">
 								<div x:repeat="variant in fn.variants">
-									<a x:attr-getter="ctx.lang + fn.label" name="{{ctx.lang}}/{{fn.label}}"></a>
+									<a name="{{ctx.lang}}/{{fn.label}}"></a>
 
 									<h4 data-anchor="fn" class="fn">
 										<span class="fn__name">{{fn.name}}</span>
@@ -124,6 +115,7 @@
 														<span>]</span>
 													</span>
 												</x:if>
+
 												<x:if test="!arg.optional">
 													<span x:if="idx">, </span>
 													<span>{{arg.name}}:</span>
@@ -136,24 +128,18 @@
 									</h4>
 
 									<div class="descr">
-										<x:v mod="txt.hl" output="text" bind="true">variant.descr[ctx.lang] || variant.descr.en</x:v>
+										{*variant.descr[ctx.lang] | markdown*}
 									</div>
 
-									<ul class="args">
+									<ul>
 										<li x:repeat="arg in variant.args">
 											<b>{{arg.name}}</b>
 											<span> — </span>
-											<span>
-												<x:v mod="txt.hl" output="text" bind="true">fn.args[arg.name][ctx.lang]</x:v>
-											</span>
+											<span>{{fn.args[arg.name][ctx.lang]}}</span>
 										</li>
 									</ul>
 
-									<div
-										x:if="fn.code"
-										data-type="{{fn.code.type}}"
-										x:highlight="fn.code.source[ctx.lang]">
-									</div>
+									<div x:if="fn.code" x:highlight="fn.code.source[ctx.lang]"></div>
 
 									<div style="height: 20px;"></div>
 								</div>
@@ -163,7 +149,7 @@
 				</div>
 			</div>
 		</div>
-	</x:tpl>
+	</script>
 
 
 
@@ -174,7 +160,7 @@
 	<script>
 		/** @namespace hljs -- highlight.js */
 		if( window.hljs ){
-			xtpl.decl('highlight', {
+			xtpl.decl('x:highlight', {
 				init: function (el, code){
 					var type = $.attr(el, 'data-type');
 					el.className += ' language-' + (type == 'js' ? 'javascript' : type);
@@ -189,9 +175,8 @@
 		}
 
 
-		xtpl.mod('txt.hl', function (text){
-			text = text ? text.replace(/`([^`]+)`/g, '<span class="code">$1</span>') : '';
-			return	text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2">$1</a>');
+		xtpl.mod('markdown', function (text){
+			return	text ? text.replace(/`([^`]+)`/g, '<span class="code">$1</span>') : text;
 		});
 
 
@@ -230,7 +215,7 @@
 				ctx.lang = lang;
 				ctx.relpath = href.replace(/^.+\//, '');
 
-				ctx.$apply && ctx.$apply(_updScroll);
+				ctx.$apply(_updScroll);
 			}).trigger('hashchange');
 
 
