@@ -485,9 +485,16 @@ Client explicitly sets the following headers:
 Any other headers are set by a target browser and are not used by client.
 Library does not provide any facilities to track a file uniqueness across requests, it's left on developer's consideration.
 
-Client recognizes the following response codes:
-* 200, 201 - chunk is successfully saved
-* 416, 500 - recoverable error, library tries to resend chunk 'chunkUploadRetry' times then fails
+Response codes:
+* 200 - last chunk is uploaded
+* 201 - chunk is successfully saved
+* 416 - range is not acceptable error, recoverable
+* 500 - server error, recoverable
+
+For recoverable errors server tries to resend chunk 'chunkUploadRetry' times then fails.
+
+Response headers:
+* X-Last-Known-Byte: int, library tries to resend chunk from the given offset. Applicable to response codes 200 and 416
 
 All the other codes - fatal error, user's involvement is recommend.
 
@@ -674,6 +681,8 @@ All the other codes - fatal error, user's involvement is recommend.
  * [#91](https://github.com/mailru/FileAPI/issues/91): replace `new Image` to `FileAPI.newImage`
  * + FileAPI.withCredentials: true
  * [#90](https://github.com/mailru/FileAPI/issues/90): Fixed `progress` event
+ * [#105](https://github.com/mailru/FileAPI/issues/105): Fixed `image/jpg` -> `image/jpeg`
+ * [#108](https://github.com/mailru/FileAPI/issues/108): Check width/height before resize by type(min/max)
 
 
 ### 1.2.5
