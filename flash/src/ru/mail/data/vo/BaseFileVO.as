@@ -2,7 +2,6 @@ package ru.mail.data.vo
 {
 	import ru.mail.data.AbstractImageFactory;
 	import ru.mail.data.IImageFactory;
-	import ru.mail.utils.LoggerJS;
 
 	/**
 	 * This class contains almost all information about the file. The difference is only the source of data - 
@@ -54,7 +53,6 @@ package ru.mail.data.vo
 		 */		
 		public function get imageFactory():IImageFactory
 		{
-			LoggerJS.log('get imageFactory, _abstractImageFactory '+!!_abstractImageFactory); 
 			return _abstractImageFactory.getImageFactory();
 		}
 

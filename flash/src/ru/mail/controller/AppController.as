@@ -583,9 +583,12 @@ package ru.mail.controller
 						files[s].file = file;
 					}
 				} else {
+					// https://github.com/mailru/FileAPI/issues/83
+					// upload request without files
+					// add fake file to avoid error in ImageFactory, but do not upload it
 					file = _model.filesBuilder.createFakeFileVO('dummy');
 					files = {'dummy':{'id': 'dummy', 'file':file, 'name':'', 'matrix':{} }};
-					LoggerJS.log("call upload, else: "+files);
+					LoggerJS.log("upload without files");
 				}
 			
 				// launch command
@@ -629,6 +632,7 @@ package ru.mail.controller
 				uploadCommand.execute();
 			}
 			catch (err:Error) {
+				LoggerJS.log("upload error: "+err.toString());
 				_jsCaller.notifyJSErrors( new ErrorVO( err.toString() ) );
 			}
 		}

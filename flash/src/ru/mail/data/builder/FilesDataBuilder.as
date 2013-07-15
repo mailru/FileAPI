@@ -7,7 +7,6 @@ package ru.mail.data.builder
 	import ru.mail.data.AbstractImageFactory;
 	import ru.mail.data.vo.FakeFileVO;
 	import ru.mail.data.vo.FileVO;
-	import ru.mail.utils.LoggerJS;
 
 	/**
 	 * Create and store files
@@ -24,9 +23,14 @@ package ru.mail.data.builder
 			super(TYPE);
 		}
 		
+		/**
+		 * Create fake file with empty data 
+		 * @param fileID
+		 * @return 
+		 * 
+		 */		
 		public function createFakeFileVO(fileID:String = ''):FakeFileVO
 		{
-			LoggerJS.log('createFakeFileVO');
 			// create
 			var fileVO:FakeFileVO = new FakeFileVO();
 			// set props
