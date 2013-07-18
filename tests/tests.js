@@ -411,6 +411,33 @@ module('FileAPI');
 	});
 
 
+	test('upload + imageTransform with postName', function (){
+		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
+
+		stop();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: {
+				'180deg': {
+					postName: '180deg',
+					width: 50,
+					height: 50,
+					rotate: 180
+				}
+			},
+			complete: function (err, res){
+				var res = FileAPI.parseJSON(res.responseText);
+				ok('image' in res.data._FILES);
+				ok('180deg' in res.data._FILES);
+				equal(res.data._FILES['image'].name, 'dino.png');
+				equal(res.data._FILES['180deg'].name, 'dino.png');
+				start();
+			}
+		});
+	});
+
+
 	test('WebCam', function (){
 		stop();
 		FileAPI.Camera.publish(document.getElementById('web-cam'), function (err, cam){

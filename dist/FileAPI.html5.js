@@ -986,6 +986,7 @@
 					, progress: api.F
 					, complete: api.F
 					, pause: api.F
+					, imageOriginal: true
 					, chunkSize: api.chunkSize
 					, chunkUpoloadRetry: api.chunkUploadRetry
 				}, options);
@@ -1224,7 +1225,7 @@
 					, trans = api.support.transform && options.imageTransform
 					, Form = new api.Form
 					, queue = api.queue(function (){ fn(Form); })
-					, isOrignTrans = trans && (parseInt(trans.maxWidth || trans.minWidth || trans.width, 10) > 0 || trans.rotate || trans.crop || trans.type || trans.quality || trans.overlay)
+					, isOrignTrans = trans && _isOriginTransform(trans)
 				;
 
 				(function _addFile(file/**Object*/){
@@ -1257,20 +1258,24 @@
 								Form.append(name, images[0], filename,  trans[0].type || filetype);
 							}
 							else {
+								var addOrigin = 0;
+
 								if( !err ){
 									_each(images, function (image, idx){
 										if( !dataURLtoBlob && !api.flashEngine ){
 											Form.multipart = true;
 										}
 
-										Form.append(name +'['+ idx +']', image, filename, trans[idx].type || filetype);
-									});
+										if( !trans[idx].postName ){
+											addOrigin = 1;
+										}
 
-									name += '[original]';
+										Form.append(trans[idx].postName || name +'['+ idx +']', image, filename, trans[idx].type || filetype);
+									});
 								}
 
 								if( err || options.imageOriginal ){
-									Form.append(name, file, filename, filetype);
+									Form.append(name + (addOrigin ? '[original]' : ''), file, filename, filetype);
 								}
 							}
 
@@ -1566,6 +1571,19 @@
 
 	function _getDataTransfer(evt){
 		return	(evt.originalEvent || evt || '').dataTransfer || {};
+	}
+
+
+	function _isOriginTransform(trans){
+		var key;
+		for( key in trans ){
+			if( trans.hasOwnProperty(key) ){
+				if( !(trans[key] instanceof Object || key === 'overlay') ){
+					return	true;
+				}
+			}
+		}
+		return	false;
 	}
 
 
