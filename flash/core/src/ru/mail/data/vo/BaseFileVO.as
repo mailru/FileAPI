@@ -37,6 +37,8 @@ package ru.mail.data.vo
 		public var loadCommand:Object;
 		public var uploadCommand:Object;
 		
+		public var timeout:uint = 0; // timeout that can remove file
+		
 		private var _abstractImageFactory:AbstractImageFactory;
 		
 		public function set abstractImageFactory(value:AbstractImageFactory):void
