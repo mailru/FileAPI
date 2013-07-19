@@ -37,6 +37,27 @@
 			font-size: 15px;
 			font-family: "Helvetica Neue";
 		}
+
+		@keyframes color {
+			from { color: #000; }
+			to { color: #f60; }
+		}
+
+		@-moz-keyframes color {
+			from { color: #000; }
+			to { color: #f60; }
+		}
+
+		@-webkit-keyframes color {
+			from { color: #000; }
+			to { color: #f60; }
+		}
+
+		.anim {
+			-webkit-animation: color 1s infinite;
+			-moz-animation: color 1s infinite;
+			animation: color 1s infinite;
+		}
 	</style>
 
 </head>
@@ -101,12 +122,12 @@
 			</div>
 
 			<div class="col">
-				<h4>Preview</h4>
+				<h4>Preview <span id="preview-processing" class="anim" style="display: none">(processing&hellip;)</span></h4>
 				<div id="image"></div>
 			</div>
 
 			<div class="col">
-				<h4>Server response</h4>
+				<h4>Server response <span id="uploading" class="anim" style="display: none">(uploading&hellip;)</span></h4>
 				<div id="server"></div>
 			</div>
 			<br clear="all"/>
@@ -142,6 +163,8 @@
 				var type = (FileAPI.filter(elms.type, function (type){ return type.checked; })[0] || {}).value;
 				var overlay = { x: 5, y: 5, src: '../statics/watermark.png', rel: rel };
 
+				document.getElementById('preview-processing').style.display = '';
+
 				// Create preview
 				FileAPI.Image(file)
 					.resize(300, 300, 'max')
@@ -149,9 +172,11 @@
 					.get(function (err, img){
 						image.innerHTML = '';
 						image.appendChild(img);
+						document.getElementById('preview-processing').style.display = 'none';
 					})
 				;
 
+			document.getElementById('uploading').style.display = '';
 				// Upload
 				FileAPI.upload({
 					  url: '//www.rubaxa.org/FileAPI/server/ctrl.php'
@@ -180,6 +205,7 @@
 								server.appendChild(img);
 								server.innerHTML += '<div><b>'+file.width+'x'+file.height+', '+file.mime+', '+(file.size/1024).toFixed(3)+'KB</b></div>';
 
+								document.getElementById('uploading').style.display = 'none';
 							});
 						}
 					}
