@@ -1363,10 +1363,10 @@
 									, type: xhr.getResponseHeader('Content-Type')
 								};
 								file.dataURL = 'data:'+file.type+';base64,' + api.encode64(xhr.responseBody || xhr.responseText);
-								fn({ type: 'load', result: file });
+								fn({ type: 'load', result: file }, xhr);
 							}
 							else {
-								fn({ type: 'error' });
+								fn({ type: 'error' }, xhr);
 							}
 					    }
 					};
@@ -2088,6 +2088,18 @@
 		});
 	});
 
+
+	/**
+	 * Create image from DataURL
+	 * @param  {String}  dataURL
+	 * @param  {Object}  size
+	 * @param  {Function}  callback
+	 */
+	Image.fromDataURL = function (dataURL, size, callback){
+		var img = api.newImage(dataURL);
+		api.extend(img, size);
+		callback(img);
+	};
 
 
 	// @export

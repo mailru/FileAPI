@@ -1363,10 +1363,10 @@
 									, type: xhr.getResponseHeader('Content-Type')
 								};
 								file.dataURL = 'data:'+file.type+';base64,' + api.encode64(xhr.responseBody || xhr.responseText);
-								fn({ type: 'load', result: file });
+								fn({ type: 'load', result: file }, xhr);
 							}
 							else {
-								fn({ type: 'error' });
+								fn({ type: 'error' }, xhr);
 							}
 					    }
 					};
@@ -2088,6 +2088,18 @@
 		});
 	});
 
+
+	/**
+	 * Create image from DataURL
+	 * @param  {String}  dataURL
+	 * @param  {Object}  size
+	 * @param  {Function}  callback
+	 */
+	Image.fromDataURL = function (dataURL, size, callback){
+		var img = api.newImage(dataURL);
+		api.extend(img, size);
+		callback(img);
+	};
 
 
 	// @export
@@ -3343,6 +3355,23 @@
 					});
 
 
+					api.Image && _inherit(api.Image, {
+						fromDataURL: function (dataURL, size, callback){
+							if( !api.support.dataURI || dataURL.length > 3e4 ){
+								_makeFlashImage(
+									  api.extend({ scale: 'exactFit' }, size)
+									, dataURL.replace(/^data:[^,]+,/, '')
+									, function (err, el){ callback(el); }
+								);
+							}
+							else {
+								this.parent(dataURL, size, callback);
+							}
+						}
+					});
+
+
+
 					// FileAPI.Camera:statics
 					api.Camera.fallback = function (el, options, callback){
 						var camId = api.uid();
@@ -3604,11 +3633,16 @@
 
 
 		function _makeFlashImage(opts, base64, fn){
-			var _id, flashId = api.uid(), el = document.createElement('div');
+			var
+				  key
+				, flashId = api.uid()
+				, el = document.createElement('div')
+//				, attempts = 10
+			;
 
-			for( _id in opts ){
-				el.setAttribute(_id, opts[_id]);
-				el[_id] = opts[_id];
+			for( key in opts ){
+				el.setAttribute(key, opts[key]);
+				el[key] = opts[key];
 			}
 
 			_css(el, opts);
@@ -3620,9 +3654,9 @@
 				  id: flashId
 				, src: _getUrl(api.flashImageUrl, 'r='+ api.uid())
 				, wmode: 'opaque'
-				, flashvars: 'scale='+ opts.scale +'&callback='+_wrap(function _setData(){
-					_unwrap(_setData);
-					setTimeout(_setImage, 99);
+				, flashvars: 'scale='+ opts.scale +'&callback='+_wrap(function _(){
+					_unwrap(_);
+					_setImage();
 					return true;
 				})
 			}, opts));
