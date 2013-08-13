@@ -3637,7 +3637,6 @@
 				  key
 				, flashId = api.uid()
 				, el = document.createElement('div')
-//				, attempts = 10
 			;
 
 			for( key in opts ){

@@ -91,6 +91,14 @@ module.exports = function (grunt){
 					, 'dist/jquery.fileapi.min.js': ['plugins/jquery.fileapi.js']
 				}
 			}
+		},
+
+		watch: {
+			scripts: {
+				files: 'lib/**/*.js',
+				tasks: ['build'],
+				options: { interrupt: true }
+			}
 		}
 	});
 
@@ -99,7 +107,7 @@ module.exports = function (grunt){
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
-
+	grunt.loadNpmTasks('grunt-contrib-watch');
 
 	// Load custom QUnit task, based on grunt-contrib-qunit, but support "files" option.
 	grunt.loadTasks('./tests/grunt-task/');
