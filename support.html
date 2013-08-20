@@ -23,13 +23,28 @@
 </head>
 <body>
 
-	<div><label>Single: <input id="singleFile" type="file" /></label></div>
-	<div><label>Multiple: <input id="multipleFiles" type="file" multiple /></label></div>
+	<div><label>Single: <input id="singleFile" type="file" class="js-fileapi-wrapper" /></label></div>
+	<div><label>Multiple: <input id="multipleFiles" type="file" class="js-fileapi-wrapper" multiple /></label></div>
+
 
 	<div id="log" style="border: 1px solid red; padding: 3px; margin: 2px"></div>
+	<div id="__console" style="font-size: 12px; color: #333;"></div>
+
 
 	<script>
 		(function (){
+			window.console = {
+				_div: document.getElementById('__console'),
+				log: function (){
+					this._div.innerHTML += [].join.call(arguments, ' ') + '<br/>';
+				},
+				error: function (){
+					this._div.innerHTML += '<span style="color: red">';
+					this.log.apply(this, arguments);
+					this._div.innerHTML += '</span>';
+				}
+			};
+
 			function _log(txt){
 				log.innerHTML = txt + '<br/>' + log.innerHTML;
 			}
@@ -37,7 +52,7 @@
 			function _uploadFiles(files){
 				if( files.length ){
 					FileAPI.each(files, function (file){
-						_log(' -> '+file.name+', '+file.type+', '+file.size);
+						_log(' -> name: '+file.name+', type: '+file.type+', size: '+file.size);
 
 						FileAPI.Image(file).get(function (err, image){
 							if( err ){
@@ -51,7 +66,7 @@
 
 
 					FileAPI.upload({
-						url: 'http://rubaxa.org/index.php',
+						url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
 						files: { test: files },
 						complete: function (err){
 							if( err ){
