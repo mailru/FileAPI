@@ -1754,7 +1754,8 @@
 			dh: 0,
 			resize: 0, // min, max OR preview
 			deg: 0,
-			quality: 1 // jpeg quality
+			quality: 1, // jpeg quality
+			filter: 0
 		};
 	}
 
@@ -1794,6 +1795,10 @@
 			return	this.set({ deg: deg });
 		},
 
+		filter: function (filter){
+			return	this.set({ filter: filter });
+		},
+
 		overlay: function (images){
 			return	this.set({ overlay: images });
 		},
@@ -1827,6 +1832,7 @@
 				, dh = m.dh
 				, w = width
 				, h = height
+				, filter = m.filter
 				, copy // canvas copy
 				, buffer = image
 				, overlay = m.overlay
@@ -1907,6 +1913,27 @@
 					fn();
 				}
 			});
+
+			if( filter ){
+				queue.inc();
+				if( typeof filter == 'function' ){
+					filter(canvas, queue.next);
+				}
+				else if( window.Caman ){
+					// http://camanjs.com/guides/
+					window.Caman(canvas, function (){
+						if( typeof filter == 'string' ){
+							this[filter]();
+						}
+						else {
+							api.each(filter, function (val, method){
+								this[method](val);
+							}, this);
+						}
+						this.render(queue.next);
+					});
+				}
+			}
 
 			queue.check();
 		},

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<!--
+
+
+		~~~ Демонстрация возможностей FileAPI и CamanJS ~~~
+
+
+-->
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<title>FileAPI :: CamanJS :: example</title>
+
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=0.8, maximum-scale=0.8" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<script>
+		var FileAPI = {
+			  debug: true
+			, staticPath: '../dist/'
+		};
+	</script>
+	<script src="../dist/FileAPI.html5.min.js"></script>
+	<script src="../plugins/caman.full.min.js"></script>
+
+	<style>
+		body {
+			margin: 0 auto;
+			max-width: 800px;
+			font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
+		}
+
+		#PresetFilters a {
+			border-radius: 3px;
+			-webkit-transition: background-color .3s ease-out;
+			-moz-transition: background-color .3s ease-out;
+			transition: background-color .3s ease-out;
+			background-color: #368ad2;
+			display: block;
+			float: left;
+			text-align: center;
+			padding: 8px 10px;
+			color: #f8f8f2;
+			margin: 5px;
+			border: none;
+			font-size: 13px;
+			width: 120px;
+			cursor: pointer;
+		}
+			#PresetFilters a.Active {
+				background-color: #e69751;
+			}
+
+		.loader {
+			width: 30px;
+			height: 30px;
+			margin: 50px 0 50px -15px;
+			border: 8px solid #000;
+			border-right-color: transparent;
+			display: inline-block;
+			border-radius: 50%;
+			box-shadow: 0 0 25px 2px #eee;
+			border-right: 0 none;
+			-webkit-animation: spin 1s linear infinite;
+			-moz-animation: spin 1s linear infinite;
+			-ms-animation: spin 1s linear infinite;
+			-o-animation: spin 1s linear infinite;
+			animation: spin 1s linear infinite;
+		}
+
+		.btn {
+			padding: 10px 50px;
+			color: #fff;
+			cursor: pointer;
+			display: inline-block;
+			text-decoration: none;
+			font-size: 24px;
+			border-radius: 4px;
+			background-color: #80BD95;
+			box-shadow: 0 3px 0 0 #72A884;
+			text-shadow: 0 -2px 0 rgba(0,0,0,.2);
+		}
+
+		@-webkit-keyframes spin {
+			from { -webkit-transform: rotate(0deg); opacity: 0.4; }
+			50%  { -webkit-transform: rotate(180deg); opacity: 1; }
+			to   { -webkit-transform: rotate(360deg); opacity: 0.4; }
+		}
+
+		@-moz-keyframes spin {
+			from { -moz-transform: rotate(0deg); opacity: 0.4; }
+			50%  { -moz-transform: rotate(180deg); opacity: 1; }
+			to   { -moz-transform: rotate(360deg); opacity: 0.4; }
+		}
+
+		@-ms-keyframes spin {
+			from { -ms-transform: rotate(0deg); opacity: 0.4; }
+			50%  { -ms-transform: rotate(180deg); opacity: 1; }
+			to   { -ms-transform: rotate(360deg); opacity: 0.4; }
+		}
+
+		@keyframes spin {
+			from { transform: rotate(0deg); opacity: 0.2; }
+			50%  { transform: rotate(180deg); opacity: 1; }
+			to   { transform: rotate(360deg); opacity: 0.2; }
+		}
+
+	</style>
+
+</head>
+<body>
+	<div style="left: 0; right: 0; bottom: 0; position: fixed; box-shadow: 0 0 5px rgba(0,0,0,.65); background-color: #f3f3f3;">
+		<div style="padding: 5px 10px 10px">
+			<a href="../">&larr; index</a> |
+			<a href="./demo.html">demo</a> -
+			<a href="./userpic.html">userpic</a> -
+			<a href="./watermark.html">watermark</a> -
+			<a href="./webcam.html">webcam</a> -
+			<b>caman.js</b>
+		</div>
+	</div>
+
+
+
+	<div id="output" style="display: none; padding: 10px 20px 40px;">
+
+		<div id="result" style="text-align: center; margin: 0 auto;">
+			<div class="loader"></div>
+		</div>
+
+		<div id="PresetFilters">
+			<a data-preset="vintage" class="Active">Vintage</a>
+			<a data-preset="lomo">Lomo</a>
+			<a data-preset="clarity">Clarity</a>
+			<a data-preset="sinCity">Sin City</a>
+			<a data-preset="sunrise">Sunrise</a>
+			<a data-preset="crossProcess">Cross Process</a>
+			<a data-preset="orangePeel">Orange Peel</a>
+			<a data-preset="love">Love</a>
+			<a data-preset="grungy">Grungy</a>
+			<a data-preset="jarques">Jarques</a>
+			<a data-preset="pinhole">Pinhole</a>
+			<a data-preset="oldBoot">Old Boot</a>
+			<a data-preset="glowingSun">Glowing Sun</a>
+			<a data-preset="hazyDays">Hazy Days</a>
+			<a data-preset="herMajesty">Her Majesty</a>
+			<a data-preset="nostalgia">Nostalgia</a>
+			<a data-preset="hemingway">Hemingway</a>
+			<a data-preset="concentrate">Concentrate</a>
+		</div>
+
+	</div>
+
+	<div style="text-align: center; padding: 50px; clear: both; font-size: 20px;">
+		<label for="browse" class="btn">Select photo</label>
+		<input id="browse" type="file" accept="image/*" style="font-size: 20px; display: none;" />
+	</div>
+
+
+
+	<script>
+		(function (){
+			var file, filter = 'vintage', processing = false;
+
+
+			FileAPI.event.on(browse, 'change', function (evt){
+				file = FileAPI.getFiles(evt)[0];
+
+				output.style.display = '';
+
+				if( file ){
+					_applyFilter();
+				}
+			});
+
+
+			FileAPI.event.on(PresetFilters, 'click', function (evt){
+				var el = evt.target;
+				if( !processing && el.tagName == 'A' ){
+					filter = el.dataset.preset;
+					processing = { el: el, html: el.innerHTML };
+
+					el.parentNode.querySelector('.Active').classList.remove('Active');
+					el.innerHTML = 'Rendering&hellip;';
+					el.className = 'Active';
+
+					_applyFilter();
+				}
+			});
+
+
+			function _applyFilter(){
+				FileAPI.Image(file)
+					.resize(800, 600, 'max')
+					.filter(filter)
+					.get(function (err, img){
+						result.innerHTML = '';
+						result.appendChild(img);
+
+						if( processing ){
+							processing.el.innerHTML = processing.html;
+							processing = false;
+						}
+					})
+				;
+			}
+		})();
+	</script>
+
+</body>
+</html>
