@@ -270,6 +270,8 @@
 
 			cors: false,
 			html5: true,
+			media: false,
+
 			debug: false,
 			pingUrl: false,
 			multiFlash: false,
@@ -1934,23 +1936,7 @@
 
 			if( filter ){
 				queue.inc();
-				if( typeof filter == 'function' ){
-					filter(canvas, queue.next);
-				}
-				else if( window.Caman ){
-					// http://camanjs.com/guides/
-					window.Caman(canvas, function (){
-						if( typeof filter == 'string' ){
-							this[filter]();
-						}
-						else {
-							api.each(filter, function (val, method){
-								this[method](val);
-							}, this);
-						}
-						this.render(queue.next);
-					});
-				}
+				Image.applyFilter(canvas, filter, queue.next);
 			}
 
 			queue.check();
@@ -2135,6 +2121,21 @@
 
 
 	/**
+	 * Trabsform element to canvas
+	 *
+	 * @param    {Image|HTMLVideoElement}   el
+	 * @returns  {Canvas}
+	 */
+	Image.toCanvas = function(el){
+		var canvas		= document.createElement('canvas');
+		canvas.width	= el.videoWidth || el.width;
+		canvas.height	= el.videoHeight || el.height;
+		canvas.getContext('2d').drawImage(el, 0, 0);
+		return	canvas;
+	};
+
+
+	/**
 	 * Create image from DataURL
 	 * @param  {String}  dataURL
 	 * @param  {Object}  size
@@ -2144,6 +2145,34 @@
 		var img = api.newImage(dataURL);
 		api.extend(img, size);
 		callback(img);
+	};
+
+
+	/**
+	 * Apply filter (caman.js)
+	 *
+	 * @param  {Canvas|Image}   canvas
+	 * @param  {String|Function}  filter
+	 * @param  {Function}  doneFn
+	 */
+	Image.applyFilter = function (canvas, filter, doneFn){
+		if( typeof filter == 'function' ){
+			filter(canvas, doneFn);
+		}
+		else if( window.Caman ){
+			// http://camanjs.com/guides/
+			window.Caman(canvas.tagName == 'IMG' ? Image.toCanvas(canvas) : canvas, function (){
+				if( typeof filter == 'string' ){
+					this[filter]();
+				}
+				else {
+					api.each(filter, function (val, method){
+						this[method](val);
+					}, this);
+				}
+				this.render(doneFn);
+			});
+		}
 	};
 
 
@@ -2881,7 +2910,7 @@
 	 * @class	FileAPI.Camera.Shot
 	 */
 	var Shot = function (video){
-		var canvas	= video.nodeName ? toCanvas(video) : video;
+		var canvas	= video.nodeName ? api.Image.toCanvas(video) : video;
 		var shot	= api.Image(canvas);
 		shot.type	= 'image/png';
 		shot.width	= canvas.width;
@@ -2900,20 +2929,6 @@
 	 */
 	function _px(val){
 		return	val >= 0 ? val + 'px' : val;
-	}
-
-
-	/**
-	 * @private
-	 * @param	{HTMLVideoElement}	video
-	 * @returns	{Canvas}
-	 */
-	function toCanvas(video){
-		var canvas		= document.createElement('canvas');
-		canvas.width	= video.videoWidth;
-		canvas.height	= video.videoHeight;
-		canvas.getContext('2d').drawImage(video, 0, 0);
-		return	canvas;
 	}
 
 

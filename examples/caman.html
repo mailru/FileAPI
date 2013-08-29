@@ -22,10 +22,11 @@
 	<script>
 		var FileAPI = {
 			  debug: true
+			, media: true
 			, staticPath: '../dist/'
 		};
 	</script>
-	<script src="../dist/FileAPI.html5.min.js"></script>
+	<script src="../dist/FileAPI.min.js"></script>
 	<script src="../plugins/caman.full.min.js"></script>
 
 	<style>
@@ -167,7 +168,7 @@
 			<div id="openCam" class="btn">WebCam</div>
 		</div>
 
-		<div id="photoBooth" style="display: none;">
+		<div id="photoBooth" style="visibility: hidden; position: absolute; overflow: hidden; height: 0">
 			<div id="cam" style="border: 2px solid #80BD95; padding: 2px; width: 640px; height: 480px; margin: 0 auto;"></div>
 			<div id="shot" class="btn" style="border-radius: 100%; width: 80px; height: 80px; padding: 0; margin: 30px;"></div>
 		</div>
@@ -186,11 +187,13 @@
 
 			function _choose(state){
 				choose.style.display = state ? '' : 'none';
-				photoBooth.style.display = !state ? '' : 'none';
+				photoBooth.style.visibility = !state ? '' : 'hidden';
+				photoBooth.style.height = !state ? '' : '20px';
 			}
 
 			// Open PhotoBooth
 			FileAPI.event.on(openCam, 'click', function (){
+				_choose(false);
 				output.style.display = 'none';
 
 				FileAPI.Camera.publish(cam, { width: 640, height: 480 }, function (err, cam){
@@ -198,7 +201,6 @@
 						_choose(true);
 						alert(err);
 					} else {
-						_choose(false);
 						webcam = cam;
 					}
 				});

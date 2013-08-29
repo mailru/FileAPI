@@ -270,6 +270,8 @@
 
 			cors: false,
 			html5: true,
+			media: false,
+
 			debug: false,
 			pingUrl: false,
 			multiFlash: false,
@@ -1934,23 +1936,7 @@
 
 			if( filter ){
 				queue.inc();
-				if( typeof filter == 'function' ){
-					filter(canvas, queue.next);
-				}
-				else if( window.Caman ){
-					// http://camanjs.com/guides/
-					window.Caman(canvas, function (){
-						if( typeof filter == 'string' ){
-							this[filter]();
-						}
-						else {
-							api.each(filter, function (val, method){
-								this[method](val);
-							}, this);
-						}
-						this.render(queue.next);
-					});
-				}
+				Image.applyFilter(canvas, filter, queue.next);
 			}
 
 			queue.check();
@@ -2135,6 +2121,21 @@
 
 
 	/**
+	 * Trabsform element to canvas
+	 *
+	 * @param    {Image|HTMLVideoElement}   el
+	 * @returns  {Canvas}
+	 */
+	Image.toCanvas = function(el){
+		var canvas		= document.createElement('canvas');
+		canvas.width	= el.videoWidth || el.width;
+		canvas.height	= el.videoHeight || el.height;
+		canvas.getContext('2d').drawImage(el, 0, 0);
+		return	canvas;
+	};
+
+
+	/**
 	 * Create image from DataURL
 	 * @param  {String}  dataURL
 	 * @param  {Object}  size
@@ -2144,6 +2145,34 @@
 		var img = api.newImage(dataURL);
 		api.extend(img, size);
 		callback(img);
+	};
+
+
+	/**
+	 * Apply filter (caman.js)
+	 *
+	 * @param  {Canvas|Image}   canvas
+	 * @param  {String|Function}  filter
+	 * @param  {Function}  doneFn
+	 */
+	Image.applyFilter = function (canvas, filter, doneFn){
+		if( typeof filter == 'function' ){
+			filter(canvas, doneFn);
+		}
+		else if( window.Caman ){
+			// http://camanjs.com/guides/
+			window.Caman(canvas.tagName == 'IMG' ? Image.toCanvas(canvas) : canvas, function (){
+				if( typeof filter == 'string' ){
+					this[filter]();
+				}
+				else {
+					api.each(filter, function (val, method){
+						this[method](val);
+					}, this);
+				}
+				this.render(doneFn);
+			});
+		}
 	};
 
 
@@ -2881,7 +2910,7 @@
 	 * @class	FileAPI.Camera.Shot
 	 */
 	var Shot = function (video){
-		var canvas	= video.nodeName ? toCanvas(video) : video;
+		var canvas	= video.nodeName ? api.Image.toCanvas(video) : video;
 		var shot	= api.Image(canvas);
 		shot.type	= 'image/png';
 		shot.width	= canvas.width;
@@ -2900,20 +2929,6 @@
 	 */
 	function _px(val){
 		return	val >= 0 ? val + 'px' : val;
-	}
-
-
-	/**
-	 * @private
-	 * @param	{HTMLVideoElement}	video
-	 * @returns	{Canvas}
-	 */
-	function toCanvas(video){
-		var canvas		= document.createElement('canvas');
-		canvas.width	= video.videoWidth;
-		canvas.height	= video.videoHeight;
-		canvas.getContext('2d').drawImage(video, 0, 0);
-		return	canvas;
 	}
 
 
@@ -2974,7 +2989,13 @@
 	})();
 
 
-	api.support.flash && (0 || !api.html5 || !api.support.html5 || api.cors && !api.support.cors) && (function (){
+	api.support.flash
+		&& (0
+				|| !api.html5 || !api.support.html5
+			|| (api.cors && !api.support.cors)
+			|| (api.media && !api.support.media)
+		)
+		&& (function (){
 		var
 			  _attr  = api.uid()
 			, _retry = 0
@@ -3299,6 +3320,12 @@
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
 							}
+							else if( file.isShot ){
+								fn(null, file.info = {
+									width: file.width,
+									height: file.height
+								});
+							}
 							else {
 								if( !file.__info ){
 									var defer = file.__info = api.defer();
@@ -3340,33 +3367,46 @@
 						},
 
 						_apply: function (file, fn){
-							api.log('FileAPI.Image._apply:', file);
+							api.log('FileAPI.Image.flash._apply:', file);
 
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
 							}
 							else {
-								var m = this.getMatrix(file.info);
+								var m = this.getMatrix(file.info), doneFn = fn;
 
 								flash.cmd(file, 'imageTransform', {
 									  id: file.id
 									, matrix: m
 									, callback: _wrap(function _(err, base64){
-										api.log('FileAPI.Image._apply.callback:', err);
+										api.log('FileAPI.Image.flash._apply.callback:', err);
 										_unwrap(_);
 
 										if( err ){
-											fn(err);
+											doneFn(err);
 										}
-										else if( !api.support.dataURI || base64.length > 3e4 ){
+										else if( !api.support.html5 && (!api.support.dataURI || base64.length > 3e4) ){
 											_makeFlashImage({
 												  width:	(m.deg % 180) ? m.dh : m.dw
 												, height:	(m.deg % 180) ? m.dw : m.dh
 												, scale:	m.scaleMode
-											}, base64, fn);
+											}, base64, doneFn);
 										}
 										else {
-											api.newImage('data:'+ file.type +';base64,'+ base64, fn);
+											if( m.filter ){
+												doneFn = function (err, img){
+													if( err ){
+														fn(err);
+													}
+													else {
+														api.Image.applyFilter(img, m.filter, function (){
+															fn(err, this.canvas);
+														});
+													}
+												};
+											}
+
+											api.newImage('data:'+ file.type +';base64,'+ base64, doneFn);
 										}
 									})
 								});
@@ -3477,6 +3517,7 @@
 							var shot = flash.cmd(this._id(), 'shot', {});
 							shot.type = 'image/png';
 							shot.flashId = this._id();
+							shot.isShot = true;
 
 							return	new api.Camera.Shot(shot);
 						}
