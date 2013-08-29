@@ -1183,6 +1183,7 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+
 ### 2.0.0
 <ul>
 	<li>+ FileAPI.Camera (HTML5 and Flash fallback)</li>
@@ -1194,6 +1195,7 @@ Button like link.
  	<li>`imageTransform` — now supports: `crop`, `type`, `quality` and `overlay` properties.</li>
 	<li>Improved the documentation</li>
 </ul>
+
 
 ### 1.2.6
 <ul>
