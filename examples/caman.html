@@ -157,30 +157,82 @@
 	</div>
 
 	<div style="text-align: center; padding: 50px; clear: both; font-size: 20px;">
-		<label for="browse" class="btn">Select photo</label>
-		<input id="browse" type="file" accept="image/*" style="font-size: 20px; display: none;" />
+		<div id="choose">
+			<label for="browse" class="btn">Select photo</label>
+			<input id="browse" type="file" accept="image/*" style="font-size: 20px; display: none;" />
+
+			<br/>
+			<br/>
+
+			<div id="openCam" class="btn">WebCam</div>
+		</div>
+
+		<div id="photoBooth" style="display: none;">
+			<div id="cam" style="border: 2px solid #80BD95; padding: 2px; width: 640px; height: 480px; margin: 0 auto;"></div>
+			<div id="shot" class="btn" style="border-radius: 100%; width: 80px; height: 80px; padding: 0; margin: 30px;"></div>
+		</div>
 	</div>
 
 
 
 	<script>
 		(function (){
-			var file, filter = 'vintage', processing = false;
+			var
+				  file
+				, webcam // current Camera
+				, filter = 'vintage' // default filter
+				, processing = false
+			;
+
+			function _choose(state){
+				choose.style.display = state ? '' : 'none';
+				photoBooth.style.display = !state ? '' : 'none';
+			}
+
+			// Open PhotoBooth
+			FileAPI.event.on(openCam, 'click', function (){
+				output.style.display = 'none';
+
+				FileAPI.Camera.publish(cam, { width: 640, height: 480 }, function (err, cam){
+					if( err ){
+						_choose(true);
+						alert(err);
+					} else {
+						_choose(false);
+						webcam = cam;
+					}
+				});
+			});
 
 
-			FileAPI.event.on(browse, 'change', function (evt){
-				file = FileAPI.getFiles(evt)[0];
+			// Create shot
+			FileAPI.event.on(shot, 'click', function (){
+				if( webcam ){
+					file = webcam.shot();
 
-				output.style.display = '';
+					webcam.stop();
+					webcam = null;
 
-				if( file ){
-					_applyFilter();
+					_choose(true);
+					_applyFilter(true);
 				}
 			});
 
 
+			// Open dialog
+			FileAPI.event.on(browse, 'change', function (evt){
+				file = FileAPI.getFiles(evt)[0];
+
+				if( file ){
+					_applyFilter(true);
+				}
+			});
+
+
+			// Set filter
 			FileAPI.event.on(PresetFilters, 'click', function (evt){
 				var el = evt.target;
+
 				if( !processing && el.tagName == 'A' ){
 					filter = el.dataset.preset;
 					processing = { el: el, html: el.innerHTML };
@@ -194,7 +246,12 @@
 			});
 
 
-			function _applyFilter(){
+			function _applyFilter(loading){
+				if( loading ){
+					result.innerHTML = '<div class="loader"></div>';
+				}
+				output.style.display = '';
+
 				FileAPI.Image(file)
 					.resize(800, 600, 'max')
 					.filter(filter)

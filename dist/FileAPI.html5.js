@@ -771,17 +771,23 @@
 
 				_each((entrySupport ? dataTransfer.items : dataTransfer.files) || [], function (item){
 					queue.inc();
-					if( entrySupport ){
-						_readEntryAsFiles(item, function (err, entryFiles){
-							!err && files.push.apply(files, entryFiles);
-							queue.next();
-						});
+					try {
+						if( entrySupport ){
+							_readEntryAsFiles(item, function (err, entryFiles){
+								!err && files.push.apply(files, entryFiles);
+								queue.next();
+							});
+						}
+						else {
+							_isRegularFile(item, function (yes){
+								yes && files.push(item);
+								queue.next();
+							});
+						}
 					}
-					else {
-						_isRegularFile(item, function (yes){
-							yes && files.push(item);
-							queue.next();
-						});
+					catch( err ){
+						queue.next();
+						api.log('getDropFiles.error:', err.toString());
 					}
 				});
 
@@ -840,6 +846,12 @@
 				if( input.files ){
 					// Input[type="file"]
 					files = input.files;
+
+					if( !html5 ){
+						// Partial support for file api
+						files[0].blob	= input;
+						files[0].iframe	= true;
+					}
 				}
 				else if( !html5 && isInputFile(input) ){
 					if( api.trim(input.value) ){
@@ -1304,17 +1316,22 @@
 			},
 
 
-			reset: function (inp){
+			reset: function (inp, notRemove){
 				var parent, clone;
 
 				if( jQuery ){
 					clone = jQuery(inp).clone(true).insertBefore(inp).val('')[0];
-					jQuery(inp).remove();
+					if( !notRemove ){
+						jQuery(inp).remove();
+					}
 				} else {
 					parent  = inp.parentNode;
 					clone   = parent.insertBefore(inp.cloneNode(true), inp);
 					clone.value = '';
-					parent.removeChild(inp);
+
+					if( !notRemove ){
+						parent.removeChild(inp);
+					}
 
 					_each(_elEvents[api.uid(inp)], function (fns, type){
 						_each(fns, function (fn){
@@ -1516,6 +1533,7 @@
 			// Read as file
 			entry.file(function(file){
 				// success
+				file.fullPath = entry.fullPath;
 				callback(false, [file]);
 			}, function (){
 				// error
@@ -2207,7 +2225,7 @@
 				var blob = file.blob, hidden;
 
 				if( file.file ){
-					api.reset(blob);
+					api.reset(blob, true);
 					// set new name
 					blob.name = file.name;
 					data.appendChild(blob);
