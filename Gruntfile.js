@@ -113,9 +113,6 @@ module.exports = function (grunt){
 	grunt.loadTasks('./tests/grunt-task/');
 
 	// "npm build" runs these tasks
-	grunt.registerTask('build', ['concat', 'uglify']);
-	grunt.registerTask('fast-test', ['qunit']);
-	grunt.registerTask('test', ['jshint', 'build', 'fast-test']);
-
-	grunt.registerTask('default', ['test']);
+	grunt.registerTask('build', ['concat', 'uglify', 'qunit']);
+	grunt.registerTask('default', ['jshint', 'build']);
 };
