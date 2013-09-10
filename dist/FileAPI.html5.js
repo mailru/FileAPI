@@ -773,10 +773,15 @@
 
 				_each((entrySupport ? dataTransfer.items : dataTransfer.files) || [], function (item){
 					queue.inc();
+
 					try {
 						if( entrySupport ){
 							_readEntryAsFiles(item, function (err, entryFiles){
-								!err && files.push.apply(files, entryFiles);
+								if( err ){
+									api.log('[err] getDropFiles:', err);
+								} else {
+									files.push.apply(files, entryFiles);
+								}
 								queue.next();
 							});
 						}
@@ -789,7 +794,7 @@
 					}
 					catch( err ){
 						queue.next();
-						api.log('getDropFiles.error:', err.toString());
+						api.log('[err] getDropFiles: ', err);
 					}
 				});
 
@@ -1529,7 +1534,7 @@
 	function _readEntryAsFiles(entry, callback){
 		if( !entry ){
 			// error
-			callback('empty_entry');
+			callback('invalid entry');
 		}
 		else if( entry.isFile ){
 			// Read as file
@@ -1537,9 +1542,9 @@
 				// success
 				file.fullPath = entry.fullPath;
 				callback(false, [file]);
-			}, function (){
+			}, function (err){
 				// error
-				callback('entry_file');
+				callback('FileError.code: '+err.code);
 			});
 		}
 		else if( entry.isDirectory ){
@@ -1549,7 +1554,10 @@
 				// success
 				api.afor(entries, function (next, entry){
 					_readEntryAsFiles(entry, function (err, files){
-						if( !err ){
+						if( err ){
+							api.log(err);
+						}
+						else {
 							result = result.concat(files);
 						}
 
@@ -1561,9 +1569,9 @@
 						}
 					});
 				});
-			}, function (){
+			}, function (err){
 				// error
-				callback('directory_reader');
+				callback('directory_reader: ' + err);
 			});
 		}
 		else {
