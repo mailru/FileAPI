@@ -264,6 +264,9 @@
 							  num: 10
 							, str: "foo"
 							, 'undefined': void 0
+							, array: [1, 2]
+							, object: { foo: 'bar' }
+							, items: [{ 'foo': 'bar', baz: [1,2] }, { name: { "baz": 'qux' } }]
 						},
 						files: {
 							  photos: FileAPI.filter(files, function (file){ return /^image/.test(file.type) })
