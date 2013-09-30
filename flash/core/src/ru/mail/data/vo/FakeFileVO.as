@@ -7,35 +7,38 @@ package ru.mail.data.vo
 	 * Restored file (from url or any else bytearray). If it is image, it cannot be scaled or rotated. 
 	 * @author v.demidov
 	 * 
-	 */	
-	public class RestoredFileVO extends BaseFileVO implements IFileVO
+	 */
+	public class FakeFileVO extends BaseFileVO implements IFileVO
 	{
-		public var url:String;
-		
 		private var _fileData:ByteArray;
 		
 		public function get fileData():ByteArray
 		{
 			return _fileData;
 		}
-		
+
 		public function set fileData(value:ByteArray):void
 		{
 			_fileData = value;
 		}
-		
+
 		public function get fileSize():Number {
 			return _fileData? _fileData.length : 0;
 		}
-		
+
 		public function get fileName():String {
-			return "";
+			return fileID;
 		}
-		
+
+		public function get fileNameModified():String
+		{
+			return fileID;
+		}
+
 		public function get fileType():String {
 			return "";
 		}
-		
+
 		private var _imageData:BitmapData;
 		/**
 		 * original image bitmapData; 
@@ -46,13 +49,13 @@ package ru.mail.data.vo
 		{
 			return _imageData;
 		}
-		
+
 		public function set imageData(bd:BitmapData):void 
 		{
 			_imageData = bd;
 		}
-		
-		public function RestoredFileVO()
+
+		public function FakeFileVO()
 		{
 			super();
 		}

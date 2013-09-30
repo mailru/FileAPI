@@ -40,7 +40,7 @@ package ru.mail.communication
 		 * @return 
 		 * 
 		 */		
-		protected function parseCmd(command:String, data:Object):Boolean
+		protected function parseCmd(command:String, data:Object):Object
 		{
 			LoggerJS.log('parseCmd, command: '+command);
 			switch (command)
@@ -121,7 +121,7 @@ package ru.mail.communication
 					appController.cameraController.cameraOff();
 					break;
 				case "shot":
-					appController.cameraController.shot(data.callback);
+					return appController.cameraController.shot();
 					break;
 				default:
 					LoggerJS.log("cannot parse command: "+command);

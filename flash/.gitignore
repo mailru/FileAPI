@@ -4,7 +4,6 @@ core/bin-debug
 core/bin-release
 
 core/.actionScriptProperties
-
 core/.project
 
 camera/bin-debug
@@ -12,3 +11,9 @@ camera/bin-release
 
 camera/.actionScriptProperties
 camera/.project
+
+image/bin-debug
+image/bin-release
+
+image/.actionScriptProperties
+image/.project
