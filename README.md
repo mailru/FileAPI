@@ -1183,7 +1183,6 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
-
 ### 2.0.0
 <ul>
 	<li>+ FileAPI.Camera (HTML5 and Flash fallback)</li>
@@ -1194,6 +1193,8 @@ Button like link.
 	<li>+ [#80](https://https://github.com/mailru/FileAPI/issues/80): FileAPI.Image.fn.overlay</li>
  	<li>`imageTransform` — now supports: `crop`, `type`, `quality` and `overlay` properties.</li>
 	<li>Improved the documentation</li>
+	<li>[#121](https://github.com/mailru/FileAPI/issues/121): + FileAPI.`postNameConcat:Function(name, idx)`</li>
+	<li>[#116](https://github.com/mailru/FileAPI/issues/116): + `cache:false` option for FileAPI.upload</li>
 </ul>
 
 

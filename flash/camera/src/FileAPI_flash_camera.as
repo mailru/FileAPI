@@ -86,6 +86,12 @@ package
 				camera.setMode(w, h, camera.fps);
 				video = new Video(w, h);
 				video.attachCamera(camera);
+				
+				video.addEventListener(Event.ADDED_TO_STAGE, function(event:Event):void {
+					trace('video addedToStage');
+					// now the camera is visible
+					dispatchEvent(new Event('Camera.On'));
+				});
 				addChildAt(video,0);
 			} else {
 				if(video)

@@ -98,8 +98,10 @@ package ru.mail.commands
 			{
 				for (var filename:String in _files[s]) {
 					trace ("s="+s+ ", filename = " + filename);
-					_totalSize += _files[s][filename].length;
-					_loader.addFile(_files[s][filename], filename, s);
+					if ( _files[s][filename] ) {
+						_totalSize += _files[s][filename].length;
+						_loader.addFile(_files[s][filename], filename, s);
+					}
 				}
 			}
 		}
