@@ -12,8 +12,8 @@ camera/bin-release
 camera/.actionScriptProperties
 camera/.project
 
-preview/bin-debug
-preview/bin-release
+image/bin-debug
+image/bin-release
 
-preview/.actionScriptProperties
-preview/.project
+image/.actionScriptProperties
+image/.project
