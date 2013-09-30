@@ -630,19 +630,28 @@ package ru.mail.controller
 		{
 			trace ("upload file")
 			try {
-				LoggerJS.log("call upload");
+				LoggerJS.log("call upload, files: "+files);
 					
 				// get files
 				var file:BaseFileVO;
-				for (var s:String in files)
-				{
-					file = _model.filesBuilder.getFileByID(files[s].id);
-					if (!file) {
-						trace ("file with id "+ files[s].id +" doen't exist"); 
-						LoggerJS.log("upload: file with id "+ files[s].id + " doen't exist"); 
-						return;
+				if (files) {
+					for (var s:String in files)
+					{
+						file = _model.filesBuilder.getFileByID(files[s].id);
+						if (!file) {
+							trace ("file with id "+ files[s].id +" doen't exist"); 
+							LoggerJS.log("upload: file with id "+ files[s].id + " doen't exist"); 
+							return;
+						}
+						files[s].file = file;
 					}
-					files[s].file = file;
+				} else {
+					// https://github.com/mailru/FileAPI/issues/83
+					// upload request without files
+					// add fake file to avoid error in ImageFactory, but do not upload it
+					file = _model.filesBuilder.createFakeFileVO('dummy');
+					files = {'dummy':{'id': 'dummy', 'file':file, 'name':'', 'matrix':{} }};
+					LoggerJS.log("upload without files");
 				}
 			
 				// launch command
@@ -686,6 +695,7 @@ package ru.mail.controller
 				uploadCommand.execute();
 			}
 			catch (err:Error) {
+				LoggerJS.log("upload error: "+err.toString());
 				_jsCaller.notifyJSErrors( new ErrorVO( err.toString() ) );
 			}
 		}
