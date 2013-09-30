@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=0.8, maximum-scale=0.8" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<title>FileAPI :: Support</title>
+
+	<script>
+		// Объект настройки
+		var FileAPI = {
+			debug: true, // режим отладки
+			staticPath: './' // путь до флешек
+		};
+	</script>
+</head>
+<body>
+
+	<div>Single:</div>
+	<div class="js-fileapi-wrapper"></div><input id="singleFile" type="file" /></div>
+	<br/>
+
+	<div>Multiple:</div>
+	<div class="js-fileapi-wrapper"><input id="multipleFiles" type="file" multiple /></div>
+
+
+	<div id="log" style="border: 1px solid red; padding: 3px; margin: 2px"></div>
+	<div id="__console" style="font-size: 12px; color: #333;"></div>
+
+	<script>
+		window.console = {
+			_div: document.getElementById('__console'),
+			log: function (){
+				this._div.innerHTML += [].join.call(arguments, ' ') + '<br/>';
+			},
+			error: function (){
+				this._div.innerHTML += '<span style="color: red">';
+				this.log.apply(this, arguments);
+				this._div.innerHTML += '</span>';
+			}
+		};
+	</script>
+
+	<script src="./FileAPI.min.js"></script>
+
+	<script>
+		(function (){
+			function _log(txt){
+				log.innerHTML = txt + '<br/>' + log.innerHTML;
+			}
+
+			function _uploadFiles(files){
+				if( files.length ){
+					FileAPI.each(files, function (file){
+						_log(' -> name: '+file.name+', type: '+file.type+', size: '+file.size);
+
+						FileAPI.Image(file).get(function (err, image){
+							if( err ){
+								_log('error: '+file.name+' -- '+err)
+							}
+							else {
+								document.body.appendChild(image);
+							}
+						});
+					});
+
+
+					FileAPI.upload({
+						url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+						files: { test: files },
+						complete: function (err){
+							if( err ){
+								_log('upload failed: '+err)
+							} else {
+								_log('files uploaded!');
+							}
+						}
+					});
+				}
+				else {
+					_log('Files not selected');
+				}
+			}
+
+
+			FileAPI.event.on(singleFile, 'change', function (){
+				var files = FileAPI.getFiles(singleFile);
+				_uploadFiles(files);
+			});
+
+
+			FileAPI.event.on(multipleFiles, 'change', function (){
+				var files = FileAPI.getFiles(multipleFiles);
+				_uploadFiles(files);
+			});
+//
+			FileAPI.each(FileAPI.support, function (val, key){
+				_log('FileAPI.support.'+key+': '+val);
+			});
+		})();
+	</script>
+</body>
+</html>
