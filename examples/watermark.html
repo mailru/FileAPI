@@ -23,7 +23,8 @@
 	<script>
 		// Settings
 		var FileAPI = {
-			  debug: false // debug mode
+			  html5: !!1
+			, debug: false // debug mode
 			, staticPath: '../dist/'
 		};
 	</script>
@@ -153,7 +154,7 @@
 
 				// Upload
 				FileAPI.upload({
-					  url: 'http://rubaxa.org/FileAPI/server/ctrl.php'
+					  url: '//www.rubaxa.org/FileAPI/server/ctrl.php'
 					, files: elms.file
 					, imageTransform: {
 						  width: elms.width.value|0
@@ -168,12 +169,17 @@
 						} else {
 							var res = JSON.parse(xhr.responseText);
 							FileAPI.each(res.images, function (file){
-								server.innerHTML = '<div><b>'+file.width+'x'+file.height+', '+file.mime+', '+(file.size/1024).toFixed(3)+'KB</b></div>';
+								var img		= new Image;
+								var matrix	= FileAPI.Image.prototype.getMatrix.call({ matrix: { dw: 300, dh: 300, resize: 'max' } }, file);
 
-								var img = new Image;
-								img.src = file.dataURL;
-								img.style.maxWidth = '300px';
+								img.src				= file.dataURL;
+								img.style.width		= matrix.dw + 'px';
+								img.style.height	= matrix.dh + 'px';
+
+								server.innerHTML = '';
 								server.appendChild(img);
+								server.innerHTML += '<div><b>'+file.width+'x'+file.height+', '+file.mime+', '+(file.size/1024).toFixed(3)+'KB</b></div>';
+
 							});
 						}
 					}

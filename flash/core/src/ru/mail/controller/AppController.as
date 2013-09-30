@@ -15,6 +15,7 @@ package ru.mail.controller
 	import flash.net.URLRequest;
 	import flash.system.Security;
 	import flash.utils.Timer;
+	import flash.utils.setTimeout;
 	
 	import ru.mail.commands.LoadFileCommand;
 	import ru.mail.commands.UploadCommand;
@@ -105,12 +106,17 @@ package ru.mail.controller
 			if (options["flashId"]) {
 				JSCaller.flashId = options["flashId"];
 			}
+
 			// use camera
 			_model.useCamera = !!options["useCamera"];
 			if (_model.useCamera) {
 				setupCamera();
 			}
-			
+
+			// abort timeout
+			_model.timeout = options["timeout"];
+			LoggerJS.log("timeout="+_model.timeout);
+
 			setupChain();
 			configureListeners();
 			
@@ -691,25 +697,36 @@ package ru.mail.controller
 		 * @param fileID
 		 * 
 		 */		
-		public function cancelFile(fileID:String):void
+		public function cancelFile(fileID:String, force:Boolean = false):void
 		{
 			trace ("{AppController} - cancelFile", fileID);
 			
 			var file:BaseFileVO = _model.filesBuilder.getFileByID(fileID);
 			if (!file) {
+				LoggerJS.log("abort: file with id "+ fileID +" doen't exist");
 				trace ("file with id "+ fileID +" doen't exist"); 
 				return;
 			}
 			
 			if (file.uploadCommand) {
 				(file.uploadCommand as UploadCommand).cancel();
+				file.uploadCommand = null;
 			}
 			if (file.loadCommand) {
 				(file.loadCommand as LoadFileCommand).cancel();
+				file.loadCommand = null;
 			}
-			_model.filesBuilder.removeFile(file);
-			file = null;
-			LoggerJS.log("abort complete");
+			if (_model.timeout && !force) {
+				LoggerJS.log("abort remove set timeout");
+				file.timeout = setTimeout(function(_model:AttachmentsModel, file:BaseFileVO):void {
+					LoggerJS.log("abort remove on timeout");
+					_model.filesBuilder.removeFile(file);
+				},_model.timeout, _model, file);
+			} else {
+				LoggerJS.log("abort remove immediately");
+				_model.filesBuilder.removeFile(file);
+				file = null;
+			}
 		}
 		
 		/**
@@ -721,7 +738,7 @@ package ru.mail.controller
 			var files:Vector.<BaseFileVO> = _model.filesBuilder.items;
 			
 			for each (var file:BaseFileVO in files) {
-				cancelFile(file.fileID);
+				cancelFile(file.fileID, true);
 			}
 			_model.filesBuilder.removeAllFiles();
 		}

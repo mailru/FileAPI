@@ -17,7 +17,7 @@
  */
 
 /*jslint nomen: true, regexp: true */
-/*global window, atob, Blob, ArrayBuffer, Uint8Array, define */
+/*global window, atob, Blob, ArrayBuffer, Uint8Array */
 
 (function (window) {
     'use strict';
@@ -85,17 +85,12 @@
             };
         }
     }
-    if (typeof define === 'function' && define.amd) {
-        define(function () {
-            return dataURLtoBlob;
-        });
-    } else {
-        window.dataURLtoBlob = dataURLtoBlob;
-    }
-}(window));
+
+    window.dataURLtoBlob = dataURLtoBlob;
+})(window);
 
 /*jslint evil: true */
-/*global window, Image, URL, webkitURL, ActiveXObject */
+/*global window, URL, webkitURL, ActiveXObject */
 
 (function (window, undef){
 	'use strict';
@@ -120,7 +115,7 @@
 		jQuery = window.jQuery,
 
 		html5 =    !!(File && (FileReader && (window.Uint8Array || FormData || XMLHttpRequest.prototype.sendAsBinary)))
-				&& !(/safari\//.test(userAgent) && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
+				&& !(/safari\//i.test(userAgent) && !/chrome\//i.test(userAgent) && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
 
 		cors = html5 && ('withCredentials' in (new XMLHttpRequest)),
 		
@@ -278,11 +273,18 @@
 			debug: false,
 			pingUrl: false,
 			multiFlash: false,
+			flashAbortTimeout: 0,
+			withCredentials: true,
 
 			staticPath: './dist/',
 
 			flashUrl: 0, // @default: './FileAPI.flash.swf'
 			flashImageUrl: 0, // @default: './FileAPI.flash.image.swf'
+
+			ext2mime: {
+				  jpg: 'image/jpeg'
+				, tif: 'image/tiff'
+			},
 
 			// Fallback for flash
 			accept: {
@@ -320,6 +322,29 @@
 				}
 			},
 
+			/**
+			 * Create new image
+			 *
+			 * @param {String} [src]
+			 * @param {Function} [fn]   1. error -- boolean, 2. img -- Image element
+			 * @returns {HTMLElement}
+			 */
+			newImage: function (src, fn){
+				var img = document.createElement('img');
+				if( fn ){
+					api.event.one(img, 'error load', function (evt){
+						fn(evt.type == 'error', img);
+						img = null;
+					});
+				}
+				img.src = src;
+				return	img;
+			},
+
+			/**
+			 * Get XHR
+			 * @returns {XMLHttpRequest}
+			 */
 			getXHR: function (){
 				var xhr;
 
@@ -693,8 +718,7 @@
 				}
 				else {
 					// Created image
-					var img = new Image;
-					img.src = file.dataURL || file;
+					var img = api.newImage(file.dataURL || file);
 					api.readAsImage(img, fn, progress);
 				}
 			},
@@ -723,7 +747,7 @@
 				_each(accept, function (ext, type){
 					ext = new RegExp(ext.replace(/\s/g, '|'), 'i');
 					if( ext.test(file.type) ){
-						file.type = type.split('/')[0] +'/'+ file.type;
+						file.type = api.ext2mime[file.type] || type.split('/')[0] +'/'+ file.type;
 					}
 				});
 
@@ -962,6 +986,7 @@
 					, progress: api.F
 					, complete: api.F
 					, pause: api.F
+					, imageOriginal: true
 					, chunkSize: api.chunkSize
 					, chunkUpoloadRetry: api.chunkUploadRetry
 				}, options);
@@ -997,6 +1022,7 @@
 				// Set upload status props
 				proxyXHR.total	= _total;
 				proxyXHR.loaded	= 0;
+				proxyXHR.filesLeft = dataArray.length;
 
 				// emit "beforeupload"  event
 				options.beforeupload(proxyXHR, options);
@@ -1009,6 +1035,8 @@
 						, _fileLoaded = false
 						, _fileOptions = _simpleClone(options)
 					;
+
+					proxyXHR.filesLeft = dataArray.length;
 
 					if( _file && _file.name === api.expando ){
 						_file = null;
@@ -1085,7 +1113,11 @@
 
 
 							// ...
-							proxyXHR.abort = function (current){ this.current = current; xhr.abort(); };
+							proxyXHR.abort = function (current){
+								if (!current) { dataArray.length = 0; }
+								this.current = current;
+								xhr.abort();
+							};
 
 							// Start upload
 							xhr.send(form);
@@ -1117,6 +1149,8 @@
 							dataArray.push(data);
 						}
 					});
+
+					proxyXHR.statusText = "";
 
 					if( _complete ){
 						_nextFile.call(_this);
@@ -1191,7 +1225,7 @@
 					, trans = api.support.transform && options.imageTransform
 					, Form = new api.Form
 					, queue = api.queue(function (){ fn(Form); })
-					, isOrignTrans = trans && (parseInt(trans.maxWidth || trans.minWidth || trans.width, 10) > 0 || trans.rotate || trans.crop || trans.type || trans.quality || trans.overlay)
+					, isOrignTrans = trans && _isOriginTransform(trans)
 				;
 
 				(function _addFile(file/**Object*/){
@@ -1224,20 +1258,24 @@
 								Form.append(name, images[0], filename,  trans[0].type || filetype);
 							}
 							else {
+								var addOrigin = 0;
+
 								if( !err ){
 									_each(images, function (image, idx){
 										if( !dataURLtoBlob && !api.flashEngine ){
 											Form.multipart = true;
 										}
 
-										Form.append(name +'['+ idx +']', image, filename, trans[idx].type || filetype);
-									});
+										if( !trans[idx].postName ){
+											addOrigin = 1;
+										}
 
-									name += '[original]';
+										Form.append(trans[idx].postName || name +'['+ idx +']', image, filename, trans[idx].type || filetype);
+									});
 								}
 
 								if( err || options.imageOriginal ){
-									Form.append(name, file, filename, filetype);
+									Form.append(name + (addOrigin ? '[original]' : ''), file, filename, filetype);
 								}
 							}
 
@@ -1533,6 +1571,19 @@
 
 	function _getDataTransfer(evt){
 		return	(evt.originalEvent || evt || '').dataTransfer || {};
+	}
+
+
+	function _isOriginTransform(trans){
+		var key;
+		for( key in trans ){
+			if( trans.hasOwnProperty(key) ){
+				if( !(trans[key] instanceof Object || key === 'overlay') ){
+					return	true;
+				}
+			}
+		}
+		return	false;
 	}
 
 
@@ -1893,7 +1944,11 @@
 				}
 			}
 			else if( type ){
-				if( type == 'min' ){
+				if( !(sw > dw || sh > dh) ){
+					dw = sw;
+					dh = sh;
+				}
+				else if( type == 'min' ){
 					dw = round(sf < df ? min(sw, dw) : dh*sf);
 					dh = round(sf < df ? dw/sf : min(sh, dh));
 				}
@@ -2405,7 +2460,10 @@
 				}
 
 				xhr.open('POST', url, true);
-				xhr.withCredential = "true";
+
+				if( api.withCredentials ){
+					xhr.withCredentials = "true";
+				}
 
 				if( !options.headers || !options.headers['X-Requested-With'] ){
 					xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');

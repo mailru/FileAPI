@@ -1,6 +1,7 @@
 package ru.mail.data.builder
 {
 	import flash.events.EventDispatcher;
+	import flash.utils.clearTimeout;
 	
 	import ru.mail.data.vo.BaseFileVO;
 	
@@ -59,6 +60,9 @@ package ru.mail.data.builder
 			{
 				if (_items[i].fileID == fileID) {
 					result = _items[i];
+					if (result.timeout) {
+						clearTimeout(result.timeout); // cancel file remove
+					}
 					break;
 				}
 			}
@@ -123,6 +127,9 @@ package ru.mail.data.builder
 				result = _items.splice(index, 1)[0];
 				result.loadCommand = null;
 				result.uploadCommand = null;
+				if(result.timeout) {
+					clearTimeout(result.timeout);
+				}
 			}
 			
 			return result;
@@ -134,6 +141,11 @@ package ru.mail.data.builder
 		 */		
 		public function removeAllFiles():void
 		{
+			for (var i:uint = 0; i < _items.length; i++) { // for garbage collector
+				if (_items[i].timeout) {
+					clearTimeout(_items[i].timeout);
+				}
+			}
 			_items.length = 0;
 		}
 		

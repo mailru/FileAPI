@@ -27,7 +27,7 @@ module('FileAPI');
 			fn(src.file);
 		}
 		else {
-			var img = new Image;
+			var img = document.createElement('img');
 			img.onload = function (){
 				fn(img);
 			};
@@ -38,9 +38,17 @@ module('FileAPI');
 
 	function toCanvas(img){
 		var canvas = document.createElement('canvas');
-		canvas.width = img.width || img.videoWidth;
-		canvas.height = img.height || img.videoHeight;
-		canvas.getContext('2d').drawImage(img, 0, 0);
+		if( img ){
+			canvas.width = img.width || img.videoWidth;
+			canvas.height = img.height || img.videoHeight;
+			var ctx = canvas.getContext('2d');
+			try {
+				ctx.drawImage(img, 0, 0);
+			} catch (err){
+				console.log(err.toString());
+				console.log(err.stack);
+			}
+		}
 		return	canvas;
 	}
 
@@ -48,7 +56,7 @@ module('FileAPI');
 	function imageEqual(left, right, text, callback){
 		loadImage(left, function (left){
 			left.setAttribute('style', 'border: 2px solid red; padding: 2px;');
-			document.body.appendChild(left);
+			document.body.appendChild(left.cloneNode());
 
 			loadImage(right, function (right){
 				right.setAttribute('style', 'border: 2px solid blue; padding: 2px;');
@@ -398,6 +406,33 @@ module('FileAPI');
 						});
 					});
 				});
+			}
+		});
+	});
+
+
+	test('upload + imageTransform with postName', function (){
+		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
+
+		stop();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: {
+				'180deg': {
+					postName: '180deg',
+					width: 50,
+					height: 50,
+					rotate: 180
+				}
+			},
+			complete: function (err, res){
+				var res = FileAPI.parseJSON(res.responseText);
+				ok('image' in res.data._FILES);
+				ok('180deg' in res.data._FILES);
+				equal(res.data._FILES['image'].name, 'dino.png');
+				equal(res.data._FILES['180deg'].name, 'dino.png');
+				start();
 			}
 		});
 	});
