@@ -117,33 +117,36 @@ module('FileAPI');
 			equal(info.height, 1, 'getInfo.height');
 		});
 
-		// Read as data
-		stop();
-		FileAPI.readAsDataURL(file, function (evt){
-			if( evt.type == 'load' ){
-				start();
-				equal(evt.result, 'data:image/gif;base64,'+base64_1px_gif, 'dataURL');
-			}
-		});
 
-		// Read as binaryString
-		stop();
-		FileAPI.readAsBinaryString(file, function (evt){
-			if( evt.type == 'load' ){
-				start();
-				equal(evt.result, FileAPI.toBinaryString(base64_1px_gif), 'dataURL');
-			}
-		});
+		if( FileAPI.html5 ){
+			// Read as data
+			stop();
+			FileAPI.readAsDataURL(file, function (evt){
+				if( evt.type == 'load' ){
+					start();
+					equal(evt.result, 'data:image/gif;base64,'+base64_1px_gif, 'dataURL');
+				}
+			});
 
-		// Read as image
-		stop();
-		FileAPI.readAsImage(file, function (evt){
-			if( evt.type == 'load' ){
-				start();
-				equal(evt.result.width, 1, 'readAsImage.width');
-				equal(evt.result.height, 1, 'readAsImage.height');
-			}
-		});
+			// Read as binaryString
+			stop();
+			FileAPI.readAsBinaryString(file, function (evt){
+				if( evt.type == 'load' ){
+					start();
+					equal(evt.result, FileAPI.toBinaryString(base64_1px_gif), 'dataURL');
+				}
+			});
+
+			// Read as image
+			stop();
+			FileAPI.readAsImage(file, function (evt){
+				if( evt.type == 'load' ){
+					start();
+					equal(evt.result.width, 1, 'readAsImage.width');
+					equal(evt.result.height, 1, 'readAsImage.height');
+				}
+			});
+		}
 	});
 
 
@@ -153,13 +156,15 @@ module('FileAPI');
 
 		checkFile(file, 'hello.txt', 'text/plain', 15);
 
-		stop();
-		FileAPI.readAsText(file, function (evt){
-			if( evt.type == 'load' ){
-				start();
-				equal(evt.result, 'Hello FileAPI!\n');
-			}
-		});
+		if( FileAPI.html5 ){
+			stop();
+			FileAPI.readAsText(file, function (evt){
+				if( evt.type == 'load' ){
+					start();
+					equal(evt.result, 'Hello FileAPI!\n');
+				}
+			});
+		}
 	});
 
 
@@ -173,11 +178,11 @@ module('FileAPI');
 		stop();
 		FileAPI.getInfo(file, function (err, info){
 			start();
-			equal(info.width, 632);
-			equal(info.height, 448);
-			equal(info.exif.Orientation, 6);
+			equal(info.width, 632, 'width');
+			equal(info.height, 448, 'height');
+			equal(info.exif.Orientation, 6, 'Orientation');
 
-			if( FileAPI.support.html5 ){
+			if( FileAPI.html5 && FileAPI.support.html5 ){
 				equal(info.exif.Artist, 'FileAPI');
 				equal(info.exif.Copyright, 'BSD');
 			}
@@ -217,7 +222,14 @@ module('FileAPI');
 				var res = FileAPI.parseJSON(xhr.responseText).data._REQUEST;
 				equal(res.str, 'foo');
 				equal(res.num, '1');
-				deepEqual(res.array, ['1', '2', '3']);
+
+				if( !FileAPI.html5 ){
+					deepEqual(res.array, { "0": '1', "1": '2', "2": '3' });
+				}
+				else {
+					deepEqual(res.array, ['1', '2', '3']);
+				}
+
 				deepEqual(res.object, { foo: 'bar' });
 			}
 		})
@@ -234,7 +246,7 @@ module('FileAPI');
 			data: { foo: 'bar' },
 			files: uploadForm['1px.gif'],
 			upload: function (){
-				ok(true);
+				ok(true, 'upload event');
 			},
 			prepare: function (file, options){
 				options.data.bar = 'qux';
@@ -250,16 +262,21 @@ module('FileAPI');
 				equal(res.data._REQUEST.foo, 'bar');
 				equal(res.data._REQUEST.bar, 'qux');
 
-				equal(res.data._FILES['1px_gif'].name, '1px.gif', 'file.name');
-				equal(res.data._FILES['1px_gif'].size, 34, 'file.size');
-				equal(res.data._FILES['1px_gif'].type, 'image/gif', 'file.type');
+				if( res.data._FILES['1px_gif'] ){
+					var type = res.data._FILES['1px_gif'].type;
+					equal(res.data._FILES['1px_gif'].name, '1px.gif', 'file.name');
+					equal(type, /application/.test(type) ? 'application/octet-stream' : 'image/gif', 'file.type');
+				}
 
-				equal(res.images['1px_gif'].dataURL, 'data:image/gif;base64,' + base64_1px_gif, 'dataURL');
-				equal(res.images['1px_gif'].mime, 'image/gif', 'mime');
-				equal(res.images['1px_gif'].width, 1, 'width');
-				equal(res.images['1px_gif'].height, 1, 'height');
+				if( res.images['1px_gif'] ){
+					equal(res.images['1px_gif'].dataURL, 'data:image/gif;base64,' + base64_1px_gif, 'dataURL');
+					equal(res.images['1px_gif'].mime, 'image/gif', 'mime');
+					equal(res.images['1px_gif'].width, 1, 'width');
+					equal(res.images['1px_gif'].height, 1, 'height');
+				}
 			},
 			complete: function (err, xhr){
+				ok(true, 'complete event');
 				start();
 			}
 		});
@@ -277,7 +294,7 @@ module('FileAPI');
 				var res = FileAPI.parseJSON(res.responseText).data._FILES['text'];
 				equal(res.name, 'hello.txt', 'file.name');
 				equal(res.size, 15, 'file.size');
-				equal(res.type, 'text/plain', 'file.type');
+				equal(res.type, /application/.test(res.type) ? 'application/octet-stream' : 'text/plain', 'file.type');
 			}
 		});
 	});
@@ -329,7 +346,7 @@ module('FileAPI');
 	});
 
 
-	test('upload FileAPI.Image', function (){
+	FileAPI.html5 && test('upload FileAPI.Image', function (){
 		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
 		var image = FileAPI.Image(file).rotate(90).preview(100);
 
@@ -349,7 +366,7 @@ module('FileAPI');
 
 
 
-	test('upload + imageTransform', function (){
+	FileAPI.html5 && test('upload + imageTransform', function (){
 		var file = FileAPI.getFiles(uploadForm['image.jpg'])[0];
 
 		stop();
@@ -374,7 +391,7 @@ module('FileAPI');
 
 
 
-	test('upload + multi imageTransform', function (){
+	FileAPI.html5 && test('upload + multi imageTransform', function (){
 		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
 
 		stop();
@@ -411,7 +428,7 @@ module('FileAPI');
 	});
 
 
-	test('upload + imageTransform with postName', function (){
+	FileAPI.html5 && test('upload + imageTransform with postName', function (){
 		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
 
 		stop();
@@ -438,7 +455,7 @@ module('FileAPI');
 	});
 
 
-	test('WebCam', function (){
+	FileAPI.html5 && test('WebCam', function (){
 		stop();
 		FileAPI.Camera.publish(document.getElementById('web-cam'), function (err, cam){
 			if( err ){

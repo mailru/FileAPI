@@ -284,8 +284,9 @@
 			flashImageUrl: 0, // @default: './FileAPI.flash.image.swf'
 
 			ext2mime: {
-				  jpg: 'image/jpeg'
-				, tif: 'image/tiff'
+				  jpg:	'image/jpeg'
+				, tif:	'image/tiff'
+				, txt:	'text/plain'
 			},
 
 			// Fallback for flash
@@ -748,8 +749,8 @@
 
 				_each(accept, function (ext, type){
 					ext = new RegExp(ext.replace(/\s/g, '|'), 'i');
-					if( ext.test(file.type) ){
-						file.type = api.ext2mime[file.type] || type.split('/')[0] +'/'+ file.type;
+					if( ext.test(file.type) || api.ext2mime[file.type] ){
+						file.type = api.ext2mime[file.type] || (type.split('/')[0] +'/'+ file.type);
 					}
 				});
 
@@ -2310,7 +2311,7 @@
 				}
 
 				data.start = -1;
-				data.end = data.file.FileAPIReadPosition || -1;
+				data.end = data.file && data.file.FileAPIReadPosition || -1;
 				data.retry = 0;
 			});
 		},
@@ -2484,13 +2485,14 @@
 		},
 
 		_send: function (options, data){
-
 			var _this = this, xhr, uid = _this.uid, url = options.url;
 
 			api.log('XHR._send:', data);
 
-			// No cache
-			url += (~url.indexOf('?') ? '&' : '?') + api.uid();
+			if( !options.cache ){
+				// No cache
+				url += (~url.indexOf('?') ? '&' : '?') + api.uid();
+			}
 
 			if( data.nodeName ){
 				// legacy

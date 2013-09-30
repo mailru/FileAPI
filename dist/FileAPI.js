@@ -284,8 +284,9 @@
 			flashImageUrl: 0, // @default: './FileAPI.flash.image.swf'
 
 			ext2mime: {
-				  jpg: 'image/jpeg'
-				, tif: 'image/tiff'
+				  jpg:	'image/jpeg'
+				, tif:	'image/tiff'
+				, txt:	'text/plain'
 			},
 
 			// Fallback for flash
@@ -748,8 +749,8 @@
 
 				_each(accept, function (ext, type){
 					ext = new RegExp(ext.replace(/\s/g, '|'), 'i');
-					if( ext.test(file.type) ){
-						file.type = api.ext2mime[file.type] || type.split('/')[0] +'/'+ file.type;
+					if( ext.test(file.type) || api.ext2mime[file.type] ){
+						file.type = api.ext2mime[file.type] || (type.split('/')[0] +'/'+ file.type);
 					}
 				});
 
@@ -2310,7 +2311,7 @@
 				}
 
 				data.start = -1;
-				data.end = data.file.FileAPIReadPosition || -1;
+				data.end = data.file && data.file.FileAPIReadPosition || -1;
 				data.retry = 0;
 			});
 		},
@@ -2484,13 +2485,14 @@
 		},
 
 		_send: function (options, data){
-
 			var _this = this, xhr, uid = _this.uid, url = options.url;
 
 			api.log('XHR._send:', data);
 
-			// No cache
-			url += (~url.indexOf('?') ? '&' : '?') + api.uid();
+			if( !options.cache ){
+				// No cache
+				url += (~url.indexOf('?') ? '&' : '?') + api.uid();
+			}
 
 			if( data.nodeName ){
 				// legacy
@@ -2997,13 +2999,14 @@
 	})();
 
 
-	api.support.flash
-		&& (0
-				|| !api.html5 || !api.support.html5
-			|| (api.cors && !api.support.cors)
-			|| (api.media && !api.support.media)
-		)
-		&& (function (){
+
+	   api.support.flash
+	&& (0
+			|| !api.html5 || !api.support.html5
+		|| (api.cors && !api.support.cors)
+		|| (api.media && !api.support.media)
+	)
+	&& (function (){
 		var
 			  _attr  = api.uid()
 			, _retry = 0
@@ -3346,6 +3349,7 @@
 										})
 									});
 								}
+
 								file.__info.then(fn);
 							}
 						}
@@ -3543,7 +3547,7 @@
 								}
 							}
 
-							api.log('flash.Form.toData');
+							api.log('Flash.Form.toData');
 							fn(items);
 						}
 					});
@@ -3581,10 +3585,16 @@
 								}
 							});
 
-							if( !(fileId || flashId) ){
+							if( !fileId ){
+								flashId = _attr;
+							}
+
+							if( !flashId ){
+								api.log('[err] Flash._send: flashId -- undefined');
 								return this.parent.apply(this, arguments);
-							} else {
-								api.log('flash.XHR._send:', flashId, fileId, files);
+							}
+							else {
+								api.log('Flash.XHR._send: '+ flashId +' -> '+ fileId, files);
 							}
 
 							_this.xhr = {
@@ -3598,8 +3608,8 @@
 								flash.cmd(flashId, 'upload', {
 									  url: _getUrl(options.url)
 									, data: data
-									, files: files
-									, headers: options.headers
+									, files: fileId ? files : null
+									, headers: options.headers || {}
 									, callback: _wrap(function upload(evt){
 										var type = evt.type, result = evt.result;
 
@@ -3731,6 +3741,7 @@
 				  key
 				, flashId = api.uid()
 				, el = document.createElement('div')
+				, attempts = 10
 			;
 
 			for( key in opts ){
@@ -3749,7 +3760,9 @@
 				, wmode: 'opaque'
 				, flashvars: 'scale='+ opts.scale +'&callback='+_wrap(function _(){
 					_unwrap(_);
-					_setImage();
+					if( --attempts > 0 ){
+						_setImage();
+					}
 					return true;
 				})
 			}, opts));
