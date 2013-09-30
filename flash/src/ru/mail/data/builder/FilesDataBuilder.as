@@ -1,8 +1,11 @@
 package ru.mail.data.builder
 {
+	import flash.display.BitmapData;
 	import flash.net.FileReference;
+	import flash.utils.ByteArray;
 	
 	import ru.mail.data.AbstractImageFactory;
+	import ru.mail.data.vo.FakeFileVO;
 	import ru.mail.data.vo.FileVO;
 
 	/**
@@ -18,6 +21,26 @@ package ru.mail.data.builder
 		public function FilesDataBuilder()
 		{
 			super(TYPE);
+		}
+		
+		/**
+		 * Create fake file with empty data 
+		 * @param fileID
+		 * @return 
+		 * 
+		 */		
+		public function createFakeFileVO(fileID:String = ''):FakeFileVO
+		{
+			// create
+			var fileVO:FakeFileVO = new FakeFileVO();
+			// set props
+			fileVO.fileData = new ByteArray();
+			fileVO.imageData = new BitmapData(1,1);
+			fileVO.fileID = fileID;
+			
+			fileVO.abstractImageFactory = new AbstractImageFactory(fileVO);
+			
+			return fileVO;
 		}
 		
 		public function createFileVO(fileReference:FileReference, fileID:String = '', addToCollection:Boolean = true):FileVO

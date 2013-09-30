@@ -6,6 +6,7 @@ package ru.mail.commands
 	
 	import ru.mail.data.IImageFactory;
 	import ru.mail.data.vo.ErrorVO;
+	import ru.mail.data.vo.FakeFileVO;
 	import ru.mail.data.vo.FileVO;
 	import ru.mail.data.vo.IFileVO;
 	import ru.mail.data.vo.ImageTransformVO;
@@ -112,23 +113,32 @@ package ru.mail.commands
 			// add to queue
 			filesPool[s] = INIT;
 			var fileName:String = file.fileNameModified;
-			// get transformed image data
-			var imageFactory:IImageFactory = file.imageFactory;
-			(imageFactory as EventDispatcher).addEventListener(ImageTransformCompleteEvent.TYPE,function (event:ImageTransformCompleteEvent):void {
-				event.currentTarget.removeEventListener(event.type, arguments.callee);
-				trace("createImage imageTransform complete", event.isSuccess);
-				if (event.isSuccess) {
-					// upload transformed image
-					filesPool[s] = new Object()
-					filesPool[s][fileName] = event.data;
-				}
-				else {
-					complete(false, null, event.error);
-				}
-				checkFilesPool();
-			});
 			
-			imageFactory.createImage( trans? new ImageTransformVO(trans.sx, trans.sy, trans.sw, trans.sh, trans.dw, trans.dh, trans.deg) : null );
+			if(file is FakeFileVO) {
+				// upload with no filedata
+				filesPool[s] = new Object()
+				filesPool[s][fileName] = null;
+				checkFilesPool();
+			}
+			else {
+				// get transformed image data
+				var imageFactory:IImageFactory = file.imageFactory;
+				(imageFactory as EventDispatcher).addEventListener(ImageTransformCompleteEvent.TYPE,function (event:ImageTransformCompleteEvent):void {
+					event.currentTarget.removeEventListener(event.type, arguments.callee);
+					trace("createImage imageTransform complete", event.isSuccess);
+					if (event.isSuccess) {
+						// upload transformed image
+						filesPool[s] = new Object()
+						filesPool[s][fileName] = event.data;
+					}
+					else {
+						complete(false, null, event.error);
+					}
+					checkFilesPool();
+				});
+				
+				imageFactory.createImage( trans? new ImageTransformVO(trans.sx, trans.sy, trans.sw, trans.sh, trans.dw, trans.dh, trans.deg) : null );
+			}
 		}
 		
 		
