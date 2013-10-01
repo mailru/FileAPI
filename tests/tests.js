@@ -214,12 +214,14 @@ module('FileAPI');
 
 	test('upload without files', function (){
 		stop();
+
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
 			data: { str: 'foo', num: 1, array: [1, 2, 3], object: { foo: 'bar' } },
 			complete: function (err, xhr){
-				start();
 				var res = FileAPI.parseJSON(xhr.responseText).data._REQUEST;
+
+				start();
 				equal(res.str, 'foo');
 				equal(res.num, '1');
 

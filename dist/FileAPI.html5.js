@@ -100,6 +100,7 @@
 		noop = function (){},
 
 		document = window.document,
+		doctype = document.doctype || {},
 		userAgent = window.navigator.userAgent,
 
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
@@ -131,15 +132,12 @@
 		_rinput = /input/i,
 		_rdata = /^data:[^,]+,/,
 
-		Num = window.Number,
+
 		Math = window.Math,
 
-		_pow = Math.pow,
-		_round = Math.round,
-
 		_SIZE_CONST = function (pow){
-			pow = new Num(_pow(1024, pow));
-			pow.from = function (sz){ return _round(sz * this); };
+			pow = new window.Number(Math.pow(1024, pow));
+			pow.from = function (sz){ return Math.round(sz * this); };
 			return	pow;
 		},
 
@@ -153,7 +151,7 @@
 		preventDefault = 'preventDefault', // and this too
 
 		_isArray = function (ar) {
-			return	(typeof ar == 'object') && ar && ('length' in ar);
+			return	ar && ('length' in ar);
 		},
 
 		/**
@@ -178,6 +176,16 @@
 			}
 		},
 
+		/**
+		 * Merge the contents of two or more objects together into the first object
+		 */
+		_extend = function (dst){
+			var args = arguments, i = 1, _ext = function (val, key){ dst[key] = val; };
+			for( ; i < args.length; i++ ){
+				_each(args[i], _ext);
+			}
+			return  dst;
+		},
 
 		/**
 		 * Add event listener
@@ -282,6 +290,10 @@
 
 			flashUrl: 0, // @default: './FileAPI.flash.swf'
 			flashImageUrl: 0, // @default: './FileAPI.flash.image.swf'
+
+			postNameConcat: function (name, idx){
+				return	name + (idx != null ? '['+ idx +']' : '');
+			},
 
 			ext2mime: {
 				  jpg:	'image/jpeg'
@@ -529,13 +541,7 @@
 			 * @param	{Object}	dst
 			 * @return	{Object}
 			 */
-			extend: function (dst){
-				var args = arguments, i = 1, _ext = function (val, key){ dst[key] = val; };
-				for( ; i < args.length; i++ ){
-					_each(args[i], _ext);
-				}
-				return  dst;
-			},
+			extend: _extend,
 
 
 			/**
@@ -909,7 +915,7 @@
 										fn(err);
 									}
 									else {
-										api.extend(info, res);
+										_extend(info, res);
 										_next();
 									}
 								});
@@ -996,7 +1002,7 @@
 
 
 			upload: function (options){
-				options = api.extend({
+				options = _extend({
 					  prepare: api.F
 					, beforeupload: api.F
 					, upload: api.F
@@ -1079,7 +1085,7 @@
 								options.upload(proxyXHR, options);
 							}
 
-							var xhr = new api.XHR(api.extend({}, _fileOptions, {
+							var xhr = new api.XHR(_extend({}, _fileOptions, {
 
 								upload: _file ? function (){
 									// emit "fileupload" event
@@ -1246,6 +1252,7 @@
 					, Form = new api.Form
 					, queue = api.queue(function (){ fn(Form); })
 					, isOrignTrans = trans && _isOriginTransform(trans)
+					, postNameConcat = api.postNameConcat
 				;
 
 				(function _addFile(file/**Object*/){
@@ -1290,12 +1297,12 @@
 											addOrigin = 1;
 										}
 
-										Form.append(trans[idx].postName || name +'['+ idx +']', image, filename, trans[idx].type || filetype);
+										Form.append(trans[idx].postName || postNameConcat(name, idx), image, filename, trans[idx].type || filetype);
 									});
 								}
 
 								if( err || options.imageOriginal ){
-									Form.append(name + (addOrigin ? '[original]' : ''), file, filename, filetype);
+									Form.append(postNameConcat(name, (addOrigin ? 'original' : null)), file, filename, filetype);
 								}
 							}
 
@@ -1311,8 +1318,8 @@
 				// Append data
 				_each(options.data, function add(val, name){
 					if( typeof val == 'object' ){
-						_each(val, function (v, key){
-							add(v, name+'['+key+']');
+						_each(val, function (v, i){
+							add(v, postNameConcat(name, i));
 						});
 					}
 					else {
@@ -1445,7 +1452,7 @@
 			, target:	target
 			, result:	res
 		};
-		api.extend(evt, ext);
+		_extend(evt, ext);
 		fn(evt);
 	}
 
@@ -1585,7 +1592,7 @@
 		var copy = {};
 		_each(obj, function (val, key){
 			if( val && (typeof val === 'object') && (val.nodeType === void 0) ){
-				val = api.extend({}, val);
+				val = _extend({}, val);
 			}
 			copy[key] = val;
 		});
@@ -1728,9 +1735,22 @@
 		};
 	}
 
-
 	// @export
-	window.FileAPI  = api.extend(api, window.FileAPI);
+	window.FileAPI  = _extend(api, window.FileAPI);
+
+
+	// Debug info
+	api.log('FileAPI: ' + api.version);
+	api.log('protocol: ' + window.location.protocol);
+	api.log('doctype: [' + doctype.name + '] ' + doctype.publicId + ' ' + doctype.systemId);
+
+
+	// @detect 'x-ua-compatible'
+	_each(document.getElementsByTagName('meta'), function (meta){
+		if( /x-ua-compatible/i.test(meta.getAttribute('http-equiv')) ){
+			api.log('meta.http-equiv: ' + meta.getAttribute('content'));
+		}
+	});
 
 
 	// @configuration
@@ -2506,7 +2526,7 @@
 				;
 
 				_this.xhr.abort = function (){
-					var transport = xhr.getElementsByName('iframe')[0];
+					var transport = xhr.getElementsByTagName('iframe')[0];
 					if( transport ){
 						try {
 							if( transport.stop ){ transport.stop(); }
@@ -2615,7 +2635,7 @@
 									// smart restart if server reports about the last known byte
 									api.log("X-Last-Known-Byte: " + lkb);
 									if (lkb) {
-										data.end = parseInt(lkb, 10);
+										data.end = lkb;
 									} else {
 										data.end = data.start - 1;
 									}

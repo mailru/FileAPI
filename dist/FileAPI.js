@@ -100,6 +100,7 @@
 		noop = function (){},
 
 		document = window.document,
+		doctype = document.doctype || {},
 		userAgent = window.navigator.userAgent,
 
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
@@ -131,15 +132,12 @@
 		_rinput = /input/i,
 		_rdata = /^data:[^,]+,/,
 
-		Num = window.Number,
+
 		Math = window.Math,
 
-		_pow = Math.pow,
-		_round = Math.round,
-
 		_SIZE_CONST = function (pow){
-			pow = new Num(_pow(1024, pow));
-			pow.from = function (sz){ return _round(sz * this); };
+			pow = new window.Number(Math.pow(1024, pow));
+			pow.from = function (sz){ return Math.round(sz * this); };
 			return	pow;
 		},
 
@@ -153,7 +151,7 @@
 		preventDefault = 'preventDefault', // and this too
 
 		_isArray = function (ar) {
-			return	(typeof ar == 'object') && ar && ('length' in ar);
+			return	ar && ('length' in ar);
 		},
 
 		/**
@@ -178,6 +176,16 @@
 			}
 		},
 
+		/**
+		 * Merge the contents of two or more objects together into the first object
+		 */
+		_extend = function (dst){
+			var args = arguments, i = 1, _ext = function (val, key){ dst[key] = val; };
+			for( ; i < args.length; i++ ){
+				_each(args[i], _ext);
+			}
+			return  dst;
+		},
 
 		/**
 		 * Add event listener
@@ -282,6 +290,10 @@
 
 			flashUrl: 0, // @default: './FileAPI.flash.swf'
 			flashImageUrl: 0, // @default: './FileAPI.flash.image.swf'
+
+			postNameConcat: function (name, idx){
+				return	name + (idx != null ? '['+ idx +']' : '');
+			},
 
 			ext2mime: {
 				  jpg:	'image/jpeg'
@@ -529,13 +541,7 @@
 			 * @param	{Object}	dst
 			 * @return	{Object}
 			 */
-			extend: function (dst){
-				var args = arguments, i = 1, _ext = function (val, key){ dst[key] = val; };
-				for( ; i < args.length; i++ ){
-					_each(args[i], _ext);
-				}
-				return  dst;
-			},
+			extend: _extend,
 
 
 			/**
@@ -909,7 +915,7 @@
 										fn(err);
 									}
 									else {
-										api.extend(info, res);
+										_extend(info, res);
 										_next();
 									}
 								});
@@ -996,7 +1002,7 @@
 
 
 			upload: function (options){
-				options = api.extend({
+				options = _extend({
 					  prepare: api.F
 					, beforeupload: api.F
 					, upload: api.F
@@ -1079,7 +1085,7 @@
 								options.upload(proxyXHR, options);
 							}
 
-							var xhr = new api.XHR(api.extend({}, _fileOptions, {
+							var xhr = new api.XHR(_extend({}, _fileOptions, {
 
 								upload: _file ? function (){
 									// emit "fileupload" event
@@ -1246,6 +1252,7 @@
 					, Form = new api.Form
 					, queue = api.queue(function (){ fn(Form); })
 					, isOrignTrans = trans && _isOriginTransform(trans)
+					, postNameConcat = api.postNameConcat
 				;
 
 				(function _addFile(file/**Object*/){
@@ -1290,12 +1297,12 @@
 											addOrigin = 1;
 										}
 
-										Form.append(trans[idx].postName || name +'['+ idx +']', image, filename, trans[idx].type || filetype);
+										Form.append(trans[idx].postName || postNameConcat(name, idx), image, filename, trans[idx].type || filetype);
 									});
 								}
 
 								if( err || options.imageOriginal ){
-									Form.append(name + (addOrigin ? '[original]' : ''), file, filename, filetype);
+									Form.append(postNameConcat(name, (addOrigin ? 'original' : null)), file, filename, filetype);
 								}
 							}
 
@@ -1311,8 +1318,8 @@
 				// Append data
 				_each(options.data, function add(val, name){
 					if( typeof val == 'object' ){
-						_each(val, function (v, key){
-							add(v, name+'['+key+']');
+						_each(val, function (v, i){
+							add(v, postNameConcat(name, i));
 						});
 					}
 					else {
@@ -1445,7 +1452,7 @@
 			, target:	target
 			, result:	res
 		};
-		api.extend(evt, ext);
+		_extend(evt, ext);
 		fn(evt);
 	}
 
@@ -1585,7 +1592,7 @@
 		var copy = {};
 		_each(obj, function (val, key){
 			if( val && (typeof val === 'object') && (val.nodeType === void 0) ){
-				val = api.extend({}, val);
+				val = _extend({}, val);
 			}
 			copy[key] = val;
 		});
@@ -1728,9 +1735,22 @@
 		};
 	}
 
-
 	// @export
-	window.FileAPI  = api.extend(api, window.FileAPI);
+	window.FileAPI  = _extend(api, window.FileAPI);
+
+
+	// Debug info
+	api.log('FileAPI: ' + api.version);
+	api.log('protocol: ' + window.location.protocol);
+	api.log('doctype: [' + doctype.name + '] ' + doctype.publicId + ' ' + doctype.systemId);
+
+
+	// @detect 'x-ua-compatible'
+	_each(document.getElementsByTagName('meta'), function (meta){
+		if( /x-ua-compatible/i.test(meta.getAttribute('http-equiv')) ){
+			api.log('meta.http-equiv: ' + meta.getAttribute('content'));
+		}
+	});
 
 
 	// @configuration
@@ -2506,7 +2526,7 @@
 				;
 
 				_this.xhr.abort = function (){
-					var transport = xhr.getElementsByName('iframe')[0];
+					var transport = xhr.getElementsByTagName('iframe')[0];
 					if( transport ){
 						try {
 							if( transport.stop ){ transport.stop(); }
@@ -2615,7 +2635,7 @@
 									// smart restart if server reports about the last known byte
 									api.log("X-Last-Known-Byte: " + lkb);
 									if (lkb) {
-										data.end = parseInt(lkb, 10);
+										data.end = lkb;
 									} else {
 										data.end = data.start - 1;
 									}
@@ -2980,6 +3000,7 @@
 		, navigator = window.navigator
 	;
 
+
 	api.support.flash = (function (){
 		var mime = navigator.mimeTypes, has = false;
 
@@ -2991,18 +3012,21 @@
 				has	= !!(window.ActiveXObject && new ActiveXObject('ShockwaveFlash.ShockwaveFlash'));
 			}
 			catch(er){
-				api.log('ShockwaveFlash.ShockwaveFlash -- does not supported.');
+				api.log('Flash -- does not supported.');
 			}
+		}
+
+		if( has && /^file:/i.test(location) ){
+			api.log('[warn] Flash does not work on `file:` protocol.');
 		}
 
 		return	has;
 	})();
 
 
-
 	   api.support.flash
 	&& (0
-			|| !api.html5 || !api.support.html5
+		|| !api.html5 || !api.support.html5
 		|| (api.cors && !api.support.cors)
 		|| (api.media && !api.support.media)
 	)
@@ -3026,7 +3050,7 @@
 					if( child ){
 						do {
 							if( child.nodeType == 1 ){
-								api.log('FlashAPI.Flash.init...');
+								api.log('FlashAPI.state: awaiting');
 
 								var dummy = document.createElement('div');
 
@@ -3082,7 +3106,8 @@
 
 
 				ready: function (){
-					api.log('FileAPI.Flash.ready!');
+					api.log('FlashAPI.state: ready');
+
 					flash.ready = api.F;
 					flash.isReady = true;
 					flash.patch();
@@ -3139,7 +3164,7 @@
 								var dummy = document.createElement('div');
 
 								if( !wrapper ){
-									api.log('flash.mouseover.error: js-fileapi-wrapper not found');
+									api.log('[err] FlashAPI.mouseover: js-fileapi-wrapper not found');
 									return;
 								}
 
@@ -3198,7 +3223,7 @@
 					}
 					else if( type in flash ){
 						setTimeout(function (){
-							api.log('Flash.event.'+evt.type+':', evt);
+							api.log('FlashAPI.event.'+evt.type+':', evt);
 							flash[type](evt);
 						}, 1);
 					}
@@ -3244,7 +3269,7 @@
 								return node.getElementsByTagName('input')[0];
 							}
 						} catch (e){
-							api.log('Can not find "input" by flashId:', id, e);
+							api.log('[err] Can not find "input" by flashId:', id, e);
 						}
 					} else {
 						return	flash.curInp;
@@ -3365,7 +3390,7 @@
 						},
 
 						_load: function (file, fn){
-							api.log('Flash.Image._load:', file);
+							api.log('FlashAPI.Image._load:', file);
 
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
@@ -3379,7 +3404,7 @@
 						},
 
 						_apply: function (file, fn){
-							api.log('FileAPI.Image.flash._apply:', file);
+							api.log('FlashAPI.Image._apply:', file);
 
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
@@ -3391,7 +3416,7 @@
 									  id: file.id
 									, matrix: m
 									, callback: _wrap(function _(err, base64){
-										api.log('FileAPI.Image.flash._apply.callback:', err);
+										api.log('FlashAPI.Image._apply.callback:', err);
 										_unwrap(_);
 
 										if( err ){
@@ -3472,7 +3497,7 @@
 					// FileAPI.Camera:statics
 					api.Camera.fallback = function (el, options, callback){
 						var camId = api.uid();
-						api.log('Flash.Camera.publish: ' + camId);
+						api.log('FlashAPI.Camera.publish: ' + camId);
 						flash.publish(el, camId, api.extend(options, {
 							camera: true,
 							onEvent: _wrap(function _(evt){
@@ -3480,11 +3505,11 @@
 									_unwrap(_);
 
 									if( evt.error ){
-										api.log('Flash.Camera.publish.error: ' + evt.error);
+										api.log('FlashAPI.Camera.publish.error: ' + evt.error);
 										callback(evt.error);
 									}
 									else {
-										api.log('Flash.Camera.publish.success: ' + camId);
+										api.log('FlashAPI.Camera.publish.success: ' + camId);
 										callback(null);
 									}
 								}
@@ -3506,11 +3531,11 @@
 									_unwrap(_);
 
 									if( evt.error ){
-										api.log('Flash.camera.on.error:' + evt.error);
+										api.log('FlashAPI.camera.on.error: ' + evt.error);
 										callback(evt.error, _this);
 									}
 									else {
-										api.log('Flash.camera.on.success: ' + _this._id());
+										api.log('FlashAPI.camera.on.success: ' + _this._id());
 										_this.active = true;
 										callback(null, _this);
 									}
@@ -3524,7 +3549,7 @@
 						},
 
 						shot: function (){
-							api.log('Flash.Camera.shot:', this._id());
+							api.log('FlashAPI.Camera.shot:', this._id());
 
 							var shot = flash.cmd(this._id(), 'shot', {});
 							shot.type = 'image/png';
@@ -3547,7 +3572,7 @@
 								}
 							}
 
-							api.log('Flash.Form.toData');
+							api.log('FlashAPI.Form.toData');
 							fn(items);
 						}
 					});
@@ -3590,11 +3615,11 @@
 							}
 
 							if( !flashId ){
-								api.log('[err] Flash._send: flashId -- undefined');
+								api.log('[err] FlashAPI._send: flashId -- undefined');
 								return this.parent.apply(this, arguments);
 							}
 							else {
-								api.log('Flash.XHR._send: '+ flashId +' -> '+ fileId, files);
+								api.log('FlashAPI.XHR._send: '+ flashId +' -> '+ fileId, files);
 							}
 
 							_this.xhr = {
@@ -3613,7 +3638,7 @@
 									, callback: _wrap(function upload(evt){
 										var type = evt.type, result = evt.result;
 
-										api.log('flash.upload.'+type+':', evt);
+										api.log('FlashAPI.upload.'+type+':', evt);
 
 										if( type == 'progress' ){
 											evt.loaded = Math.min(evt.loaded, evt.total); // @todo fixme
@@ -3773,7 +3798,7 @@
 					var img = flash.get(flashId);
 					img.setImage(base64);
 				} catch (e){
-					api.log('flash.setImage -- can not set "base64":', e);
+					api.log('[err] FlashAPI.Preview.setImage -- can not set "base64":', e);
 				}
 			}
 
