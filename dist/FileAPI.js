@@ -100,6 +100,7 @@
 		noop = function (){},
 
 		document = window.document,
+		doctype = document.doctype || {},
 		userAgent = window.navigator.userAgent,
 
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
@@ -131,15 +132,12 @@
 		_rinput = /input/i,
 		_rdata = /^data:[^,]+,/,
 
-		Num = window.Number,
+
 		Math = window.Math,
 
-		_pow = Math.pow,
-		_round = Math.round,
-
 		_SIZE_CONST = function (pow){
-			pow = new Num(_pow(1024, pow));
-			pow.from = function (sz){ return _round(sz * this); };
+			pow = new window.Number(Math.pow(1024, pow));
+			pow.from = function (sz){ return Math.round(sz * this); };
 			return	pow;
 		},
 
@@ -153,7 +151,7 @@
 		preventDefault = 'preventDefault', // and this too
 
 		_isArray = function (ar) {
-			return	(typeof ar == 'object') && ar && ('length' in ar);
+			return	ar && ('length' in ar);
 		},
 
 		/**
@@ -178,6 +176,16 @@
 			}
 		},
 
+		/**
+		 * Merge the contents of two or more objects together into the first object
+		 */
+		_extend = function (dst){
+			var args = arguments, i = 1, _ext = function (val, key){ dst[key] = val; };
+			for( ; i < args.length; i++ ){
+				_each(args[i], _ext);
+			}
+			return  dst;
+		},
 
 		/**
 		 * Add event listener
@@ -270,6 +278,8 @@
 
 			cors: false,
 			html5: true,
+			media: false,
+
 			debug: false,
 			pingUrl: false,
 			multiFlash: false,
@@ -281,9 +291,14 @@
 			flashUrl: 0, // @default: './FileAPI.flash.swf'
 			flashImageUrl: 0, // @default: './FileAPI.flash.image.swf'
 
+			postNameConcat: function (name, idx){
+				return	name + (idx != null ? '['+ idx +']' : '');
+			},
+
 			ext2mime: {
-				  jpg: 'image/jpeg'
-				, tif: 'image/tiff'
+				  jpg:	'image/jpeg'
+				, tif:	'image/tiff'
+				, txt:	'text/plain'
 			},
 
 			// Fallback for flash
@@ -526,13 +541,7 @@
 			 * @param	{Object}	dst
 			 * @return	{Object}
 			 */
-			extend: function (dst){
-				var args = arguments, i = 1, _ext = function (val, key){ dst[key] = val; };
-				for( ; i < args.length; i++ ){
-					_each(args[i], _ext);
-				}
-				return  dst;
-			},
+			extend: _extend,
 
 
 			/**
@@ -746,8 +755,8 @@
 
 				_each(accept, function (ext, type){
 					ext = new RegExp(ext.replace(/\s/g, '|'), 'i');
-					if( ext.test(file.type) ){
-						file.type = api.ext2mime[file.type] || type.split('/')[0] +'/'+ file.type;
+					if( ext.test(file.type) || api.ext2mime[file.type] ){
+						file.type = api.ext2mime[file.type] || (type.split('/')[0] +'/'+ file.type);
 					}
 				});
 
@@ -771,17 +780,28 @@
 
 				_each((entrySupport ? dataTransfer.items : dataTransfer.files) || [], function (item){
 					queue.inc();
-					if( entrySupport ){
-						_readEntryAsFiles(item, function (err, entryFiles){
-							!err && files.push.apply(files, entryFiles);
-							queue.next();
-						});
+
+					try {
+						if( entrySupport ){
+							_readEntryAsFiles(item, function (err, entryFiles){
+								if( err ){
+									api.log('[err] getDropFiles:', err);
+								} else {
+									files.push.apply(files, entryFiles);
+								}
+								queue.next();
+							});
+						}
+						else {
+							_isRegularFile(item, function (yes){
+								yes && files.push(item);
+								queue.next();
+							});
+						}
 					}
-					else {
-						_isRegularFile(item, function (yes){
-							yes && files.push(item);
-							queue.next();
-						});
+					catch( err ){
+						queue.next();
+						api.log('[err] getDropFiles: ', err);
 					}
 				});
 
@@ -840,6 +860,12 @@
 				if( input.files ){
 					// Input[type="file"]
 					files = input.files;
+
+					if( !html5 ){
+						// Partial support for file api
+						files[0].blob	= input;
+						files[0].iframe	= true;
+					}
 				}
 				else if( !html5 && isInputFile(input) ){
 					if( api.trim(input.value) ){
@@ -889,7 +915,7 @@
 										fn(err);
 									}
 									else {
-										api.extend(info, res);
+										_extend(info, res);
 										_next();
 									}
 								});
@@ -976,7 +1002,7 @@
 
 
 			upload: function (options){
-				options = api.extend({
+				options = _extend({
 					  prepare: api.F
 					, beforeupload: api.F
 					, upload: api.F
@@ -1059,7 +1085,7 @@
 								options.upload(proxyXHR, options);
 							}
 
-							var xhr = new api.XHR(api.extend({}, _fileOptions, {
+							var xhr = new api.XHR(_extend({}, _fileOptions, {
 
 								upload: _file ? function (){
 									// emit "fileupload" event
@@ -1226,6 +1252,7 @@
 					, Form = new api.Form
 					, queue = api.queue(function (){ fn(Form); })
 					, isOrignTrans = trans && _isOriginTransform(trans)
+					, postNameConcat = api.postNameConcat
 				;
 
 				(function _addFile(file/**Object*/){
@@ -1270,12 +1297,12 @@
 											addOrigin = 1;
 										}
 
-										Form.append(trans[idx].postName || name +'['+ idx +']', image, filename, trans[idx].type || filetype);
+										Form.append(trans[idx].postName || postNameConcat(name, idx), image, filename, trans[idx].type || filetype);
 									});
 								}
 
 								if( err || options.imageOriginal ){
-									Form.append(name + (addOrigin ? '[original]' : ''), file, filename, filetype);
+									Form.append(postNameConcat(name, (addOrigin ? 'original' : null)), file, filename, filetype);
 								}
 							}
 
@@ -1291,8 +1318,8 @@
 				// Append data
 				_each(options.data, function add(val, name){
 					if( typeof val == 'object' ){
-						_each(val, function (v, key){
-							add(v, name+'['+key+']');
+						_each(val, function (v, i){
+							add(v, postNameConcat(name, i));
 						});
 					}
 					else {
@@ -1304,17 +1331,22 @@
 			},
 
 
-			reset: function (inp){
+			reset: function (inp, notRemove){
 				var parent, clone;
 
 				if( jQuery ){
 					clone = jQuery(inp).clone(true).insertBefore(inp).val('')[0];
-					jQuery(inp).remove();
+					if( !notRemove ){
+						jQuery(inp).remove();
+					}
 				} else {
 					parent  = inp.parentNode;
 					clone   = parent.insertBefore(inp.cloneNode(true), inp);
 					clone.value = '';
-					parent.removeChild(inp);
+
+					if( !notRemove ){
+						parent.removeChild(inp);
+					}
 
 					_each(_elEvents[api.uid(inp)], function (fns, type){
 						_each(fns, function (fn){
@@ -1363,10 +1395,10 @@
 									, type: xhr.getResponseHeader('Content-Type')
 								};
 								file.dataURL = 'data:'+file.type+';base64,' + api.encode64(xhr.responseBody || xhr.responseText);
-								fn({ type: 'load', result: file });
+								fn({ type: 'load', result: file }, xhr);
 							}
 							else {
-								fn({ type: 'error' });
+								fn({ type: 'error' }, xhr);
 							}
 					    }
 					};
@@ -1420,7 +1452,7 @@
 			, target:	target
 			, result:	res
 		};
-		api.extend(evt, ext);
+		_extend(evt, ext);
 		fn(evt);
 	}
 
@@ -1510,16 +1542,17 @@
 	function _readEntryAsFiles(entry, callback){
 		if( !entry ){
 			// error
-			callback('empty_entry');
+			callback('invalid entry');
 		}
 		else if( entry.isFile ){
 			// Read as file
 			entry.file(function(file){
 				// success
+				file.fullPath = entry.fullPath;
 				callback(false, [file]);
-			}, function (){
+			}, function (err){
 				// error
-				callback('entry_file');
+				callback('FileError.code: '+err.code);
 			});
 		}
 		else if( entry.isDirectory ){
@@ -1529,7 +1562,10 @@
 				// success
 				api.afor(entries, function (next, entry){
 					_readEntryAsFiles(entry, function (err, files){
-						if( !err ){
+						if( err ){
+							api.log(err);
+						}
+						else {
 							result = result.concat(files);
 						}
 
@@ -1541,9 +1577,9 @@
 						}
 					});
 				});
-			}, function (){
+			}, function (err){
 				// error
-				callback('directory_reader');
+				callback('directory_reader: ' + err);
 			});
 		}
 		else {
@@ -1556,7 +1592,7 @@
 		var copy = {};
 		_each(obj, function (val, key){
 			if( val && (typeof val === 'object') && (val.nodeType === void 0) ){
-				val = api.extend({}, val);
+				val = _extend({}, val);
 			}
 			copy[key] = val;
 		});
@@ -1699,9 +1735,22 @@
 		};
 	}
 
-
 	// @export
-	window.FileAPI  = api.extend(api, window.FileAPI);
+	window.FileAPI  = _extend(api, window.FileAPI);
+
+
+	// Debug info
+	api.log('FileAPI: ' + api.version);
+	api.log('protocol: ' + window.location.protocol);
+	api.log('doctype: [' + doctype.name + '] ' + doctype.publicId + ' ' + doctype.systemId);
+
+
+	// @detect 'x-ua-compatible'
+	_each(document.getElementsByTagName('meta'), function (meta){
+		if( /x-ua-compatible/i.test(meta.getAttribute('http-equiv')) ){
+			api.log('meta.http-equiv: ' + meta.getAttribute('content'));
+		}
+	});
 
 
 	// @configuration
@@ -1754,7 +1803,8 @@
 			dh: 0,
 			resize: 0, // min, max OR preview
 			deg: 0,
-			quality: 1 // jpeg quality
+			quality: 1, // jpeg quality
+			filter: 0
 		};
 	}
 
@@ -1794,6 +1844,10 @@
 			return	this.set({ deg: deg });
 		},
 
+		filter: function (filter){
+			return	this.set({ filter: filter });
+		},
+
 		overlay: function (images){
 			return	this.set({ overlay: images });
 		},
@@ -1827,6 +1881,7 @@
 				, dh = m.dh
 				, w = width
 				, h = height
+				, filter = m.filter
 				, copy // canvas copy
 				, buffer = image
 				, overlay = m.overlay
@@ -1907,6 +1962,11 @@
 					fn();
 				}
 			});
+
+			if( filter ){
+				queue.inc();
+				Image.applyFilter(canvas, filter, queue.next);
+			}
 
 			queue.check();
 		},
@@ -2089,6 +2149,61 @@
 	});
 
 
+	/**
+	 * Trabsform element to canvas
+	 *
+	 * @param    {Image|HTMLVideoElement}   el
+	 * @returns  {Canvas}
+	 */
+	Image.toCanvas = function(el){
+		var canvas		= document.createElement('canvas');
+		canvas.width	= el.videoWidth || el.width;
+		canvas.height	= el.videoHeight || el.height;
+		canvas.getContext('2d').drawImage(el, 0, 0);
+		return	canvas;
+	};
+
+
+	/**
+	 * Create image from DataURL
+	 * @param  {String}  dataURL
+	 * @param  {Object}  size
+	 * @param  {Function}  callback
+	 */
+	Image.fromDataURL = function (dataURL, size, callback){
+		var img = api.newImage(dataURL);
+		api.extend(img, size);
+		callback(img);
+	};
+
+
+	/**
+	 * Apply filter (caman.js)
+	 *
+	 * @param  {Canvas|Image}   canvas
+	 * @param  {String|Function}  filter
+	 * @param  {Function}  doneFn
+	 */
+	Image.applyFilter = function (canvas, filter, doneFn){
+		if( typeof filter == 'function' ){
+			filter(canvas, doneFn);
+		}
+		else if( window.Caman ){
+			// http://camanjs.com/guides/
+			window.Caman(canvas.tagName == 'IMG' ? Image.toCanvas(canvas) : canvas, function (){
+				if( typeof filter == 'string' ){
+					this[filter]();
+				}
+				else {
+					api.each(filter, function (val, method){
+						this[method](val);
+					}, this);
+				}
+				this.render(doneFn);
+			});
+		}
+	};
+
 
 	// @export
 	api.support.canvas = api.support.transform = support;
@@ -2168,7 +2283,7 @@
 				var blob = file.blob, hidden;
 
 				if( file.file ){
-					api.reset(blob);
+					api.reset(blob, true);
 					// set new name
 					blob.name = file.name;
 					data.appendChild(blob);
@@ -2216,7 +2331,7 @@
 				}
 
 				data.start = -1;
-				data.end = data.file.FileAPIReadPosition || -1;
+				data.end = data.file && data.file.FileAPIReadPosition || -1;
 				data.retry = 0;
 			});
 		},
@@ -2390,13 +2505,14 @@
 		},
 
 		_send: function (options, data){
-
 			var _this = this, xhr, uid = _this.uid, url = options.url;
 
 			api.log('XHR._send:', data);
 
-			// No cache
-			url += (~url.indexOf('?') ? '&' : '?') + api.uid();
+			if( !options.cache ){
+				// No cache
+				url += (~url.indexOf('?') ? '&' : '?') + api.uid();
+			}
 
 			if( data.nodeName ){
 				// legacy
@@ -2410,7 +2526,7 @@
 				;
 
 				_this.xhr.abort = function (){
-					var transport = xhr.getElementsByName('iframe')[0];
+					var transport = xhr.getElementsByTagName('iframe')[0];
 					if( transport ){
 						try {
 							if( transport.stop ){ transport.stop(); }
@@ -2519,7 +2635,7 @@
 									// smart restart if server reports about the last known byte
 									api.log("X-Last-Known-Byte: " + lkb);
 									if (lkb) {
-										data.end = parseInt(lkb, 10);
+										data.end = lkb;
 									} else {
 										data.end = data.start - 1;
 									}
@@ -2824,7 +2940,7 @@
 	 * @class	FileAPI.Camera.Shot
 	 */
 	var Shot = function (video){
-		var canvas	= video.nodeName ? toCanvas(video) : video;
+		var canvas	= video.nodeName ? api.Image.toCanvas(video) : video;
 		var shot	= api.Image(canvas);
 		shot.type	= 'image/png';
 		shot.width	= canvas.width;
@@ -2843,20 +2959,6 @@
 	 */
 	function _px(val){
 		return	val >= 0 ? val + 'px' : val;
-	}
-
-
-	/**
-	 * @private
-	 * @param	{HTMLVideoElement}	video
-	 * @returns	{Canvas}
-	 */
-	function toCanvas(video){
-		var canvas		= document.createElement('canvas');
-		canvas.width	= video.videoWidth;
-		canvas.height	= video.videoHeight;
-		canvas.getContext('2d').drawImage(video, 0, 0);
-		return	canvas;
 	}
 
 
@@ -2898,6 +3000,7 @@
 		, navigator = window.navigator
 	;
 
+
 	api.support.flash = (function (){
 		var mime = navigator.mimeTypes, has = false;
 
@@ -2909,15 +3012,25 @@
 				has	= !!(window.ActiveXObject && new ActiveXObject('ShockwaveFlash.ShockwaveFlash'));
 			}
 			catch(er){
-				api.log('ShockwaveFlash.ShockwaveFlash -- does not supported.');
+				api.log('Flash -- does not supported.');
 			}
+		}
+
+		if( has && /^file:/i.test(location) ){
+			api.log('[warn] Flash does not work on `file:` protocol.');
 		}
 
 		return	has;
 	})();
 
 
-	api.support.flash && (0 || !api.html5 || !api.support.html5 || api.cors && !api.support.cors) && (function (){
+	   api.support.flash
+	&& (0
+		|| !api.html5 || !api.support.html5
+		|| (api.cors && !api.support.cors)
+		|| (api.media && !api.support.media)
+	)
+	&& (function (){
 		var
 			  _attr  = api.uid()
 			, _retry = 0
@@ -2937,7 +3050,7 @@
 					if( child ){
 						do {
 							if( child.nodeType == 1 ){
-								api.log('FlashAPI.Flash.init...');
+								api.log('FlashAPI.state: awaiting');
 
 								var dummy = document.createElement('div');
 
@@ -2993,7 +3106,8 @@
 
 
 				ready: function (){
-					api.log('FileAPI.Flash.ready!');
+					api.log('FlashAPI.state: ready');
+
 					flash.ready = api.F;
 					flash.isReady = true;
 					flash.patch();
@@ -3050,7 +3164,7 @@
 								var dummy = document.createElement('div');
 
 								if( !wrapper ){
-									api.log('flash.mouseover.error: js-fileapi-wrapper not found');
+									api.log('[err] FlashAPI.mouseover: js-fileapi-wrapper not found');
 									return;
 								}
 
@@ -3109,7 +3223,7 @@
 					}
 					else if( type in flash ){
 						setTimeout(function (){
-							api.log('Flash.event.'+evt.type+':', evt);
+							api.log('FlashAPI.event.'+evt.type+':', evt);
 							flash[type](evt);
 						}, 1);
 					}
@@ -3155,7 +3269,7 @@
 								return node.getElementsByTagName('input')[0];
 							}
 						} catch (e){
-							api.log('Can not find "input" by flashId:', id, e);
+							api.log('[err] Can not find "input" by flashId:', id, e);
 						}
 					} else {
 						return	flash.curInp;
@@ -3242,6 +3356,12 @@
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
 							}
+							else if( file.isShot ){
+								fn(null, file.info = {
+									width: file.width,
+									height: file.height
+								});
+							}
 							else {
 								if( !file.__info ){
 									var defer = file.__info = api.defer();
@@ -3254,6 +3374,7 @@
 										})
 									});
 								}
+
 								file.__info.then(fn);
 							}
 						}
@@ -3269,7 +3390,7 @@
 						},
 
 						_load: function (file, fn){
-							api.log('Flash.Image._load:', file);
+							api.log('FlashAPI.Image._load:', file);
 
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
@@ -3283,33 +3404,46 @@
 						},
 
 						_apply: function (file, fn){
-							api.log('FileAPI.Image._apply:', file);
+							api.log('FlashAPI.Image._apply:', file);
 
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
 							}
 							else {
-								var m = this.getMatrix(file.info);
+								var m = this.getMatrix(file.info), doneFn = fn;
 
 								flash.cmd(file, 'imageTransform', {
 									  id: file.id
 									, matrix: m
 									, callback: _wrap(function _(err, base64){
-										api.log('FileAPI.Image._apply.callback:', err);
+										api.log('FlashAPI.Image._apply.callback:', err);
 										_unwrap(_);
 
 										if( err ){
-											fn(err);
+											doneFn(err);
 										}
-										else if( !api.support.dataURI || base64.length > 3e4 ){
+										else if( !api.support.html5 && (!api.support.dataURI || base64.length > 3e4) ){
 											_makeFlashImage({
 												  width:	(m.deg % 180) ? m.dh : m.dw
 												, height:	(m.deg % 180) ? m.dw : m.dh
 												, scale:	m.scaleMode
-											}, base64, fn);
+											}, base64, doneFn);
 										}
 										else {
-											api.newImage('data:'+ file.type +';base64,'+ base64, fn);
+											if( m.filter ){
+												doneFn = function (err, img){
+													if( err ){
+														fn(err);
+													}
+													else {
+														api.Image.applyFilter(img, m.filter, function (){
+															fn(err, this.canvas);
+														});
+													}
+												};
+											}
+
+											api.newImage('data:'+ file.type +';base64,'+ base64, doneFn);
 										}
 									})
 								});
@@ -3343,10 +3477,27 @@
 					});
 
 
+					api.Image && _inherit(api.Image, {
+						fromDataURL: function (dataURL, size, callback){
+							if( !api.support.dataURI || dataURL.length > 3e4 ){
+								_makeFlashImage(
+									  api.extend({ scale: 'exactFit' }, size)
+									, dataURL.replace(/^data:[^,]+,/, '')
+									, function (err, el){ callback(el); }
+								);
+							}
+							else {
+								this.parent(dataURL, size, callback);
+							}
+						}
+					});
+
+
+
 					// FileAPI.Camera:statics
 					api.Camera.fallback = function (el, options, callback){
 						var camId = api.uid();
-						api.log('Flash.Camera.publish: ' + camId);
+						api.log('FlashAPI.Camera.publish: ' + camId);
 						flash.publish(el, camId, api.extend(options, {
 							camera: true,
 							onEvent: _wrap(function _(evt){
@@ -3354,11 +3505,11 @@
 									_unwrap(_);
 
 									if( evt.error ){
-										api.log('Flash.Camera.publish.error: ' + evt.error);
+										api.log('FlashAPI.Camera.publish.error: ' + evt.error);
 										callback(evt.error);
 									}
 									else {
-										api.log('Flash.Camera.publish.success: ' + camId);
+										api.log('FlashAPI.Camera.publish.success: ' + camId);
 										callback(null);
 									}
 								}
@@ -3380,11 +3531,11 @@
 									_unwrap(_);
 
 									if( evt.error ){
-										api.log('Flash.camera.on.error:' + evt.error);
+										api.log('FlashAPI.camera.on.error: ' + evt.error);
 										callback(evt.error, _this);
 									}
 									else {
-										api.log('Flash.camera.on.success: ' + _this._id());
+										api.log('FlashAPI.camera.on.success: ' + _this._id());
 										_this.active = true;
 										callback(null, _this);
 									}
@@ -3398,11 +3549,12 @@
 						},
 
 						shot: function (){
-							api.log('Flash.Camera.shot:', this._id());
+							api.log('FlashAPI.Camera.shot:', this._id());
 
 							var shot = flash.cmd(this._id(), 'shot', {});
 							shot.type = 'image/png';
 							shot.flashId = this._id();
+							shot.isShot = true;
 
 							return	new api.Camera.Shot(shot);
 						}
@@ -3420,7 +3572,7 @@
 								}
 							}
 
-							api.log('flash.Form.toData');
+							api.log('FlashAPI.Form.toData');
 							fn(items);
 						}
 					});
@@ -3458,10 +3610,16 @@
 								}
 							});
 
-							if( !(fileId || flashId) ){
+							if( !fileId ){
+								flashId = _attr;
+							}
+
+							if( !flashId ){
+								api.log('[err] FlashAPI._send: flashId -- undefined');
 								return this.parent.apply(this, arguments);
-							} else {
-								api.log('flash.XHR._send:', flashId, fileId, files);
+							}
+							else {
+								api.log('FlashAPI.XHR._send: '+ flashId +' -> '+ fileId, files);
 							}
 
 							_this.xhr = {
@@ -3475,12 +3633,12 @@
 								flash.cmd(flashId, 'upload', {
 									  url: _getUrl(options.url)
 									, data: data
-									, files: files
-									, headers: options.headers
+									, files: fileId ? files : null
+									, headers: options.headers || {}
 									, callback: _wrap(function upload(evt){
 										var type = evt.type, result = evt.result;
 
-										api.log('flash.upload.'+type+':', evt);
+										api.log('FlashAPI.upload.'+type+':', evt);
 
 										if( type == 'progress' ){
 											evt.loaded = Math.min(evt.loaded, evt.total); // @todo fixme
@@ -3604,11 +3762,16 @@
 
 
 		function _makeFlashImage(opts, base64, fn){
-			var _id, flashId = api.uid(), el = document.createElement('div');
+			var
+				  key
+				, flashId = api.uid()
+				, el = document.createElement('div')
+				, attempts = 10
+			;
 
-			for( _id in opts ){
-				el.setAttribute(_id, opts[_id]);
-				el[_id] = opts[_id];
+			for( key in opts ){
+				el.setAttribute(key, opts[key]);
+				el[key] = opts[key];
 			}
 
 			_css(el, opts);
@@ -3620,9 +3783,11 @@
 				  id: flashId
 				, src: _getUrl(api.flashImageUrl, 'r='+ api.uid())
 				, wmode: 'opaque'
-				, flashvars: 'scale='+ opts.scale +'&callback='+_wrap(function _setData(){
-					_unwrap(_setData);
-					setTimeout(_setImage, 99);
+				, flashvars: 'scale='+ opts.scale +'&callback='+_wrap(function _(){
+					_unwrap(_);
+					if( --attempts > 0 ){
+						_setImage();
+					}
 					return true;
 				})
 			}, opts));
@@ -3633,7 +3798,7 @@
 					var img = flash.get(flashId);
 					img.setImage(base64);
 				} catch (e){
-					api.log('flash.setImage -- can not set "base64":', e);
+					api.log('[err] FlashAPI.Preview.setImage -- can not set "base64":', e);
 				}
 			}
 
