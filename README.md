@@ -765,6 +765,46 @@ FileAPI.Image(imageFile)
 
 ---
 
+### filter(callback`:Function`)`:FileAPI.Image`
+Apply filter function. Only `HTML5`.
+
+* callback — takes two arguments, `canvas` element and `done` method.
+
+```js
+FileAPI.Image(imageFile)
+	.filter(function (canvas/**HTMLCanvasElement*/, doneFn/**Function*/){
+		// bla-bla-lba
+		doneFn();
+	})
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+```
+
+
+---
+
+### filter(name`:String`)`:FileAPI.Image`
+Uses [CamanJS](http://camanjs.com/), include it before FileAPI library.
+
+* name — CamanJS filter name (custom or preset)
+
+```js
+Caman.Filter.register("my-funky-filter", function () {
+	// http://camanjs.com/guides/#Extending
+});
+
+FileAPI.Image(imageFile)
+	.filter("my-funky-filter") // or .filter("vintage")
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+```
+
+---
+
 ### overlay(images`:Array`)`:FileAPI.Image`
 Add overlay images, eg: watermark.
 
@@ -1153,7 +1193,10 @@ Button like link.
 	<li>+ [#80](https://https://github.com/mailru/FileAPI/issues/80): FileAPI.Image.fn.overlay</li>
  	<li>`imageTransform` — now supports: `crop`, `type`, `quality` and `overlay` properties.</li>
 	<li>Improved the documentation</li>
+	<li>[#121](https://github.com/mailru/FileAPI/issues/121): + FileAPI.`postNameConcat:Function(name, idx)`</li>
+	<li>[#116](https://github.com/mailru/FileAPI/issues/116): + `cache:false` option for FileAPI.upload</li>
 </ul>
+
 
 ### 1.2.6
 <ul>

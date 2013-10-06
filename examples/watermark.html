@@ -24,18 +24,40 @@
 		// Settings
 		var FileAPI = {
 			  html5: !!1
-			, debug: false // debug mode
+			, debug: !0 // debug mode
 			, staticPath: '../dist/'
 		};
 	</script>
 
 	<script src="../dist/FileAPI.js"></script>
 	<script src="../plugins/FileAPI.exif.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/json3/3.2.4/json3.min.js"></script>
 
 	<style>
 		body {
 			font-size: 15px;
 			font-family: "Helvetica Neue";
+		}
+
+		@keyframes color {
+			from { color: #000; }
+			to { color: #f60; }
+		}
+
+		@-moz-keyframes color {
+			from { color: #000; }
+			to { color: #f60; }
+		}
+
+		@-webkit-keyframes color {
+			from { color: #000; }
+			to { color: #f60; }
+		}
+
+		.anim {
+			-webkit-animation: color 1s infinite;
+			-moz-animation: color 1s infinite;
+			animation: color 1s infinite;
 		}
 	</style>
 
@@ -47,7 +69,8 @@
 			<a href="./demo.html">demo</a> -
 			<a href="./userpic.html">userpic</a> -
 			<b>watermark</b> -
-			<a href="./webcam.html">webcam</a>
+			<a href="./webcam.html">webcam</a> -
+			<a href="./caman.html">caman.js</a>
 		</div>
 	</div>
 
@@ -101,12 +124,12 @@
 			</div>
 
 			<div class="col">
-				<h4>Preview</h4>
+				<h4>Preview <span id="preview-processing" class="anim" style="display: none">(processing&hellip;)</span></h4>
 				<div id="image"></div>
 			</div>
 
-			<div class="col">
-				<h4>Server response</h4>
+			<div class="col" style="position: absolute; right: 10px;">
+				<h4>Server response <span id="uploading" class="anim" style="display: none"></span></h4>
 				<div id="server"></div>
 			</div>
 			<br clear="all"/>
@@ -117,7 +140,6 @@
 			</div>
 		</div>
 	</form>
-
 
 	<script>
 		(function (){
@@ -142,6 +164,8 @@
 				var type = (FileAPI.filter(elms.type, function (type){ return type.checked; })[0] || {}).value;
 				var overlay = { x: 5, y: 5, src: '../statics/watermark.png', rel: rel };
 
+				document.getElementById('preview-processing').style.display = '';
+
 				// Create preview
 				FileAPI.Image(file)
 					.resize(300, 300, 'max')
@@ -149,12 +173,15 @@
 					.get(function (err, img){
 						image.innerHTML = '';
 						image.appendChild(img);
+						document.getElementById('preview-processing').style.display = 'none';
 					})
 				;
 
+				document.getElementById('uploading').style.display = '';
+
 				// Upload
 				FileAPI.upload({
-					  url: '//www.rubaxa.org/FileAPI/server/ctrl.php'
+					  url: '//rubaxa.org/FileAPI/server/ctrl.php'
 					, files: elms.file
 					, imageTransform: {
 						  width: elms.width.value|0
@@ -163,23 +190,28 @@
 						, type: type // Output type
 						, overlay: overlay // Add watermark
 					}
+					, upload: function (){
+						document.getElementById('uploading').innerHTML = '(uploading&hellip;)';
+					}
+					, progress: function (evt){
+						document.getElementById('uploading').innerHTML = (evt.loaded/evt.total * 100).toFixed(2) +'%';
+					}
 					, complete: function (err, xhr){
 						if( err ){
 							alert('Oops, server error.');
 						} else {
 							var res = JSON.parse(xhr.responseText);
+
 							FileAPI.each(res.images, function (file){
-								var img		= new Image;
 								var matrix	= FileAPI.Image.prototype.getMatrix.call({ matrix: { dw: 300, dh: 300, resize: 'max' } }, file);
 
-								img.src				= file.dataURL;
-								img.style.width		= matrix.dw + 'px';
-								img.style.height	= matrix.dh + 'px';
+								FileAPI.Image.fromDataURL(file.dataURL, { width: matrix.dw, height: matrix.dh }, function (img){
+									server.innerHTML = '';
+									server.appendChild(img);
+									server.innerHTML += '<div><b>'+file.width+'x'+file.height+', '+file.mime+', '+(file.size/1024).toFixed(3)+'KB</b></div>';
+								});
 
-								server.innerHTML = '';
-								server.appendChild(img);
-								server.innerHTML += '<div><b>'+file.width+'x'+file.height+', '+file.mime+', '+(file.size/1024).toFixed(3)+'KB</b></div>';
-
+								document.getElementById('uploading').style.display = 'none';
 							});
 						}
 					}
@@ -187,8 +219,18 @@
 			}
 
 
-			FileAPI.event.on(pos, 'change', _updWatermark);
-			FileAPI.event.on(output, 'change', _updWatermark);
+			// Relative position
+			FileAPI.each(pos.getElementsByTagName('input'), function (el){
+				FileAPI.event.on(el, 'click', _updWatermark);
+			});
+
+
+			// Output type
+			FileAPI.each(output.getElementsByTagName('input'), function (el){
+				FileAPI.event.on(el, 'click', _updWatermark);
+			});
+
+
 			FileAPI.event.on(output, 'keyup', function (){
 				clearTimeout(this.pid);
 				this.pid = setTimeout(function (){

@@ -764,6 +764,46 @@ FileAPI.Image(imageFile)
 
 ---
 
+### filter(callback`:Function`)`:FileAPI.Image`
+Применить фильтр функцию. Только `HTML5`.
+
+* callback — принимает два рагумента, `canvas` элемент и метод `done`.
+
+```js
+FileAPI.Image(imageFile)
+	.filter(function (canvas/**HTMLCanvasElement*/, doneFn/**Function*/){
+		// бла-бла-бла
+		doneFn(); // вызываем по завершению
+	})
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+```
+
+
+---
+
+### filter(name`:String`)`:FileAPI.Image`
+Используется [CamanJS](http://camanjs.com/), подключите его перед библиотекой FileAPI.
+
+* name — название CamanJS фильтра (произвольный, либо предустановленный)
+
+```js
+Caman.Filter.register("my-funky-filter", function () {
+	// http://camanjs.com/guides/#Extending
+});
+
+FileAPI.Image(imageFile)
+	.filter("my-funky-filter") // или .filter("vintage")
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+```
+
+---
+
 ### overlay(images`:Array`)`:FileAPI.Image`
 Добавить наложение, например: водяной знак.
 
