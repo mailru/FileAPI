@@ -2,10 +2,26 @@
 
 
 <p align="center">
- ~~~  <a href="http://mailru.github.com/FileAPI/">DEMO</a>
- ~~~  <a href="http://mailru.github.com/FileAPI/example.userpic.html">user pic</a>
- ~~~
+
+    <h2>Available is a <a href="http://mailru.github.io/FileAPI/">version 2.0 beta</a></h2>
+
 </p>
+<br/>
+
+
+---
+
+
+<ul>
+	<li><a href="http://mailru.github.io/FileAPI/examples/demo.html">DEMO</a></li>
+	<li><a href="http://mailru.github.io/FileAPI/examples/userpic.html">UserPic</a></li>
+	<li><a href="http://mailru.github.io/FileAPI/examples/watermark.html">Watermark</a><sup>2+</sup></li>
+	<li><a href="http://mailru.github.io/FileAPI/examples/webcam.html">WebCam</a><sup>2+</sup></li>
+	<li><a href="http://mailru.github.io/FileAPI/examples/caman.html">Filters/CamanJS</a><sup>2+</sup></li>
+</ul>
+
+
+---
 
 
 ## Support
