@@ -2,15 +2,15 @@
 <!--
 
 
-           ~~~ Это пример создания загрузки фото! ~~~
+           ~~~ Это пример создания загрузки upserpic ~~~
+                       (NativeJS + FileAPI)
 
 
- 1. Скопируйте исходники себе в проект
- 2. Разместите crossdomain.xml на домене, куда будут грузиться файлы
- 3. Укажите правильный путь к флешкам, он задаётся через "staticPath"
- 4. ...
- 5. Profit!
-
+    1. Скопируйте исходники себе в проект
+    2. Разместите crossdomain.xml на домене, куда будут грузиться файлы
+    3. Укажите путь к флешкам, он задаётся через "staticPath"
+    4. ...
+    5. Profit!
 
 
 -->
@@ -31,12 +31,18 @@
 		// Объект настройки
 		var FileAPI = {
 			debug: false, // режим отладки
-			staticPath: './' // путь до флешек
+			staticPath: '../dist/' // путь до флешек
 		};
 	</script>
-	<script src="./FileAPI.min.js"></script>
+	<script src="../dist/FileAPI.min.js"></script>
 
 	<style>
+	body {
+		font-size: 15px;
+		font-family: "Helvetica Neue";
+	}
+
+
 	.upload-link {
 		color: #36c;
 		display: inline-block;
@@ -104,6 +110,16 @@
 	</style>
 </head>
 <body>
+	<div style="left: 0; right: 0; bottom: 0; position: fixed; box-shadow: 0 0 5px rgba(0,0,0,.65); background-color: #f3f3f3;">
+		<div style="padding: 5px 10px 10px">
+			<a href="../">&larr; index</a> |
+			<a href="./demo.html">demo</a> -
+			<b>userpic</b> -
+			<a href="./watermark.html">watermark</a> -
+			<a href="./webcam.html">webcam</a> -
+			<a href="./caman.html">caman.js</a>
+		</div>
+	</div>
 
 	<form name="userpic" class="upload">
 		<div id="preview" class="upload__preview"></div>
@@ -197,7 +213,7 @@
 					}
 				});
 
-				// Добавляем файл
+				// Добавляем файл, который будем загружать
 				opts.files[opts.name] = file;
 
 				// Загружаем на сервер

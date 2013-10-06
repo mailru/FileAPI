@@ -19,32 +19,38 @@
 			staticPath: './' // путь до флешек
 		};
 	</script>
-	<script src="./FileAPI.min.js"></script>
 </head>
 <body>
 
-	<div><label>Single: <input id="singleFile" type="file" class="js-fileapi-wrapper" /></label></div>
-	<div><label>Multiple: <input id="multipleFiles" type="file" class="js-fileapi-wrapper" multiple /></label></div>
+	<div>Single:</div>
+	<div class="js-fileapi-wrapper"></div><input id="singleFile" type="file" /></div>
+	<br/>
+
+	<div>Multiple:</div>
+	<div class="js-fileapi-wrapper"><input id="multipleFiles" type="file" multiple /></div>
 
 
 	<div id="log" style="border: 1px solid red; padding: 3px; margin: 2px"></div>
 	<div id="__console" style="font-size: 12px; color: #333;"></div>
 
+	<script>
+		window.console = {
+			_div: document.getElementById('__console'),
+			log: function (){
+				this._div.innerHTML += [].join.call(arguments, ' ') + '<br/>';
+			},
+			error: function (){
+				this._div.innerHTML += '<span style="color: red">';
+				this.log.apply(this, arguments);
+				this._div.innerHTML += '</span>';
+			}
+		};
+	</script>
+
+	<script src="./FileAPI.min.js"></script>
 
 	<script>
 		(function (){
-			window.console = {
-				_div: document.getElementById('__console'),
-				log: function (){
-					this._div.innerHTML += [].join.call(arguments, ' ') + '<br/>';
-				},
-				error: function (){
-					this._div.innerHTML += '<span style="color: red">';
-					this.log.apply(this, arguments);
-					this._div.innerHTML += '</span>';
-				}
-			};
-
 			function _log(txt){
 				log.innerHTML = txt + '<br/>' + log.innerHTML;
 			}

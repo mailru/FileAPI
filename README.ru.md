@@ -1,4 +1,4 @@
-<a name="install" data-name="Installation"></a>
+﻿<a name="install" data-name="Installation"></a>
 ## Installation, testing, assembling
 `npm install fileapi`<br/>
 `cd fileapi`<br/>
@@ -11,28 +11,29 @@
 
 <a name="FileAPI"></a>
 ## FileAPI
-A set of javascript tools for working with files.
+Набор JavaScript инструментов для работы с файлами.
 
 
 <a name="FileAPI.setup"></a>
 ### Setup
-Connecting the library to your project.
-If you need a CORS, then edit the `crossdomain.xml` and put it in the root of remote domain.
+Подключение библиотеки к проекту.
+Если вы собираетесь использовать CORS, то отредактируйте файл `crossdomain.xml` и
+разместите в коре удаленного домена.
 
 ```html
 	<script>
 		window.FileAPI = {
-			  debug: false   // debug mode, see Console
-			, cors: true     // if used CORS
-			, staticPath: '/js/FileAPI/dist/' // path to '*.swf'
+			  debug: false   // дебаг режим, смотрите Console
+			, cors: true     // если используете CORS
+			, staticPath: '/js/FileAPI/dist/' // путь к '*.swf'
 		};
 	</script>
 	<script src="/js/FileAPI/dist/FileAPI.min.js"></script>
 
-	<!-- OR -->
+	<!-- ИЛИ -->
 
 	<script>
-		window.FileAPI = { /* options */ };
+		window.FileAPI = { /* etc. */ };
 		require(['FileAPI'], function (FileAPI){
 			// ...
 		});
@@ -44,40 +45,39 @@ If you need a CORS, then edit the `crossdomain.xml` and put it in the root of re
 
 <a name="FileAPI.getFiles"></a>
 ### getFiles(input`:HTMLInputElement|Event|$.Event`)`:Array`
-Get files from `input` element or `event` object, also support `jQuery`.
+Получить список файлов из `input` элемента, или `event`, также поддерживается `jQuery`.
 
-* input — `HTMLInputElement`, `change` and `drop` event, `jQuery` collection or `jQuery.Event`
+* input — `HTMLInputElement`, `change` и `drop` события, `jQuery` коллекция или `jQuery.Event`
 
 ```js
 var el = document.getElement('my-input');
 FileAPI.event.on(el, function (evt/**Event*/){
-	// Get files from input
+	// Получить список файлов из `input`
 	var files = FileAPI.getFiles(el);
 
-	// or event
+	// или события
 	var files = FileAPI.getFiles(evt);
 });
 ```
 
 ---
 
-
 <a name="FileAPI.getInfo"></a>
 ### getInfo(file`:Object`, callback`:Function`)`:void`
-Get info of file (see also: FileAPI.addInfoReader).
+Получить информацию о файле (см. FileAPI.addInfoReader).
 
-* file — file object (https://developer.mozilla.org/en-US/docs/DOM/File)
-* callback — function, called after collected info of file
+* file — объект файла (https://developer.mozilla.org/en-US/docs/DOM/File)
+* callback — функция, вызывается по завершению сбора информации
 
 ```js
-// Get info of image file (FileAPI.exif.js included)
+// Получить информацию о изображении (FileAPI.exif.js подключен)
 FileAPI.getInfo(file, function (err/**String*/, info/**Object*/){
 	if( !err ){
 		console.log(info); // { width: 800, height: 600, exif: {..} }
 	}
 });
 
-// Get info of mp3 file (FileAPI.id3.js included)
+// Получить информацию о mp3 файле (FileAPI.id3.js included)
 FileAPI.getInfo(file, function (err/**String*/, info/**Object*/){
 	if( !err ){
 		console.log(info); // { title: "...", album: "...", artists: "...", ... }
@@ -89,18 +89,18 @@ FileAPI.getInfo(file, function (err/**String*/, info/**Object*/){
 
 <a name="FileAPI.filterFiles"></a>
 ### filterFiles(files`:Array`, filter`:Function`, callback`:Function`)`:void`
-Filtering the list of files, with additional information about files.
-See also: FileAPI.getInfo and FileAPI.addInfoReader.
+Отфильтровать список файлов, используя  дополнительную информацию о них.
+см. FileAPI.getInfo или FileAPI.addInfoReader.
 
-* files — original list of files
-* filter — function, takes two arguments: `file` — the file itself, `info` — additional information.
-* callback — function: `list` — files that match the condition, `other` — all the rest.
+* files — оригинальный список файлов
+* filter — функция, принимает два аргумента: `file` — сам файл, `info` — дополнительная информация
+* callback — функция: `list` — список файлов, подошедшие под условия, `other` — все остальные.
 
 ```js
-// Get list of file
+// Получаем список файлов
 var files = FileAPI.getFiles(input);
 
-// Filter the List
+// Фильтруем список
 FileAPI.filterFiles(files, function (file/**Object*/, info/**Object*/){
 	if( /^image/.test(file.type) && info ){
 		return	info.width > 320 && info.height > 240;
@@ -118,16 +118,16 @@ FileAPI.filterFiles(files, function (file/**Object*/, info/**Object*/){
 
 <a name="FileAPI.getDropFiles"></a>
 ### getDropFiles(evt`:Event|$.Event`, callback`:Function`)`:void`
-Get a list of files, including directories.
+Получить весь список файлов, включая директории.
 
 * evt — `drop` event
-* callback — function, takes one argument, a list of files
+* callback — фнукция, принимает один аргумент — список файлов
 
 ```js
 FileAPI.event.on(document, 'drop', function (evt/**Event*/){
 	evt.preventDefault();
 
-	// Get a list of files
+	// Получаем все файлы
 	FileAPI.getDropFiles(evt, function (files/**Array*/){
 		// ...
 	});
@@ -138,11 +138,11 @@ FileAPI.event.on(document, 'drop', function (evt/**Event*/){
 
 <a name="FileAPI.upload"></a>
 ### upload(opts`:Object`)`:XmlHttpRequest`
-Uploading files to the server. Returns XHR-like object.
-It is important to remember to correctly worked flash-transport server response body must not be empty,
-for example, you can pass, just text "ok".
+Загрузка файлов на сервер. Возвращает XHR-подобный объект.
+Помните, для корректной работы flash-транспорта, тело ответа сервера не должно быть пустым,
+например можно ответить простым текстом "ok".
 
-* opts — options object, see [Upload options](#options)
+* opts — объект настрое, см. раздел [Upload options](#options)
 
 ```js
 var el = document.getElementById('my-input');
@@ -165,11 +165,11 @@ FileAPI.event.on(el, 'change', function (evt/**Event*/){
 
 <a name="FileAPI.addInfoReader"></a>
 ### addInfoReader(mime`:RegExp`, handler`:Function`)`:void`
-Adds a handler for the collection of information about a file.
-See also: FileAPI.getInfo and FileAPI.filterFiles.
+Добавить обработчик, для сбора информации о файле.
+см. также: FileAPI.getInfo и FileAPI.filterFiles.
 
-* mime — pattern of mime-type
-* handler — takes two arguments: `file` object and `complete` function callback
+* mime — маска mime-type
+* handler — функция, принимает два аргумента: `file` объект и `complete` функция обратного вызова
 
 ```js
 FileAPI.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
@@ -196,20 +196,20 @@ FileAPI.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
 
 <a name="FileAPI.readAsDataURL"></a>
 ### readAsDataURL(file`:Object`, callback`:Function`)`:void`
-Reading the contents of the specified `File` as `dataURL`.
+Чтение содержимого указанного файла как dataURL.
 
-* file — file object
-* callback — function, receives a result
+* file — файл для чтения
+* callback — функция обработчик
 
 ```js
 FileAPI.readAsDataURL(file, function (evt/**Object*/){
 	if( evt.type == 'load' ){
-		// Success
+		// Всё хорошо
 	 	var dataURL = evt.result;
 	} else if( evt.type =='progress' ){
 		var pr = evt.loaded/evt.total * 100;
 	} else {
-		// Error
+		// Ошибка
 	}
 })
 ```
@@ -218,20 +218,20 @@ FileAPI.readAsDataURL(file, function (evt/**Object*/){
 
 <a name="FileAPI.readAsBinaryString"></a>
 ### readAsBinaryString(file`:Object`, callback`:Function`)`:void`
-Reading the contents of the specified `File` as `BinaryString`.
+Чтение содержимого указанного файла как `BinaryString`.
 
-* file — file object
-* callback — function, receives a result
+* file — файл для чтения
+* callback — функция обработчик
 
 ```js
 FileAPI.readAsBinaryString(file, function (evt/**Object*/){
 	if( evt.type == 'load' ){
-		// Success
+		// Всё хорошо
 	 	var binaryString = evt.result;
 	} else if( evt.type =='progress' ){
 		var pr = evt.loaded/evt.total * 100;
 	} else {
-		// Error
+		// Ошибка
 	}
 })
 ```
@@ -240,20 +240,20 @@ FileAPI.readAsBinaryString(file, function (evt/**Object*/){
 
 <a name="FileAPI.readAsArrayBuffer"></a>
 ### readAsBinaryString(file`:Object`, callback`:Function`)`:void`
-Reading the contents of the specified `File` as `ArrayBuffer`.
+Чтение содержимого указанного файла как `ArrayBuffer`.
 
-* file — file object
-* callback — function, receives a result
+* file — файл для чтения
+* callback — функция обработчик
 
 ```js
 FileAPI.readAsArrayBuffer(file, function (evt/**Object*/){
 	if( evt.type == 'load' ){
-		// Success
+		// Всё хорошо
 	 	var arrayBuffer = evt.result;
 	} else if( evt.type =='progress' ){
 		var pr = evt.loaded/evt.total * 100;
 	} else {
-		// Error
+		// Ошибка
 	}
 })
 ```
@@ -262,20 +262,20 @@ FileAPI.readAsArrayBuffer(file, function (evt/**Object*/){
 
 <a name="FileAPI.readAsText"></a>
 ### readAsText(file`:Object`, callback`:Function`)`:void`
-Reading the contents of the specified `File` as `text`.
+Чтение содержимого указанного файла как `text`.
 
-* file — file object
-* callback — function, receives a result
+* file — файл для чтения
+* callback — функция обработчик
 
 ```js
 FileAPI.readAsText(file, function (evt/**Object*/){
 	if( evt.type == 'load' ){
-		// Success
+		// Всё хорошо
 	 	var text = evt.result;
 	} else if( evt.type =='progress' ){
 		var pr = evt.loaded/evt.total * 100;
 	} else {
-		// Error
+		// Ошибка
 	}
 })
 ```
@@ -284,19 +284,19 @@ FileAPI.readAsText(file, function (evt/**Object*/){
 
 <a name="FileAPI.readAsText-encoding"></a>
 ### readAsText(file`:Object`, encoding`:String`, callback`:Function`)`:void`
-Reading the contents of the specified `File` as `text`.
+Чтение содержимого указанного файла как `text` в нужной кодировке.
 
-* encoding — a string indicating the encoding to use for the returned data. By default, UTF-8.
+* encoding — строкой с указанием кодировки. По умолчанию UTF-8.
 
 ```js
 FileAPI.readAsText(file, "utf-8", function (evt/**Object*/){
 	if( evt.type == 'load' ){
-		// Success
+		// Всё хорошо
 	 	var text = evt.result;
 	} else if( evt.type =='progress' ){
 		var pr = evt.loaded/evt.total * 100;
 	} else {
-		// Error
+		// Ошибка
 	}
 })
 ```
@@ -305,17 +305,17 @@ FileAPI.readAsText(file, "utf-8", function (evt/**Object*/){
 
 
 <a name="options" data-name="Upload options"></a>
-## Upload options
+## Опции загрузки
 
 <a name="options.url"></a>
 ### url`:String`
-A string containing the URL to which the request is sent.
+Строка, содержащая адрес, на который отправляется запрос.
 
 ---
 
 <a name="options.data"></a>
 ### data`:Object`
-Additional post data to be sent along with the file uploads.
+Дополнительные данные, которые должны быть отправлены вместе с файлом.
 
 ```js
 var xhr = FileAPI.upload({
@@ -329,7 +329,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.headers"></a>
 ### headers`:Object`
-Additional request headers, HTML5 only.
+Дополнительные заголовки запроса, только HTML5.
 
 ```js
 var xhr = FileAPI.upload({
@@ -343,7 +343,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.chunkSize"></a>
 ### chunkSize`:Number`
-Chunk size in bytes, HTML5 only.
+Размер части файла в байта, только HTML5.
 
 ```js
 var xhr = FileAPI.upload({
@@ -357,7 +357,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.chunkUploadRetry"></a>
 ### chunkUploadRetry`:Number`
-Number of retries during upload chunks, HTML5 only.
+Количество попыток загрузки одной части, только HTML5.
 
 ```js
 var xhr = FileAPI.upload({
@@ -372,7 +372,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.imageTransform"></a>
 ### imageTransform`:Object`
-Rules of changes the original image on the client.
+Правила модификации оригинально изображения.
 
 ```js
 var xhr = FileAPI.upload({
@@ -380,10 +380,10 @@ var xhr = FileAPI.upload({
 	files: { image: imageFiles },
 	// Changes the original image
 	imageTransform: {
-		// resize by max side
+		// Ресайз по боьшой строне
 		maxWidth: 800,
 		maxHeight: 600,
-		// Add watermark
+		// Добавляем водяной знак
 		overlay: [{ x: 10, y: 10, src: '/i/watemark.png', rel: FileAPI.Image.RIGHT_BOTTOM }]
 	}
 });
@@ -393,21 +393,21 @@ var xhr = FileAPI.upload({
 
 <a name="options.imageTransform-multi"></a>
 ### imageTransform`:Object`
-Rules of image transformation on the client, for more images.
+Правила для нарезки дополнительных изображения на клиенте.
 
 ```js
 var xhr = FileAPI.upload({
 	url: '...',
 	files: { image: imageFiles },
 	imageTransform: {
-		// resize by max side
+		// Ресайз по большой строне
 		'huge': { maxWidth: 800, maxHeight: 600 },
-		// crop & resize
+		// Ресайз и кроп
 		'medium': { width: 320, height: 240, preview: true },
-		// crop & resize + watemark
+		// ресайз и кроп + водяной знак
 		'small': {
 			width: 100, height: 100,
-			// Add watermark
+			// Добавляем водяной знак
 			overlay: [{ x: 5, y: 5, src: '/i/watemark.png', rel: FileAPI.Image.RIGHT_BOTTOM }]
 		}
 	}
@@ -418,7 +418,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.imageTransform-jpeg"></a>
 ### imageTransform`:Object`
-Convert all images to jpeg or png.
+Конвертация всех изображений в jpeg или png.
 
 ```js
 var xhr = FileAPI.upload({
@@ -426,27 +426,26 @@ var xhr = FileAPI.upload({
 	files: { image: imageFiles },
 	imageTransform: {
 		type: 'image/jpeg',
-		quality: 0.86 // jpeg quality
+		quality: 0.86 // качество jpeg
 	}
 });
 ```
 
-
 <a name="options.imageOriginal"></a>
 ### imageOriginal`:Boolean`
-Sent to the server the original image or not, if defined imageTransform option.
+Отправлять исходное изображение на сервер или нет, если определен `imageTransform` вариант.
 
 --
 
 <a name="options.imageAutoOrientation"></a>
 ### imageAutoOrientation`:Boolean`
-Auto-rotate images on the basis of EXIF.
+Автоматический поворот изображения на основе EXIF.
 
 --
 
 <a name="options.prepare"></a>
 ### prepare`:Function`
-Prepare options upload for a particular file.
+Подготовка опций загрузки для конкретного файла.
 
 ```js
 var xhr = FileAPI.upload({
@@ -462,7 +461,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.upload"></a>
 ### upload`:Function`
-Start uploading.
+Начало загрузки
 
 ```js
 var xhr = FileAPI.upload({
@@ -478,7 +477,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.fileupload"></a>
 ### fileupload`:Function`
-Start file uploading.
+Начало загрузки файла
 
 ```js
 var xhr = FileAPI.upload({
@@ -494,7 +493,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.progress"></a>
 ### progress`:Function`
-Callback for upload progress events.
+Общий прогресс загрузки файлов.
 
 ```js
 var xhr = FileAPI.upload({
@@ -510,7 +509,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.fileprogress"></a>
 ### fileprogress`:Function`
-Callback for upload file progress events.
+Прогресс загрузки файла.
 
 ```js
 var xhr = FileAPI.upload({
@@ -526,7 +525,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.complete"></a>
 ### complete`:Function`
-Callback for end upload requests.
+Завершение загрузки всех файлов.
 
 ```js
 var xhr = FileAPI.upload({
@@ -534,7 +533,7 @@ var xhr = FileAPI.upload({
 	files: { .. }
 	complete: function (err/**String*/, xhr/**Object*/, file/**Object/, options/**Object*/){
 		if( !err ){
-			// All files successfully uploaded.
+			// Все файлы загружены успешно
 		}
 	}
 });
@@ -544,7 +543,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.filecomplete"></a>
 ### filecomplete`:Function`
-Callback for end upload requests.
+Конец загрузки файла.
 
 ```js
 var xhr = FileAPI.upload({
@@ -552,7 +551,7 @@ var xhr = FileAPI.upload({
 	files: { .. }
 	filecomplete: function (err/**String*/, xhr/**Object*/, file/**Object/, options/**Object*/){
 		if( !err ){
-			// File successfully uploaded
+			// Файл загружен успешно
 			var result = xhr.responseText;
 		}
 	}
@@ -566,15 +565,15 @@ var xhr = FileAPI.upload({
 
 <a name="File.name"></a>
 ### name
-The name of the file referenced by the File object.
+Имя файла.
 
 <a name="File.type"></a>
 ### type
-The type (MIME type) of the file referenced by the File object.
+MIME type
 
 <a name="File.size"></a>
 ### size
-The size (in bytes) of the file referenced by the File object.
+Размер файла в байтах.
 
 
 ---
@@ -585,41 +584,41 @@ The size (in bytes) of the file referenced by the File object.
 
 <a name="FileAPI.event.on"></a>
 ### on(el`:HTMLElement`, events`:String`, handler`:Function`)`:void`
-Attach an event handler function.
+Добавить функцию обработки события.
 
-* el — DOM element
-* events — one or more space-separated event types.
-* handler — A function to execute when the event is triggered.
+* el — DOM элемент.
+* events — одно или нескольких разделенных пробелами типов событий.
+* handler — функция обработчик события.
 
 ---
 
 <a name="FileAPI.event.off"></a>
 ### off(el`:HTMLElement`, events`:String`, handler`:Function`)`:void`
-Remove an event handler.
+Удалить обработчик события.
 
-* el — DOM element
-* events — one or more space-separated event types.
-* handler — a handler function previously attached for the event(s).
+* el — DOM элемент
+* events — одно или нескольких разделенных пробелами типов событий.
+* handler — функции обработчика ранее назначения на `event`.
 
 ---
 
 <a name="FileAPI.event.one"></a>
 ### one(el`:HTMLElement`, events`:String`, handler`:Function`)`:void`
-Attach an event handler function. The handler is executed at most once.
+Добавить функцию обработки события. Обработчик выполняется не более одного раза.
 
-* el — DOM element
-* events — one or more space-separated event types.
-* handler — a function to execute when the event is triggered.
+* el — DOM элемент.
+* events — одно или нескольких разделенных пробелами типов событий.
+* handler — функция обработчик события.
 
 ---
 
 <a name="FileAPI.event.dnd"></a>
 ### dnd(el`:HTMLElement`, hover`:Function`, handler`:Function`)`:void`
-Attach an drag and drop event handler function.
+Добавить функцию обработки событий `drag` и `drop`.
 
-* el — drop zone
-* hover — `dragenter` and `dragleave` listener
-* handler — `drop` event handler.
+* el — DOM элемент
+* hover — `dragenter` и `dragleave` слушатель
+* handler — обработчик события `drop`
 
 ```js
 var el = document.getElementById('dropzone');
@@ -627,11 +626,11 @@ FileAPI.event.dnd(el, function (over){
 	el.style.backgroundColor = over ? '#f60': '';
 }, function (files){
 	if( files.length ){
-		// Upload their.
+		// Загружаем их.
 	}
 });
 
-// or jQuery
+// или jQuery
 $('#dropzone').dnd(hoverFn, dropFn);
 ```
 
@@ -639,11 +638,11 @@ $('#dropzone').dnd(hoverFn, dropFn);
 
 <a name="FileAPI.event.dnd.off"></a>
 ### dnd.off(el`:HTMLElement`, hover`:Function`, handler`:Function`)`:void`
-Remove an drag and drop event handler function.
+Удалить функцию обработки событий `drag` и `drop`.
 
-* el — drop zone
-* hover — `dragenter` and `dragleave` listener
-* handler — `drop` event handler.
+* el — DOM элемент
+* hover — `dragenter` и `dragleave` слушатель
+* handler — обработчик события `drop`
 
 ```js
 // Native
@@ -657,12 +656,12 @@ $('#dropzone').dndoff(hoverFn, dropFn);
 
 <a name="FileAPI.Image"></a>
 ## FileAPI.Image
-Class for working with images
+Класс для работы с изображениями
 
 ### constructor(file`:Object`)`:void`
-The constructor takes a single argument, the `File` object.
+Конструктор получает только один параметр, файл.
 
-* file — the `File` object
+* file — файл изображения
 
 ```js
 FileAPI.Image(imageFile).get(function (err/**String*/, img/**HTMLElement*/){
@@ -675,10 +674,10 @@ FileAPI.Image(imageFile).get(function (err/**String*/, img/**HTMLElement*/){
 ---
 
 ### crop(width`:Number`, height`:Number`)`:FileAPI.Image`
-Crop image by width and height.
+Кроп изображения по ширине и высоте.
 
-* width — new image width
-* height — new image height
+* width — новая ширина изображения
+* height — новая высота изображения
 
 ```js
 FileAPI.Image(imageFile)
@@ -690,10 +689,10 @@ FileAPI.Image(imageFile)
 ```
 
 ### crop(x`:Number`, y`:Number`, width`:Number`, height`:Number`)`:FileAPI.Image`
-Crop image by x, y, width and height.
+Кроп изображения по ширине и высоте, а также смещению по x и y.
 
-* x — offset from the top corner
-* y — offset from the left corner
+* x — смещение относительно по x левого угла
+* y — смещение относительно по y левого угла
 
 ```js
 FileAPI.Image(imageFile)
@@ -707,11 +706,11 @@ FileAPI.Image(imageFile)
 ---
 
 ### resize(width`:Number`, height`:Number`[, type`:String`])`:FileAPI.Image`
-Resize image.
+Ресайз.
 
-* width — new image width
-* height — new image height
-* type — enum: `min`, `max`, `preview`. By default `undefined`.
+* width — новая ширина
+* height — новая высота
+* type — enum: `min`, `max`, `preview`. По умолчанию `undefined`.
 
 ```js
 FileAPI.Image(imageFile)
@@ -721,7 +720,7 @@ FileAPI.Image(imageFile)
 	})
 ;
 
-// Resize image on by max side.
+// По большей стороне
 FileAPI.Image(imageFile)
 	.resize(320, 240, 'max')
 	.get(function (err/**String*/, img/**HTMLElement*/){
@@ -733,10 +732,10 @@ FileAPI.Image(imageFile)
 ---
 
 ### preview(width`:Number`[, height`:Number`])`:FileAPI.Image`
-Crop and resize image.
+Кроп и ресайз изображения.
 
-* width — new image width
-* height — new image height
+* width — новая ширина
+* height — новая высота
 
 ```js
 FileAPI.Image(imageFile)
@@ -750,9 +749,9 @@ FileAPI.Image(imageFile)
 ---
 
 ### rotate(deg`:Number`)`:FileAPI.Image`
-Rotate image.
+Поворот.
 
-* deg — rotation angle in degrees
+* deg — угол поворота в градусах
 
 ```js
 FileAPI.Image(imageFile)
@@ -766,15 +765,15 @@ FileAPI.Image(imageFile)
 ---
 
 ### filter(callback`:Function`)`:FileAPI.Image`
-Apply filter function. Only `HTML5`.
+Применить фильтр функцию. Только `HTML5`.
 
-* callback — takes two arguments, `canvas` element and `done` method.
+* callback — принимает два рагумента, `canvas` элемент и метод `done`.
 
 ```js
 FileAPI.Image(imageFile)
 	.filter(function (canvas/**HTMLCanvasElement*/, doneFn/**Function*/){
-		// bla-bla-lba
-		doneFn();
+		// бла-бла-бла
+		doneFn(); // вызываем по завершению
 	})
 	.get(function (err/**String*/, img/**HTMLElement*/){
 
@@ -786,9 +785,9 @@ FileAPI.Image(imageFile)
 ---
 
 ### filter(name`:String`)`:FileAPI.Image`
-Uses [CamanJS](http://camanjs.com/), include it before FileAPI library.
+Используется [CamanJS](http://camanjs.com/), подключите его перед библиотекой FileAPI.
 
-* name — CamanJS filter name (custom or preset)
+* name — название CamanJS фильтра (произвольный, либо предустановленный)
 
 ```js
 Caman.Filter.register("my-funky-filter", function () {
@@ -796,7 +795,7 @@ Caman.Filter.register("my-funky-filter", function () {
 });
 
 FileAPI.Image(imageFile)
-	.filter("my-funky-filter") // or .filter("vintage")
+	.filter("my-funky-filter") // или .filter("vintage")
 	.get(function (err/**String*/, img/**HTMLElement*/){
 
 	})
@@ -806,17 +805,17 @@ FileAPI.Image(imageFile)
 ---
 
 ### overlay(images`:Array`)`:FileAPI.Image`
-Add overlay images, eg: watermark.
+Добавить наложение, например: водяной знак.
 
-* images — array of overlays
+* images — массив наложений
 
 ```js
 FileAPI.Image(imageFile)
 	.overlay([
-		// Left corner.
+		// Левый угл.
 		{ x: 10, y: 10, w: 100, h: 10, src: '/i/watermark.png' },
 
-		// Right bottom corner.
+		// Правый нижний угл.
 		{ x: 10, y: 10, src: '/i/watermark.png', rel: FileAPI.Image.RIGHT_BOTTOM }
 	])
 	.get(function (err/**String*/, img/**HTMLElement*/){
@@ -828,31 +827,31 @@ FileAPI.Image(imageFile)
 ---
 
 ### get(fn`:Function`)`:FileAPI.Image`
-Get the final image.
+Получить итоговое изображение.
 
-* fn — complete callback
+* fn — функция обратного вызова
 
 ---
 
 
 <a name="const" data-name="Сonst"></a>
-## Сonstants
+## Константы
 
 <a name="FileAPI.KB"></a>
 ### FileAPI.KB`:Number`
-1024 bytes
+1024 байт
 
 <a name="FileAPI.MB"></a>
 ### FileAPI.MB`:Number`
-1048576 bytes
+1048576 байт
 
 <a name="FileAPI.GB"></a>
 ### FileAPI.GB`:Number`
-1073741824 bytes
+1073741824 байт
 
 <a name="FileAPI.TB"></a>
 ### FileAPI.TB`:Number`
-1.0995116e+12 bytes
+1.0995116e+12 байт
 
 ---
 
@@ -861,76 +860,76 @@ Get the final image.
 
 <a name="FileAPI.each"></a>
 ### FileAPI.each(obj`:Object|Array`, callback`:Function`[, thisObject`:Mixed`])`:void`
-Iterate over a object or array, executing a function for each matched element.
+Перебор объект или массив, выполняя функцию для каждого элемента.
 
-* obj — array or object
-* callback — a function to execute for each element.
-* thisObject — object to use as `this` when executing `callback`.
+* obj — массив или объект
+* callback — функция, выполняется для каждого элемента.
+* thisObject — объект для использования в качестве `this` при выполнении `callback`.
 
 --
 
 <a name="FileAPI.extend"></a>
 ### FileAPI.extend(dst`:Object`, src`:Object`)`:Object`
-Merge the contents of two objects together into the first object.
+Объединить содержимое двух объектов вместе.
 
-* dst — an object that will receive the new properties
-* src — an object containing additional properties to merge in.
+* dst — объект, который получит новые свойства
+* src — объект, содержащий дополнительные свойства для объединения
 
 --
 
 <a name="FileAPI.filter"></a>
 ### FileAPI.filter(array`:Array`, callback`:Function`[, thisObject`:Mixed`)`:Object`
-Creates a new array with all elements that pass the test implemented by the provided function.
+Создает новый массив со всеми элементами, которые соответствуют условиям.
 
-* array — original Array
-* callback — Function to test each element of the array.
-* thisObject — object to use as `this` when executing `callback`.
+* array — оригинальный массив
+* callback — функция для проверки каждого элемента массива.
+* thisObject — объект для использования в качестве `this` при выполнении `callback`.
 
 ---
 
 <a name="support"><a/>
 ## Support
 <ul>
-	<li>Multiupload: all browsers that support HTML5 or Flash</li>
-	<li>Drag'n'Drop upload: files (HTML5) & directories (Chrome 21+)</li>
-	<li>Chunked file upload (HTML5)</li>
-	<li>Upload one file: all browsers</li>
+	<li>Multiupload: все браузеры поддерживающие HTML5 или Flash</li>
+	<li>Drag'n'Drop загрузка: файлы (HTML5) и директории (Chrome 21+)</li>
+	<li>Загрузка файлов по частям, только HTML5</li>
+	<li>Загрузка одно файла: все браузеры, даже очень старые</li>
 	<li>
-		Working with Images: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 5.4+
+		Работа с изображениями: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 5.4+
 		<ul>
-			<li>crop, resize, preview & rotate (HTML5 or Flash)</li>
-			<li>auto orientation by exif (HTML5, if include FileAPI.exif.js or Flash)</li>
+			<li>crop, resize, preview & rotate (HTML5 или Flash)</li>
+			<li>авто ориентация на основе EXIF (HTML5, если подключен FileAPI.exif.js или Flash)</li>
 		</ul>
 	</li>
 </ul>
 
 <a name="FileAPI.support.html5"></a>
 ### FileAPI.support.html5`:Boolean`
-HTML5 borwser support
+Поддержка HTML5.
 
 <a name="FileAPI.support.cors"></a>
 ### FileAPI.support.cors`:Boolean`
-This cross-origin resource sharing is used to enable cross-site HTTP requests.
+Поддержка кроссдоменных запросов.
 
 <a name="FileAPI.support.dnd"></a>
 ### FileAPI.support.dnd`:Boolean`
-Drag'n'drop events support.
+Поддержка Drag'n'drop событий.
 
 <a name="FileAPI.support.flash"></a>
 ### FileAPI.support.flash`:Boolean`
-Availability Flash plugin.
+Наличие Flash плагина.
 
 <a name="FileAPI.support.canvas"></a>
 ### FileAPI.support.canvas`:Boolean`
-Canvas support.
+Поддержка canvas.
 
 <a name="FileAPI.support.dataURI"></a>
 ### FileAPI.support.dataURI`:Boolean`
-Support dataURI as src for image.
+Поддержка dataURI в качестве src для изображений.
 
 <a name="FileAPI.support.chunked"></a>
 ### FileAPI.support.chunked`:Boolean`
-Support chuncked upload.
+Возможность загрузки по частям.
 
 ---
 
@@ -939,8 +938,8 @@ Support chuncked upload.
 
 <a name="flash.settings"></a>
 ### Settings
-Flash settings.
-It is advisable to place flash on the same server where the files will be uploaded.
+Настройки для flash части.
+Желательно, разместить flash на том же сервере, куда будут загружаться файлы.
 
 ```html
 <script>
@@ -962,8 +961,8 @@ It is advisable to place flash on the same server where the files will be upload
 
 <a name="crossdomain.xml"></a>
 ### crossdomain.xml
-Necessarily make this file on the server.
-Do not forget to replace `youdomain.com` on the name of your domain.
+Обязательно создайте этот файл на сервере, куда будут загружаться файлы.
+Не забудьте заменить `youdomain.com` на имя вашего домена.
 
 ```xml
 <?xml version="1.0"?>
@@ -980,7 +979,7 @@ Do not forget to replace `youdomain.com` on the name of your domain.
 
 <a name="flash.request"></a>
 ### request
-The following sample HTTP POST request is sent from Flash Player to a server-side script if no parameters are specified:
+Пример запроса, который отправляет flash player.
 
 ```xml
 POST /server/ctrl.php HTTP/1.1
@@ -1016,7 +1015,7 @@ Submit Query
 
 <a name="server.CORS"></a>
 ### CORS
-Enable CORS.
+Включение CORS.
 
 ```php
 <?
@@ -1028,9 +1027,6 @@ Enable CORS.
 
     // A comma-separated list of domains
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
-
-	// Allow cookie
-	header('Access-Control-Allow-Credentials: true');
 
     if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
         exit;
@@ -1045,35 +1041,28 @@ Enable CORS.
 
 <a name="server.chunked"></a>
 ### Chunked file upload
-Client and server communicate to each other using the following HTTP headers and status codes.<br/>
-Client explicitly sets the following headers:<br/>
+Всё общение между клиентом и сервером ведётся на уровне HTTP заголовков.<br/>
+Для передачи отдельного chunk'а клиент устанавливает заголовки:<br/>
 <ul>
-	<li>Content-Range: bytes &lt;start-offset&gt;-&lt;end-offset&gt;/&lt;total&gt;</li>
-	<li>Content-Disposition: attachment; filename=&lt;file-name&gt;</li>
+	<li>Content-Range: bytes &lt;start-offset>-&lt;end-offset>/&lt;total></li>
+	<li>Content-Disposition: attachment; filename=&lt;file-name></li>
 </ul>
-Any other headers are set by a target browser and are not used by client. Library does not provide any facilities to track a file uniqueness across requests, it's left on developer's consideration.<br/>
-Response codes:
+Другие заголовки не используются, отслеживание уникальности имени передаваемого файла не реализуется и оставлено на усмотрение разработчика.<br/>
+В ответ на передаваемый chunk сервер может отвечать следующими кодами:<br/>
 <ul>
-	<li>200 - last chunk is uploaded</li>
-	<li>201 - chunk is successfully saved</li>
-	<li>416 - range is not acceptable error, recoverable</li>
-	<li>500 - server error, recoverable</li>
+	<li>200, 201 — chunk сохранён успешно</li>
+	<li>416, 500 — восстановимая ошибка</li>
 </ul>
-For recoverable errors server tries to resend chunk `chunkUploadRetry` times then fails.<br/
-Response headers:
-<ul>
-	<li>X-Last-Known-Byte: int, library tries to resend chunk from the given offset. Applicable to response codes 200 and 416</li>
-</ul>
-All the other codes - fatal error, user's involvement is recommend.
+Остальные коды — фатальная ошибка, требуется вмешательство пользователя.
+
+
 
 ---
 
-<a name="buttons.examples"></a>
 ## Buttons examples
 
-<a name="buttons.examples.base"></a>
 ### Base
-Simple input[type="file"]
+Простой input[type="file"]
 
 ```html
 <span class="js-fileapi-wrapper" style="position: relative; display: inline-block;">
@@ -1083,9 +1072,8 @@ Simple input[type="file"]
 
 ---
 
-<a name="buttons.examples.button"></a>
 ### Button
-Stylized button.
+Стилизованная кнопка.
 
 ```html
 <style>
@@ -1129,13 +1117,10 @@ Stylized button.
 </div>
 ```
 
-
 ---
 
-
-<a name="buttons.examples.link"></a>
 ### Link
-Button like link.
+Кнопка в виде ссылки
 
 ```html
 <style>
@@ -1177,103 +1162,5 @@ Button like link.
 ```
 
 
----
 
 
-<a name="Changelog"></a>
-## Changelog
-
-### 2.0.0
-<ul>
-	<li>+ FileAPI.Camera (HTML5 and Flash fallback)</li>
-	<li>+ jquery.fileapi.js, see <a href="http://rubaxa.github.io/jquery.fileapi/">demo</a></li>
-	<li>+ npm support</li>
-	<li>+ grunt support</li>
-	<li>+ requirejs support</li>
-	<li>+ [#80](https://https://github.com/mailru/FileAPI/issues/80): FileAPI.Image.fn.overlay</li>
- 	<li>`imageTransform` — now supports: `crop`, `type`, `quality` and `overlay` properties.</li>
-	<li>Improved the documentation</li>
-	<li>[#121](https://github.com/mailru/FileAPI/issues/121): + FileAPI.`postNameConcat:Function(name, idx)`</li>
-	<li>[#116](https://github.com/mailru/FileAPI/issues/116): + `cache:false` option for FileAPI.upload</li>
-</ul>
-
-
-### 1.2.6
-<ul>
-	<li>[#91](https://github.com/mailru/FileAPI/issues/91): replace `new Image` to `FileAPI.newImage`</li>
-	<li>+ FileAPI.withCredentials: true</li>
-	<li>[#90](https://github.com/mailru/FileAPI/issues/90): Fixed `progress` event</li>
-	<li>[#105](https://github.com/mailru/FileAPI/issues/105): Fixed `image/jpg` -> `image/jpeg`</li>
-	<li>[#108](https://github.com/mailru/FileAPI/issues/108): Check width/height before resize by type(min/max)</li>
-</ul>
-
-
-### 1.2.5
-<ul>
-	<li>[#86](https://github.com/mailru/FileAPI/issues/86): Smarter upload recovery</li>
-	<li>[#87](https://github.com/mailru/FileAPI/issues/87): Fixed upload files into browsers that do not support FormData</li>
-	<li>Fixed support "accept" attribute for Flash.</li>
-	<li>Fixed detection of HTML5 support for FireFox 3.6</li>
-	<li> + FileAPI.html5 option, default "true"</li>
-</ul>
-
-
-### 1.2.4
-<ul>
-	<li>Fixed auto orientation image by EXIF (Flash)</li>
-	<li>Fixed image dimensions after rotate (Flash)</li>
-	<li>[#82](https://github.com/mailru/FileAPI/issues/82): "undefined" data-fields cause exceptions</li>
-	<li>[#83](https://github.com/mailru/FileAPI/issues/83): Allow requests without files</li>
-	<li>[#84](https://github.com/mailru/FileAPI/pull/84): Fixed connection abort when waiting for connection recovery</li>
-</ul>
-
-
-### 1.2.3
-<ul>
-	<li>[#77](https://github.com/mailru/FileAPI/pull/77): Fixed flash.abort(), [#75](https://github.com/mailru/FileAPI/issues/75)</li>
-	<li>- `FileAPI.addMime`</li>
-	<li>+ `FileAPI.accept` — fallback for flash.</li>
-</ul>
-
-
-### 1.2.2
-<ul>
-	<li>[#67](https://github.com/mailru/FileAPI/pull/67): Added correct httpStatus for upload fail, [#62](https://github.com/mailru/FileAPI/pull/68)</li>
-	<li>[#68](https://github.com/mailru/FileAPI/pull/68) Added "Content-Type" for chunked upload, [#65](https://github.com/mailru/FileAPI/pull/65)</li>
-	<li>[#69](https://github.com/mailru/FileAPI/issues/69): Fixed network down recovery</li>
-	<li>Fixed progress event, [#66](https://github.com/mailru/FileAPI/issues/66)</li>
-	<li>Increase flash stage size, [#73](https://github.com/mailru/FileAPI/pull/73)</li>
-	<li>- array index from POST-param "name", [#72](https://github.com/mailru/FileAPI/issues/72)</li>
-	<li>- dependency on FileAPI.Image for FileAPI.Flash</li>
-</ul>
-
-
-### 1.2.1
-<ul>
-	<li>[#64](https://github.com/mailru/FileAPI/issues/64): Bufixed for [#63](https://github.com/mailru/FileAPI/issues/63)</li>
-</ul>
-
-
-### 1.2.0
-<ul>
-	<li>[#57](https://github.com/mailru/FileAPI/issues/57): Chunked file upload</li>
-</ul>
-
-
-### 1.1.0
-<ul>
-	<li>[#54](https://github.com/mailru/FileAPI/issues/54): added `FileAPI.flashUrl` and `FileAPI.flashImageUrl`</li>
-</ul>
-
-
-### 1.0.1
-<ul>
-	<li>[#51](https://github.com/mailru/FileAPI/issues/51): remove circular references from `file-objects` (Flash transport)</li>
-	<li>added `changelog`</li>
-</ul>
-
-
-### 1.0.0
-<ul>
-	<li>first release</li>
-</ul>

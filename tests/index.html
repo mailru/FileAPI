@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<title>FileAPI :: Tests</title>
+
+	<script>
+		var FileAPI = {
+			  html5: true
+			, debug: false
+			, staticPath: '../dist/'
+		};
+	</script>
+
+	<script src="../dist/FileAPI.js"></script>
+	<script src="../plugins/FileAPI.id3.js"></script>
+	<script src="../plugins/FileAPI.exif.js"></script>
+
+	<link rel="stylesheet" href="./qunit/qunit.css"/>
+</head>
+</body>
+
+	<div id="qunit"></div>
+
+	<input id="startBtn" type="button" value="  START  " style="font-size: 20px;" />
+
+	<div xid="qunit-fixture" style="margin: 30px;">
+			<div id="web-cam" style="width: 320px; height: 240px; float: right;"></div>
+
+		<form name="upload">
+			<div class="js-fileapi-wrapper">1px.gif -- <input name="1px.gif" type="file" /></div>
+			<div class="js-fileapi-wrapper">hello.txt -- <input name="hello.txt" type="file" /></div>
+			<div class="js-fileapi-wrapper">image.jpg -- <input name="image.jpg" type="file" /></div>
+			<div class="js-fileapi-wrapper">dino.png -- <input name="dino.png" type="file" /></div>
+			<div class="js-fileapi-wrapper">multiple -- <input name="multiple" multiple type="file" /></div>
+		</form>
+	</div>
+
+
+	<script src="./qunit/qunit.js"></script>
+	<script src="tests.js"></script>
+
+</body>
+</html>
