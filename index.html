@@ -1,5 +1,5 @@
 <!doctype html>
-<html xmlns:x="http://xtpl.ru/">
+<html>
 <head>
 	<meta charset="utf-8"/>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
@@ -21,8 +21,8 @@
 
 	<script x-ctrl="main" type="text/xtpl-xml">
 		<div id="sidebar" class="sidebar">
-			<div>
-				<div class="menu">
+			<div class="menu">
+				<div>
 					<ul x:if="ctx.lang == 'ru'">
 						<li><a href="https://github.com/mailru/FileAPI">Репозиторий на GitHub</a></li>
 						<li><a href="http://rubaxa.github.io/jquery.fileapi/">jQuery Plugin</a></li>
@@ -33,7 +33,9 @@
 						<li><a href="./examples/caman.html">Пример #5: CamanJS</a></li>
 						<li><a href="#en/{{ctx.relpath}}">English version</a></li>
 					</ul>
+				</div>
 
+				<div>
 					<ul x:if="ctx.lang != 'ru'">
 						<li><a href="https://github.com/mailru/FileAPI">GitHub repository</a></li>
 						<li><a href="http://rubaxa.github.io/jquery.fileapi/">jQuery Plugin</a></li>
@@ -45,7 +47,9 @@
 						<li><a href="#ru/{{ctx.relpath}}">Русская версия</a></li>
 					</ul>
 				</div>
+			</div>
 
+			<div>
 				<div class="menu" x:repeat="item in ctx.api">
 					<a href="#{{ctx.lang}}/{{item.label}}" class="menu__name">{{item['class']}}</a>
 					<ul>
@@ -59,8 +63,9 @@
 						</li>
 					</ul>
 				</div>
-				<div style="height: 5px;"></div>
 			</div>
+
+			<div style="height: 5px;"></div>
 		</div>
 
 		<div>
@@ -70,81 +75,92 @@
 			<div class="content">
 				<div class="logo"></div>
 
-				<div x:repeat="item in ctx.api">
-					<a name="{{ctx.lang}}/{{item.label}}"></a>
+				<div>
+					<div x:repeat="item in ctx.api">
+						<a name="{{ctx.lang}}/{{item.label}}"></a>
 
-					<h3>{{item['class']}}</h3>
+						<h3>{{item['class']}}</h3>
 
-					<div style="margin-bottom: 30px;">
-						<div>
-							{*item.descr[ctx.lang] | markdown*}
-						</div>
-						<br/>
+						<div style="margin-bottom: 30px;">
+							<div>{*item.descr[ctx.lang] | markdown*}</div>
+							<br/>
 
-						<div style="margin-left: 20px;">
-							<div x:repeat="prop in item.props">
-								<a name="{{ctx.lang}}/{{prop.label}}"></a>
-								<h4 class="fn" data-anchor="prop">
-									<x:value>prop.name</x:value>
-									<x:if test="prop.type != -1">
-										<x:text value=": "/>
-										<span class="type">{{prop.type}}</span>
-									</x:if>
-								</h4>
+							<div style="margin-left: 20px;">
+								<div>
+									<div x:repeat="prop in item.props">
+										<a name="{{ctx.lang}}/{{prop.label}}"></a>
 
-								<div class="descr">
-									{*prop.descr[ctx.lang] | markdown*}
+										<h4 class="fn" data-anchor="prop">
+											<span><x:value>prop.name</x:value></span>
+											<x:if test="prop.type != -1">
+												<x:text value=": "/>
+												<span class="type">{{prop.type}}</span>
+											</x:if>
+										</h4>
+
+										<div class="descr">{*prop.descr[ctx.lang] | markdown*}</div>
+
+										<div x:if="prop.code" x:highlight="prop.code.source[ctx.lang]"></div>
+										<div x:if="prop.code" style="height: 20px;"></div>
+									</div>
 								</div>
 
-								<div x:if="prop.code" x:highlight="prop.code.source[ctx.lang]"></div>
-								<div x:if="prop.code" style="height: 20px;"></div>
-							</div>
+								<div>
+									<div x:repeat="fn in item.fn">
+										<div x:repeat="variant in fn.variants">
+											<a name="{{ctx.lang}}/{{fn.label}}"></a>
 
-							<div x:repeat="fn in item.fn">
-								<div x:repeat="variant in fn.variants">
-									<a name="{{ctx.lang}}/{{fn.label}}"></a>
+											<h4 data-anchor="fn" class="fn">
+												<span class="fn__name">{{fn.name}}</span>
+												<span class="fn__args">
+													<span>( </span>
+													<span>
+														<span x:repeat="(idx, arg) in variant.args">
+															<span>
+																<x:if test="arg.optional">
+																	<span class="fn__arg__optional">
+																		<span>[</span>
+																		<span x:if="idx">, </span>
+																		<span>{{arg.name}}:</span>
+																		<span class="type">{{arg.type}}</span>
+																		<span>]</span>
+																	</span>
+																</x:if>
+															</span>
 
-									<h4 data-anchor="fn" class="fn">
-										<span class="fn__name">{{fn.name}}</span>
-										<span class="fn__args">
-											<span>( </span>
-											<span x:repeat="(idx, arg) in variant.args">
-												<x:if test="arg.optional">
-													<span class="fn__arg__optional">
-														<span>[</span>
-														<span x:if="idx">, </span>
-														<span>{{arg.name}}:</span>
-														<span class="type">{{arg.type}}</span>
-														<span>]</span>
+															<span>
+																<x:if test="!arg.optional">
+																	<span x:if="idx">, </span>
+																	<span>{{arg.name}}:</span>
+																	<span class="type">{{arg.type}}</span>
+																</x:if>
+															</span>
+														</span>
 													</span>
-												</x:if>
+													<span> ):</span>
+												</span>
+												<span class="type">{{fn.returns}}</span>
+											</h4>
 
-												<x:if test="!arg.optional">
-													<span x:if="idx">, </span>
-													<span>{{arg.name}}:</span>
-													<span class="type">{{arg.type}}</span>
-												</x:if>
-											</span>
-											<span> ):</span>
-										</span>
-										<span class="type">{{fn.returns}}</span>
-									</h4>
+											<div class="descr">
+												{*variant.descr[ctx.lang] | markdown*}
+											</div>
 
-									<div class="descr">
-										{*variant.descr[ctx.lang] | markdown*}
+											<ul>
+												<li x:repeat="arg in variant.args">
+													<b>{{arg.name}}</b>
+													<span> — </span>
+													<span>{{fn.args[arg.name][ctx.lang]}}</span>
+												</li>
+											</ul>
+
+											<div>
+												<div x:if="fn.code" x:highlight="fn.code.source[ctx.lang]"></div>
+											</div>
+
+											<div style="height: 20px;"></div>
+										</div>
 									</div>
-
-									<ul>
-										<li x:repeat="arg in variant.args">
-											<b>{{arg.name}}</b>
-											<span> — </span>
-											<span>{{fn.args[arg.name][ctx.lang]}}</span>
-										</li>
-									</ul>
-
-									<div x:if="fn.code" x:highlight="fn.code.source[ctx.lang]"></div>
-
-									<div style="height: 20px;"></div>
 								</div>
 							</div>
 						</div>
@@ -211,20 +227,22 @@
 			};
 
 
-			$(window).bind('hashchange', function (){
+			$(window).bind('hashchange', function (evt, force){
 				var href = location.toString().split('#').pop();
 				var lang = (href.match(_rlang) || [,ctx.lang])[1];
 
 				ctx.lang = lang;
 				ctx.relpath = href.replace(/^.+\//, '');
 
-				ctx.$apply(_updScroll);
-			}).trigger('hashchange');
-
-
+				if( !force ){
+					ctx.$apply(_updScroll);
+				}
+			}).trigger('hashchange', true);
+//
+//
 			$.getJSON('./statics/docs.json?ver='+FileAPI.version, function (json){
 				ctx.api = json;
-				ctx.$apply(_updScroll);
+				ctx.$apply();
 			});
 
 			window.ctx = ctx;
