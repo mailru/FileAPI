@@ -1,4 +1,4 @@
-<a name="install" data-name="Installation"></a>
+﻿<a name="install" data-name="Installation"></a>
 ## Installation, testing, assembling
 `npm install fileapi`<br/>
 `cd fileapi`<br/>
@@ -936,6 +936,8 @@ Support chuncked upload.
 
 <a name="flash"></a>
 ## Flash
+Flash is very "buggy" thing :]
+Therefore, in the event of a successful uploading `http status` should be only `200 OK`.
 
 <a name="flash.settings"></a>
 ### Settings

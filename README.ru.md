@@ -935,6 +935,9 @@ FileAPI.Image(imageFile)
 
 <a name="flash"></a>
 ## Flash
+Флеш очень "глючная" штука :]
+Поэтому в случае успешной загрузки http status должен быть только `200 OK`.
+
 
 <a name="flash.settings"></a>
 ### Settings
