@@ -58,25 +58,27 @@ module.exports = function (grunt){
 
 			all: {
 				src: [
-					  'lib/canvas-to-blob.js'
-					, 'lib/FileAPI.core.js'
+					  'lib/FileAPI.core.js'
 					, 'lib/FileAPI.Image.js'
 					, 'lib/FileAPI.Form.js'
 					, 'lib/FileAPI.XHR.js'
 					, 'lib/FileAPI.Camera.js'
 					, 'lib/FileAPI.Flash.js'
+					, 'lib/load-image-ios.js'
+					, 'lib/canvas-to-blob.js'
 				],
 				dest: 'dist/<%= pkg.name %>.js'
 			},
 
 			html5: {
 				src: [
-					  'lib/canvas-to-blob.js'
-					, 'lib/FileAPI.core.js'
+					  'lib/FileAPI.core.js'
 					, 'lib/FileAPI.Image.js'
 					, 'lib/FileAPI.Form.js'
 					, 'lib/FileAPI.XHR.js'
 					, 'lib/FileAPI.Camera.js'
+					, 'lib/load-image-ios.js'
+					, 'lib/canvas-to-blob.js'
 				],
 				dest: 'dist/<%= pkg.name %>.html5.js'
 			}
