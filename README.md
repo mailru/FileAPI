@@ -1285,6 +1285,7 @@ Button like link.
 	<li>+ [#80](https://https://github.com/mailru/FileAPI/issues/80): FileAPI.Image.fn.overlay</li>
  	<li>`imageTransform` — now supports: `crop`, `type`, `quality` and `overlay` properties.</li>
 	<li>Improved the documentation</li>
+	<li>+iOS fix (https://github.com/blueimp/JavaScript-Load-Image)</li>
 	<li>[#121](https://github.com/mailru/FileAPI/issues/121): + FileAPI.`postNameConcat:Function(name, idx)`</li>
 	<li>[#116](https://github.com/mailru/FileAPI/issues/116): + `cache:false` option for FileAPI.upload</li>
 </ul>
