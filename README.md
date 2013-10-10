@@ -15,6 +15,7 @@
 <ul>
 	<li><a href="http://mailru.github.io/FileAPI/examples/demo.html">DEMO</a></li>
 	<li><a href="http://mailru.github.io/FileAPI/examples/userpic.html">UserPic</a></li>
+	<li><a href="http://mailru.github.io/FileAPI/examples/thumbnails.html">Thumbnails</a></li>
 	<li><a href="http://mailru.github.io/FileAPI/examples/watermark.html">Watermark</a><sup>2+</sup></li>
 	<li><a href="http://mailru.github.io/FileAPI/examples/webcam.html">WebCam</a><sup>2+</sup></li>
 	<li><a href="http://mailru.github.io/FileAPI/examples/caman.html">Filters/CamanJS</a><sup>2+</sup></li>
@@ -694,6 +695,7 @@ All the other codes - fatal error, user's involvement is recommend.
 
 
 ## Changelog
+ * + iOS fix (https://github.com/blueimp/JavaScript-Load-Image)
  * [#121](https://github.com/mailru/FileAPI/issues/121): + FileAPI.`postNameConcat:Function(name, idx)`
  * [#116](https://github.com/mailru/FileAPI/issues/116): + `cache:false` option for FileAPI.upload
 
