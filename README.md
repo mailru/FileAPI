@@ -3,7 +3,7 @@
 
 <p align="center">
 
-    <h2>Available is a <a href="http://mailru.github.io/FileAPI/">version 2.0 beta</a></h2>
+    <h2>Available is a <a href="https://github.com/mailru/FileAPI/tree/gh-pages">version 2.0 beta</a></h2>
 
 </p>
 <br/>
