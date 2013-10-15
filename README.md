@@ -1,4 +1,4 @@
-<a name="install" data-name="Installation"></a>
+﻿<a name="install" data-name="Installation"></a>
 ## Installation, testing, assembling
 `npm install fileapi`<br/>
 `cd fileapi`<br/>
@@ -23,8 +23,14 @@ If you need a CORS, then edit the `crossdomain.xml` and put it in the root of re
 	<script>
 		window.FileAPI = {
 			  debug: false   // debug mode, see Console
-			, cors: true     // if used CORS
+			, cors: false    // if used CORS, set `true`
+			, media: false   // if used WebCam, set `true`
 			, staticPath: '/js/FileAPI/dist/' // path to '*.swf'
+			, postNameConcat: function (name, idx){
+				// Default: object[foo]=1&object[bar][baz]=2
+				// .NET: https://github.com/mailru/FileAPI/issues/121#issuecomment-24590395
+				return	name + (idx != null ? '['+ idx +']' : '');
+			}
 		};
 	</script>
 	<script src="/js/FileAPI/dist/FileAPI.min.js"></script>
@@ -674,6 +680,7 @@ FileAPI.Image(imageFile).get(function (err/**String*/, img/**HTMLElement*/){
 
 ---
 
+<a name="FileAPI.Image.crop"></a>
 ### crop(width`:Number`, height`:Number`)`:FileAPI.Image`
 Crop image by width and height.
 
@@ -706,6 +713,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.resize"></a>
 ### resize(width`:Number`, height`:Number`[, type`:String`])`:FileAPI.Image`
 Resize image.
 
@@ -732,6 +740,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.preview"></a>
 ### preview(width`:Number`[, height`:Number`])`:FileAPI.Image`
 Crop and resize image.
 
@@ -749,6 +758,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.rotate"></a>
 ### rotate(deg`:Number`)`:FileAPI.Image`
 Rotate image.
 
@@ -765,6 +775,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.filter"></a>
 ### filter(callback`:Function`)`:FileAPI.Image`
 Apply filter function. Only `HTML5`.
 
@@ -805,6 +816,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.overlay"></a>
 ### overlay(images`:Array`)`:FileAPI.Image`
 Add overlay images, eg: watermark.
 
@@ -827,6 +839,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.get"></a>
 ### get(fn`:Function`)`:FileAPI.Image`
 Get the final image.
 
@@ -834,6 +847,83 @@ Get the final image.
 
 ---
 
+<a name="FileAPI.Camera"></a>
+## FileAPI.Camera
+To work with a webcam, be sure to set `FileAPI.media: true`.
+
+
+<a name="FileAPI.Camera.publish"></a>
+### publish(el`:HTMLElement`, options`:Object`, callback`:Function`)`:void`
+Publication of the camera.
+
+* el — target
+* options — { `width: 100%`, `height: 100%`, `start: true` }
+* callback — the first parameter is a possible error, the second instance of FileAPI.Camera
+
+```js
+var el = document.getElementById('cam');
+FileAPI.Camera.publish(el, { width: 320, height: 240 }, function (err, cam/**FileAPI.Camera*/){
+	if( !err ){
+		// The webcam is ready, you can use it.
+	}
+});
+```
+
+---
+
+<a name="FileAPI.Camera.start"></a>
+### start(callback`:Function`)`:void`
+Turn on the camera.
+
+* callback — will be called when the camera ready
+
+```js
+var el = document.getElementById('cam');
+FileAPI.Camera.publish(el, { start: false }, function (err, cam/**FileAPI.Camera*/){
+	if( !err ){
+		// Turn on
+		cam.start(function (err){
+			if( !err ){
+				// The camera is ready for use.
+			}
+		});
+	}
+});
+```
+
+---
+
+<a name="FileAPI.Camera.stop"></a>
+### stop()`:void`
+Turn off the camera.
+
+---
+
+<a name="FileAPI.Camera.shot"></a>
+### shot()`:FileAPI.Image`
+Take a picture with the camera.
+
+```js
+var el = document.getElementById('cam');
+FileAPI.Camera.publish(el, function (err, cam/**FileAPI.Camera*/){
+	if( !err ){
+		var shot = cam.shot(); // take a picture
+
+		// create thumbnail 100x100
+		shot.preview(100).get(function (err, img){
+			previews.appendChild(img);
+		});
+
+		// and/or
+		FileAPI.upload({
+			url: '...',
+			files: { cam: shot
+		});
+	}
+});
+```
+
+---
 
 <a name="const" data-name="Сonst"></a>
 ## Сonstants
@@ -936,6 +1026,8 @@ Support chuncked upload.
 
 <a name="flash"></a>
 ## Flash
+Flash is very "buggy" thing :]
+Therefore, in the event of a successful uploading `http status` should be only `200 OK`.
 
 <a name="flash.settings"></a>
 ### Settings
@@ -1193,6 +1285,7 @@ Button like link.
 	<li>+ [#80](https://https://github.com/mailru/FileAPI/issues/80): FileAPI.Image.fn.overlay</li>
  	<li>`imageTransform` — now supports: `crop`, `type`, `quality` and `overlay` properties.</li>
 	<li>Improved the documentation</li>
+	<li>+iOS fix (https://github.com/blueimp/JavaScript-Load-Image)</li>
 	<li>[#121](https://github.com/mailru/FileAPI/issues/121): + FileAPI.`postNameConcat:Function(name, idx)`</li>
 	<li>[#116](https://github.com/mailru/FileAPI/issues/116): + `cache:false` option for FileAPI.upload</li>
 </ul>

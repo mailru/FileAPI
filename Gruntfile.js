@@ -34,6 +34,10 @@ module.exports = function (grunt){
 			}
 		},
 
+		version: {
+			src: 'lib/FileAPI.core.js'
+		},
+
 		qunit: {
 			options: {
 				files: {
@@ -58,25 +62,27 @@ module.exports = function (grunt){
 
 			all: {
 				src: [
-					  'lib/canvas-to-blob.js'
-					, 'lib/FileAPI.core.js'
+					  'lib/FileAPI.core.js'
 					, 'lib/FileAPI.Image.js'
 					, 'lib/FileAPI.Form.js'
 					, 'lib/FileAPI.XHR.js'
 					, 'lib/FileAPI.Camera.js'
 					, 'lib/FileAPI.Flash.js'
+					, 'lib/load-image-ios.js'
+					, 'lib/canvas-to-blob.js'
 				],
 				dest: 'dist/<%= pkg.name %>.js'
 			},
 
 			html5: {
 				src: [
-					  'lib/canvas-to-blob.js'
-					, 'lib/FileAPI.core.js'
+					  'lib/FileAPI.core.js'
 					, 'lib/FileAPI.Image.js'
 					, 'lib/FileAPI.Form.js'
 					, 'lib/FileAPI.XHR.js'
 					, 'lib/FileAPI.Camera.js'
+					, 'lib/load-image-ios.js'
+					, 'lib/canvas-to-blob.js'
 				],
 				dest: 'dist/<%= pkg.name %>.html5.js'
 			}
@@ -104,6 +110,7 @@ module.exports = function (grunt){
 
 
 	// These plugins provide necessary tasks.
+	grunt.loadNpmTasks('grunt-version');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
@@ -113,6 +120,6 @@ module.exports = function (grunt){
 	grunt.loadTasks('./tests/grunt-task/');
 
 	// "npm build" runs these tasks
-	grunt.registerTask('build', ['concat', 'uglify', 'qunit']);
+	grunt.registerTask('build', ['version', 'concat', 'uglify', 'qunit']);
 	grunt.registerTask('default', ['jshint', 'build']);
 };

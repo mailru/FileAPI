@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<!--
+
+
+		~~~ Thumbnails (FileAPI.Image ~~~
+		      (NativeJS + FileAPI)
+
+
+-->
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=1, maximum-scale=1" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<title>FileAPI :: Thumbnails :: example</title>
+
+	<script>
+		// Settings
+		var FileAPI = {
+			  debug: true // debug mode
+			, staticPath: '../dist/'
+		};
+	</script>
+
+	<script src="../dist/FileAPI.js"></script>
+	<script src="../plugins/FileAPI.exif.js"></script>
+
+	<link rel="stylesheet" href="toolkit.css"/>
+	<style>
+		body {
+			font-size: 15px;
+			font-family: "Helvetica Neue";
+		}
+
+		.thumb {
+			float: left;
+			border: 2px solid #ccc;
+			margin: 10px;
+			padding: 2px;
+			position: relative;
+			line-height: 0;
+			z-index: -1;
+		}
+			.thumb label {
+				color: #fff;
+				text-align: center;
+				text-shadow: 0 1px 1px #000;
+				font-weight: bold;
+				top: 45%;
+				left: 0;
+				right: 0;
+				position: absolute;
+			}
+	</style>
+
+</head>
+<body>
+	<div style="left: 0; right: 0; bottom: 0; position: fixed; box-shadow: 0 0 5px rgba(0,0,0,.65); background-color: #f3f3f3;">
+		<div style="padding: 5px 10px 10px">
+			<a href="../">&larr; index</a> |
+			<a href="./demo.html">demo</a> -
+			<a href="./userpic.html">userpic</a> -
+			<b>thumbnails</b> -
+			<a href="./watermark.html">watermark</a> -
+			<a href="./webcam.html">webcam</a> -
+			<a href="./caman.html">caman.js</a>
+		</div>
+	</div>
+
+	<div class="body">
+		<h2>Thumbnails</h2>
+
+		<div style="text-align: center">
+			<div class="js-fileapi-wrapper">
+				<label for="browse" class="btn">Select photo (min 480x320)</label>
+				<input id="browse" type="file" accept="image/*"/>
+			</div>
+
+			<div id="loading" class="loader" style="display: none; position: absolute; left: 45%; top: 30%"></div>
+			<div id="thumbnails" style="margin-top: 30px;"></div>
+
+			<div style="clear: both">&nbsp;<br/><br/><br/></div>
+		</div>
+	</div>
+
+	<script>
+		(function (){
+			var processing = false;
+
+			if( !(FileAPI.support.html5 || FileAPI.support.flash) ){
+				alert('Ooops, your browser does not support Flash and HTML5 :[');
+			}
+
+			function thumb(file, width, height, type){
+				var image = FileAPI.Image(file), label = width+'x'+height, callback;
+
+				if( type ){
+					label += ' ('+type+')';
+					image.resize(width, height, type);
+				} else if( width ){
+					image.preview(width, height);
+				} else {
+					label = 'original';
+				}
+
+				image.get(function (err, img){
+					var el = document.createElement('div');
+					el.innerHTML = '<label>'+label+'</label>';
+					el.className = 'thumb';
+					el.appendChild(img);
+					thumbnails.appendChild(el);
+					callback && callback();
+				});
+
+				return function (then){ callback = then; };
+			}
+
+
+			FileAPI.event.on(browse, 'change', function (evt){
+				var file = FileAPI.getFiles(evt)[0];
+
+				!processing && FileAPI.getInfo(file, function (err, info){
+					if( info.width >= 480 && info.height >= 320 ){
+						processing = true;
+						thumbnails.innerHTML = ''; // clear
+						loading.style.display = '';
+
+						// 100x100
+						thumb(file, 100, 100)(function (){
+							// 320x240
+							thumb(file, 320, 240)(function (){
+								// 480x320 by min side
+								thumb(file, 480, 320, 'min')(function (){
+									// 480x320 by max side
+									thumb(file, 480, 320, 'max')(function (){
+										// Original
+										thumb(file);
+										processing = false;
+										loading.style.display = 'none';
+									});
+								});
+							});
+						});
+					}
+					else {
+						alert('Does not fit, you need more than: '+info.width+'x'+info.height);
+					}
+				});
+			});
+		})();
+	</script>
+</body>
+</html>

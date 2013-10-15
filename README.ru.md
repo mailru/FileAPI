@@ -23,9 +23,15 @@
 ```html
 	<script>
 		window.FileAPI = {
-			  debug: false   // дебаг режим, смотрите Console
-			, cors: true     // если используете CORS
+			  debug: false  // дебаг режим, смотрите Console
+			, cors: false   // если используете CORS -- `true`
+			, media: false  // если используете веб-камеру -- `true`
 			, staticPath: '/js/FileAPI/dist/' // путь к '*.swf'
+			, postNameConcat: function (name, idx){
+				// Default: object[foo]=1&object[bar][baz]=2
+				// .NET: https://github.com/mailru/FileAPI/issues/121#issuecomment-24590395
+				return	name + (idx != null ? '['+ idx +']' : '');
+			}
 		};
 	</script>
 	<script src="/js/FileAPI/dist/FileAPI.min.js"></script>
@@ -673,6 +679,7 @@ FileAPI.Image(imageFile).get(function (err/**String*/, img/**HTMLElement*/){
 
 ---
 
+<a name="FileAPI.Image.crop"></a>
 ### crop(width`:Number`, height`:Number`)`:FileAPI.Image`
 Кроп изображения по ширине и высоте.
 
@@ -705,6 +712,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.resize"></a>
 ### resize(width`:Number`, height`:Number`[, type`:String`])`:FileAPI.Image`
 Ресайз.
 
@@ -731,6 +739,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.preview"></a>
 ### preview(width`:Number`[, height`:Number`])`:FileAPI.Image`
 Кроп и ресайз изображения.
 
@@ -748,6 +757,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.rotate"></a>
 ### rotate(deg`:Number`)`:FileAPI.Image`
 Поворот.
 
@@ -764,6 +774,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.filter"></a>
 ### filter(callback`:Function`)`:FileAPI.Image`
 Применить фильтр функцию. Только `HTML5`.
 
@@ -804,6 +815,7 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.overlay"></a>
 ### overlay(images`:Array`)`:FileAPI.Image`
 Добавить наложение, например: водяной знак.
 
@@ -826,10 +838,89 @@ FileAPI.Image(imageFile)
 
 ---
 
+<a name="FileAPI.Image.get"></a>
 ### get(fn`:Function`)`:FileAPI.Image`
 Получить итоговое изображение.
 
 * fn — функция обратного вызова
+
+---
+
+<a name="FileAPI.Camera"></a>
+## FileAPI.Camera
+Для работы с веб-камерой, обязательно установить параметр `FileAPI.media: true`.
+
+
+<a name="FileAPI.Camera.publish"></a>
+### publish(el`:HTMLElement`, options`:Object`, callback`:Function`)`:void`
+Публикация камеры.
+
+* el — куда публикуем
+* options — { `width: 100%`, `height: 100%`, `start: true` }
+* callback — первый параметр возможная ошибка, второй экземпляр FileAPI.Camera
+
+```js
+var el = document.getElementById('cam');
+FileAPI.Camera.publish(el, { width: 320, height: 240 }, function (err, cam/**FileAPI.Camera*/){
+	if( !err ){
+		// Камера готова, можно использовать
+	}
+});
+```
+
+---
+
+<a name="FileAPI.Camera.start"></a>
+### start(callback`:Function`)`:void`
+Включить камеру
+
+* callback — будет вызван в момент готовности камеры
+
+```js
+var el = document.getElementById('cam');
+FileAPI.Camera.publish(el, { start: false }, function (err, cam/**FileAPI.Camera*/){
+	if( !err ){
+		// Включаем камеру
+		cam.start(function (err){
+			if( !err ){
+				// камера готова к использованию
+			}
+		});
+	}
+});
+```
+
+---
+
+<a name="FileAPI.Camera.stop"></a>
+### stop()`:void`
+Выключить камеру
+
+---
+
+<a name="FileAPI.Camera.shot"></a>
+### shot()`:FileAPI.Image`
+Сделать снимок с камеры
+
+```js
+var el = document.getElementById('cam');
+FileAPI.Camera.publish(el, function (err, cam/**FileAPI.Camera*/){
+	if( !err ){
+		var shot = cam.shot(); // делаем снимок
+
+		// создаем предпросмотр 100x100
+		shot.preview(100).get(function (err, img){
+			previews.appendChild(img);
+		});
+
+		// и/или загружаем
+		FileAPI.upload({
+			url: '...',
+			files: { cam: shot
+		});
+	}
+});
+```
 
 ---
 
@@ -935,6 +1026,8 @@ FileAPI.Image(imageFile)
 
 <a name="flash"></a>
 ## Flash
+Флеш очень "глючная" штука :]
+Поэтому в случае успешной загрузки http status должен быть только `200 OK`.
 
 <a name="flash.settings"></a>
 ### Settings

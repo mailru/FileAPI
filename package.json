@@ -3,10 +3,11 @@
 	"version": "2.0.0",
 	"devDependencies": {
 		"grunt": "~0.4.0",
+		"grunt-version": "*",
 		"grunt-contrib-jshint": "~0.2.0",
-		"grunt-contrib-concat": "~0.1",
-		"grunt-contrib-uglify": "~0.1",
-		"grunt-contrib-watch": "~0.4.0",
+		"grunt-contrib-concat": "*",
+		"grunt-contrib-uglify": "*",
+		"grunt-contrib-watch": "*",
 
 		"eventemitter2": "~0.4.9",
 		"semver": "~1.0.14",

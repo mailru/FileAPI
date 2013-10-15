@@ -2,93 +2,6 @@
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
-/*
- * JavaScript Canvas to Blob 2.0.3
- * https://github.com/blueimp/JavaScript-Canvas-to-Blob
- *
- * Copyright 2012, Sebastian Tschan
- * https://blueimp.net
- *
- * Licensed under the MIT license:
- * http://www.opensource.org/licenses/MIT
- *
- * Based on stackoverflow user Stoive's code snippet:
- * http://stackoverflow.com/q/4998908
- */
-
-/*jslint nomen: true, regexp: true */
-/*global window, atob, Blob, ArrayBuffer, Uint8Array */
-
-(function (window) {
-    'use strict';
-    var CanvasPrototype = window.HTMLCanvasElement &&
-            window.HTMLCanvasElement.prototype,
-        hasBlobConstructor = window.Blob && (function () {
-            try {
-                return Boolean(new Blob());
-            } catch (e) {
-                return false;
-            }
-        }()),
-        hasArrayBufferViewSupport = hasBlobConstructor && window.Uint8Array &&
-            (function () {
-                try {
-                    return new Blob([new Uint8Array(100)]).size === 100;
-                } catch (e) {
-                    return false;
-                }
-            }()),
-        BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder ||
-            window.MozBlobBuilder || window.MSBlobBuilder,
-        dataURLtoBlob = (hasBlobConstructor || BlobBuilder) && window.atob &&
-            window.ArrayBuffer && window.Uint8Array && function (dataURI) {
-                var byteString,
-                    arrayBuffer,
-                    intArray,
-                    i,
-                    mimeString,
-                    bb;
-                if (dataURI.split(',')[0].indexOf('base64') >= 0) {
-                    // Convert base64 to raw binary data held in a string:
-                    byteString = atob(dataURI.split(',')[1]);
-                } else {
-                    // Convert base64/URLEncoded data component to raw binary data:
-                    byteString = decodeURIComponent(dataURI.split(',')[1]);
-                }
-                // Write the bytes of the string to an ArrayBuffer:
-                arrayBuffer = new ArrayBuffer(byteString.length);
-                intArray = new Uint8Array(arrayBuffer);
-                for (i = 0; i < byteString.length; i += 1) {
-                    intArray[i] = byteString.charCodeAt(i);
-                }
-                // Separate out the mime component:
-                mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-                // Write the ArrayBuffer (or ArrayBufferView) to a blob:
-                if (hasBlobConstructor) {
-                    return new Blob(
-                        [hasArrayBufferViewSupport ? intArray : arrayBuffer],
-                        {type: mimeString}
-                    );
-                }
-                bb = new BlobBuilder();
-                bb.append(arrayBuffer);
-                return bb.getBlob(mimeString);
-            };
-    if (window.HTMLCanvasElement && !CanvasPrototype.toBlob) {
-        if (CanvasPrototype.mozGetAsFile) {
-            CanvasPrototype.toBlob = function (callback, type) {
-                callback(this.mozGetAsFile('blob', type));
-            };
-        } else if (CanvasPrototype.toDataURL && dataURLtoBlob) {
-            CanvasPrototype.toBlob = function (callback, type, quality) {
-                callback(dataURLtoBlob(this.toDataURL(type, quality)));
-            };
-        }
-    }
-
-    window.dataURLtoBlob = dataURLtoBlob;
-})(window);
-
 /*jslint evil: true */
 /*global window, URL, webkitURL, ActiveXObject */
 
@@ -274,7 +187,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.0b',
+			version: '2.0.0',
 
 			cors: false,
 			html5: true,
@@ -1886,8 +1799,11 @@
 				, buffer = image
 				, overlay = m.overlay
 				, queue = api.queue(function (){ fn(false, canvas); })
+				, renderImageToCanvas = api.renderImageToCanvas
 			;
 
+			// For `renderImageToCanvas`
+			image._type = this.file.type;
 
 			while( min(w/dw, h/dh) > 2 ){
 				w = (w/2 + 0.5)|0;
@@ -1898,15 +1814,16 @@
 				copy.height = h;
 
 				if( buffer !== image ){
-					copy.getContext('2d').drawImage(buffer, 0, 0, buffer.width, buffer.height, 0, 0, w, h);
+					renderImageToCanvas(copy, buffer, 0, 0, buffer.width, buffer.height, 0, 0, w, h);
 					buffer = copy;
 				}
 				else {
 					buffer = copy;
-					buffer.getContext('2d').drawImage(image, m.sx, m.sy, m.sw, m.sh, 0, 0, w, h);
+					renderImageToCanvas(buffer, image, m.sx, m.sy, m.sw, m.sh, 0, 0, w, h);
 					m.sx = m.sy = m.sw = m.sh = 0;
 				}
 			}
+
 
 			canvas.width  = (deg % 180) ? dh : dw;
 			canvas.height = (deg % 180) ? dw : dh;
@@ -1915,7 +1832,7 @@
 			canvas.quality = m.quality;
 
 			ctx.rotate(deg * Math.PI / 180);
-			ctx.drawImage(buffer
+			renderImageToCanvas(canvas, buffer
 				, m.sx, m.sy
 				, m.sw || buffer.width
 				, m.sh || buffer.height
@@ -1956,8 +1873,10 @@
 
 					queue.next();
 				};
+
 				api.event.on(img, 'error load abort', fn);
 				img.src = over.src;
+
 				if( img.complete ){
 					fn();
 				}
@@ -1974,8 +1893,8 @@
 		getMatrix: function (image){
 			var
 				  m  = api.extend({}, this.matrix)
-				, sw = m.sw = m.sw || image.videoWidth || image.width
-				, sh = m.sh = m.sh || image.videoHeight || image.height
+				, sw = m.sw = m.sw || image.videoWidth || image.naturalWidth ||  image.width
+				, sh = m.sh = m.sh || image.videoHeight || image.naturalHeight || image.height
 				, dw = m.dw = m.dw || sw
 				, dh = m.dh = m.dh || sh
 				, sf = sw/sh, df = dw/dh
@@ -2202,6 +2121,15 @@
 				this.render(doneFn);
 			});
 		}
+	};
+
+
+	/**
+	 * For load-image-ios.js
+	 */
+	api.renderImageToCanvas = function (canvas, img, sx, sy, sw, sh, dx, dy, dw, dh){
+		canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+		return canvas;
 	};
 
 
@@ -3844,4 +3772,270 @@
 		});
 	})();
 })(window, window.jQuery, FileAPI);
+
+/*
+ * JavaScript Load Image iOS scaling fixes 1.0.3
+ * https://github.com/blueimp/JavaScript-Load-Image
+ *
+ * Copyright 2013, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * iOS image scaling fixes based on
+ * https://github.com/stomita/ios-imagefile-megapixel
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ */
+
+/*jslint nomen: true, bitwise: true */
+/*global FileAPI, window, document */
+
+(function (factory) {
+	'use strict';
+	factory(FileAPI);
+}(function (loadImage) {
+    'use strict';
+
+    // Only apply fixes on the iOS platform:
+    if (!window.navigator || !window.navigator.platform ||
+             !(/iP(hone|od|ad)/).test(window.navigator.platform)) {
+        return;
+    }
+
+    var originalRenderMethod = loadImage.renderImageToCanvas;
+
+    // Detects subsampling in JPEG images:
+    loadImage.detectSubsampling = function (img) {
+        var canvas,
+            context;
+        if (img.width * img.height > 1024 * 1024) { // only consider mexapixel images
+            canvas = document.createElement('canvas');
+            canvas.width = canvas.height = 1;
+            context = canvas.getContext('2d');
+            context.drawImage(img, -img.width + 1, 0);
+            // subsampled image becomes half smaller in rendering size.
+            // check alpha channel value to confirm image is covering edge pixel or not.
+            // if alpha value is 0 image is not covering, hence subsampled.
+            return context.getImageData(0, 0, 1, 1).data[3] === 0;
+        }
+        return false;
+    };
+
+    // Detects vertical squash in JPEG images:
+    loadImage.detectVerticalSquash = function (img, subsampled) {
+        var naturalHeight = img.naturalHeight || img.height,
+            canvas = document.createElement('canvas'),
+            context = canvas.getContext('2d'),
+            data,
+            sy,
+            ey,
+            py,
+            alpha;
+        if (subsampled) {
+            naturalHeight /= 2;
+        }
+        canvas.width = 1;
+        canvas.height = naturalHeight;
+        context.drawImage(img, 0, 0);
+        data = context.getImageData(0, 0, 1, naturalHeight).data;
+        // search image edge pixel position in case it is squashed vertically:
+        sy = 0;
+        ey = naturalHeight;
+        py = naturalHeight;
+        while (py > sy) {
+            alpha = data[(py - 1) * 4 + 3];
+            if (alpha === 0) {
+                ey = py;
+            } else {
+                sy = py;
+            }
+            py = (ey + sy) >> 1;
+        }
+        return (py / naturalHeight) || 1;
+    };
+
+    // Renders image to canvas while working around iOS image scaling bugs:
+    // https://github.com/blueimp/JavaScript-Load-Image/issues/13
+    loadImage.renderImageToCanvas = function (
+        canvas,
+        img,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        destX,
+        destY,
+        destWidth,
+        destHeight
+    ) {
+        if (img._type === 'image/jpeg') {
+            var context = canvas.getContext('2d'),
+                tmpCanvas = document.createElement('canvas'),
+                tileSize = 1024,
+                tmpContext = tmpCanvas.getContext('2d'),
+                subsampled,
+                vertSquashRatio,
+                tileX,
+                tileY;
+            tmpCanvas.width = tileSize;
+            tmpCanvas.height = tileSize;
+            context.save();
+            subsampled = loadImage.detectSubsampling(img);
+            if (subsampled) {
+                sourceX /= 2;
+                sourceY /= 2;
+                sourceWidth /= 2;
+                sourceHeight /= 2;
+            }
+            vertSquashRatio = loadImage.detectVerticalSquash(img, subsampled);
+            if (subsampled || vertSquashRatio !== 1) {
+                sourceY *= vertSquashRatio;
+                destWidth = Math.ceil(tileSize * destWidth / sourceWidth);
+                destHeight = Math.ceil(
+                    tileSize * destHeight / sourceHeight / vertSquashRatio
+                );
+                destY = 0;
+                tileY = 0;
+                while (tileY < sourceHeight) {
+                    destX = 0;
+                    tileX = 0;
+                    while (tileX < sourceWidth) {
+                        tmpContext.clearRect(0, 0, tileSize, tileSize);
+                        tmpContext.drawImage(
+                            img,
+                            sourceX,
+                            sourceY,
+                            sourceWidth,
+                            sourceHeight,
+                            -tileX,
+                            -tileY,
+                            sourceWidth,
+                            sourceHeight
+                        );
+                        context.drawImage(
+                            tmpCanvas,
+                            0,
+                            0,
+                            tileSize,
+                            tileSize,
+                            destX,
+                            destY,
+                            destWidth,
+                            destHeight
+                        );
+                        tileX += tileSize;
+                        destX += destWidth;
+                    }
+                    tileY += tileSize;
+                    destY += destHeight;
+                }
+                context.restore();
+                return canvas;
+            }
+        }
+        return originalRenderMethod(
+            canvas,
+            img,
+            sourceX,
+            sourceY,
+            sourceWidth,
+            sourceHeight,
+            destX,
+            destY,
+            destWidth,
+            destHeight
+        );
+    };
+
+}));
+
+/*
+ * JavaScript Canvas to Blob 2.0.5
+ * https://github.com/blueimp/JavaScript-Canvas-to-Blob
+ *
+ * Copyright 2012, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ *
+ * Based on stackoverflow user Stoive's code snippet:
+ * http://stackoverflow.com/q/4998908
+ */
+
+/*jslint nomen: true, regexp: true */
+/*global window, atob, Blob, ArrayBuffer, Uint8Array */
+
+(function (window) {
+    'use strict';
+    var CanvasPrototype = window.HTMLCanvasElement &&
+            window.HTMLCanvasElement.prototype,
+        hasBlobConstructor = window.Blob && (function () {
+            try {
+                return Boolean(new Blob());
+            } catch (e) {
+                return false;
+            }
+        }()),
+        hasArrayBufferViewSupport = hasBlobConstructor && window.Uint8Array &&
+            (function () {
+                try {
+                    return new Blob([new Uint8Array(100)]).size === 100;
+                } catch (e) {
+                    return false;
+                }
+            }()),
+        BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder ||
+            window.MozBlobBuilder || window.MSBlobBuilder,
+        dataURLtoBlob = (hasBlobConstructor || BlobBuilder) && window.atob &&
+            window.ArrayBuffer && window.Uint8Array && function (dataURI) {
+                var byteString,
+                    arrayBuffer,
+                    intArray,
+                    i,
+                    mimeString,
+                    bb;
+                if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+                    // Convert base64 to raw binary data held in a string:
+                    byteString = atob(dataURI.split(',')[1]);
+                } else {
+                    // Convert base64/URLEncoded data component to raw binary data:
+                    byteString = decodeURIComponent(dataURI.split(',')[1]);
+                }
+                // Write the bytes of the string to an ArrayBuffer:
+                arrayBuffer = new ArrayBuffer(byteString.length);
+                intArray = new Uint8Array(arrayBuffer);
+                for (i = 0; i < byteString.length; i += 1) {
+                    intArray[i] = byteString.charCodeAt(i);
+                }
+                // Separate out the mime component:
+                mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+                // Write the ArrayBuffer (or ArrayBufferView) to a blob:
+                if (hasBlobConstructor) {
+                    return new Blob(
+                        [hasArrayBufferViewSupport ? intArray : arrayBuffer],
+                        {type: mimeString}
+                    );
+                }
+                bb = new BlobBuilder();
+                bb.append(arrayBuffer);
+                return bb.getBlob(mimeString);
+            };
+    if (window.HTMLCanvasElement && !CanvasPrototype.toBlob) {
+        if (CanvasPrototype.mozGetAsFile) {
+            CanvasPrototype.toBlob = function (callback, type, quality) {
+                if (quality && CanvasPrototype.toDataURL && dataURLtoBlob) {
+                    callback(dataURLtoBlob(this.toDataURL(type, quality)));
+                } else {
+                    callback(this.mozGetAsFile('blob', type));
+                }
+            };
+        } else if (CanvasPrototype.toDataURL && dataURLtoBlob) {
+            CanvasPrototype.toBlob = function (callback, type, quality) {
+                callback(dataURLtoBlob(this.toDataURL(type, quality)));
+            };
+        }
+    }
+    window.dataURLtoBlob = dataURLtoBlob;
+})(window);
 if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }
