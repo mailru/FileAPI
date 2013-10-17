@@ -21,7 +21,7 @@ if( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){
 
 
 if( strtoupper($_SERVER['REQUEST_METHOD']) == 'POST' ){
-	$files	= FileAPI::getFiles(); // get files from request
+	$files	= FileAPI::getFiles(); // Retrieve File List
 	$images	= array();
 
 

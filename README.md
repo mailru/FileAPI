@@ -50,14 +50,14 @@ If you need a CORS, then edit the `crossdomain.xml` and put it in the root of re
 
 <a name="FileAPI.getFiles"></a>
 ### getFiles(input`:HTMLInputElement|Event|$.Event`)`:Array`
-Get files from `input` element or `event` object, also support `jQuery`.
+Retrieve file list from `input` element or `event` object, also support `jQuery`.
 
 * input — `HTMLInputElement`, `change` and `drop` event, `jQuery` collection or `jQuery.Event`
 
 ```js
 var el = document.getElement('my-input');
 FileAPI.event.on(el, function (evt/**Event*/){
-	// Get files from input
+	// Retrieve file list
 	var files = FileAPI.getFiles(el);
 
 	// or event
@@ -1123,12 +1123,42 @@ Submit Query
 <a name="server"></a>
 ## Server settings
 
+<a name="server.iframe"></a>
+### IFrame/JSONP
+Example ctrl.php.
+
+```php
+<?php
+	include './FileAPI.class.php';
+
+	if( strtoupper($_SERVER['REQUEST_METHOD']) == 'POST' ){
+		// Retrieve File List
+		$files	= FileAPI::getFiles();
+
+		// ... your logic
+
+		// JSONP callback name
+		$jsonp	= isset($_REQUEST['callback']) ? trim($_REQUEST['callback']) : null;
+
+		// Server response: "HTTP/1.1 200 OK"
+		FileAPI::makeResponse(array(
+			  'status' => FileAPI::OK
+			, 'statusText' => 'OK'
+			, 'body' => array('count' => sizeof($files)
+		), $jsonp);
+		exit;
+	}
+?>
+```
+
+---
+
 <a name="server.CORS"></a>
 ### CORS
 Enable CORS.
 
 ```php
-<?
+<?php
 	// Permitted types of request
     header('Access-Control-Allow-Methods: POST, OPTIONS');
 
@@ -1148,6 +1178,7 @@ Enable CORS.
     if( $_SERVER['REQUEST_METHOD'] == 'POST' ){
         // ...
     }
+?>
 ```
 
 ---
@@ -1176,6 +1207,7 @@ Response headers:
 All the other codes - fatal error, user's involvement is recommend.
 
 ---
+
 
 <a name="buttons.examples"></a>
 ## Buttons examples

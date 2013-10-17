@@ -1106,12 +1106,42 @@ Submit Query
 <a name="server"></a>
 ## Server settings
 
+<a name="server.iframe"></a>
+### IFrame/JSONP
+Пример ctrl.php.
+
+```php
+<?php
+	include './FileAPI.class.php';
+
+	if( strtoupper($_SERVER['REQUEST_METHOD']) == 'POST' ){
+		// Получим список файлов
+		$files	= FileAPI::getFiles();
+
+		// ... ваша логика
+
+		// JSONP callback name
+		$jsonp	= isset($_REQUEST['callback']) ? trim($_REQUEST['callback']) : null;
+
+		// Ответ сервера: "HTTP/1.1 200 OK"
+		FileAPI::makeResponse(array(
+			  'status' => FileAPI::OK
+			, 'statusText' => 'OK'
+			, 'body' => array('count' => sizeof($files)
+		), $jsonp);
+		exit;
+	}
+?>
+```
+
+---
+
 <a name="server.CORS"></a>
 ### CORS
 Включение CORS.
 
 ```php
-<?
+<?php
 	// Permitted types of request
     header('Access-Control-Allow-Methods: POST, OPTIONS');
 
