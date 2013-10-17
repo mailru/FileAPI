@@ -1043,6 +1043,7 @@ Support chuncked upload.
 <a name="flash"></a>
 ## Flash
 Flash is very "buggy" thing :]
+The server response can not be empty.
 Therefore, in the event of a successful uploading `http status` should be only `200 OK`.
 
 <a name="flash.settings"></a>
