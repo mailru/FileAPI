@@ -347,6 +347,22 @@ var xhr = FileAPI.upload({
 
 ---
 
+<a name="options.files"></a>
+### files`:Object`
+Key-value object, `key` — post name, `value` — File or FileAPI.Image object.
+
+
+```js
+var xhr = FileAPI.upload({
+	url: '...',
+	files: {
+		audio: files
+	}
+});
+```
+
+---
+
 <a name="options.chunkSize"></a>
 ### chunkSize`:Number`
 Chunk size in bytes, HTML5 only.

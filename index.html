@@ -244,12 +244,13 @@
 				if( !force ){
 					ctx.$apply(_updScroll);
 				}
-			}).trigger('hashchange', true);
+			});
 //
 //
 			$.getJSON('./statics/docs.json?ver='+FileAPI.version, function (json){
 				ctx.api = json;
 				ctx.$apply();
+				$(window).trigger('hashchange', true)
 			});
 
 			window.ctx = ctx;
