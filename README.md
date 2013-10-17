@@ -1125,9 +1125,19 @@ Submit Query
 
 <a name="server.iframe"></a>
 ### IFrame/JSONP
-Example ctrl.php.
 
 ```php
+<script>
+(function (ctx, jsonp){
+	'use strict';
+	if( ctx && ctx[jsonp] ){
+		ctx[jsonp](200/*http.status*/, 'OK' /*http.statusText*/, "response body");
+	}
+})(window, '{{$request_param_callback}}');
+</script>
+
+<!-- or -->
+
 <?php
 	include './FileAPI.class.php';
 
