@@ -1,23 +1,58 @@
-﻿<a name="install" data-name="Installation"></a>
-## Installation, testing, assembling
-`npm install fileapi`<br/>
-`cd fileapi`<br/>
-`npm install`<br/>
-`grunt`
-
-
----
-
-
-<a name="FileAPI"></a>
+﻿<a name="FileAPI"></a>
 ## FileAPI
 A set of javascript tools for working with files.
 
+<a name="started"></a>
+### Get started
+
+```html
+	<div>
+		<!-- "js-fileapi-wrapper" -- required class -->
+		<div class="js-fileapi-wrapper upload-btn" id="choose">
+			<div class="upload-btn__txt">Choose files</div>
+			<input name="files" type="file" multiple />
+		</div>
+		<div id="images"><!-- previews --></div>
+	</div>
+
+	<script>window.FileAPI = { staticPath: '/js/FileAPI/dist/' };</script>
+	<script src="/js/FileAPI/dist/FileAPI.min.js"></script>
+	<script>
+		FileAPI.event.on(choose, 'change', function (evt){
+			var files = FileAPI.getFiles(evt); // Retrieve file list
+
+			FileAPI.filterFiles(files, function (file, info/**Object*/){
+				if( /^image/.test(file.type) ){
+					return	info.width >= 320 && info.height >= 240;
+				}
+				return	false;
+			}, function (files/**Array*/, rejected/**Array*/){
+				if( files.length ){
+					// Make preview 100x100
+					FileAPI.each(files, function (file){
+						FileAPI.Image(file).preview(100).get(function (err, img){
+							images.appendChild(img);
+						});
+					});
+
+					// Uploading Files
+					FileAPI.upload({
+						url: './ctrl.php',
+						files: { images: files },
+						progress: function (evt){ /* ... */ },
+						complete: function (err, xhr){ /* ... */ }
+					});
+				}
+			});
+		});
+	</script>
+```
+
+---
 
 <a name="FileAPI.setup"></a>
-### Setup
-Connecting the library to your project.
-If you need a CORS, then edit the `crossdomain.xml` and put it in the root of remote domain.
+### Setup options
+Edit the file `crossdomain.xml` and place it to the root of the domain to which files will be uploaded.
 
 ```html
 	<script>
@@ -1274,7 +1309,7 @@ Stylized button.
         font-size: 50px;
     }
 </style>
-<div class="upload-btn js-fileapi-wrapper">
+<div class="js-fileapi-wrapper upload-btn">
     <div class="upload-btn__txt">Upload files</div>
     <input name="files" type="file" multiple />
 </div>
@@ -1321,11 +1356,20 @@ Button like link.
         font-size: 50px;
     }
 </style>
-<a class="upload-link js-fileapi-wrapper">
+<a class="js-fileapi-wrapper upload-link">
     <span class="upload-link__txt">Upload photo</span>
     <input name="photo" type="file" accept="image/*" />
 </a>
 ```
+
+---
+
+<a name="install" data-name="Installation"></a>
+## Installation, testing, assembling
+`npm install fileapi`<br/>
+`cd fileapi`<br/>
+`npm install`<br/>
+`grunt`
 
 
 ---

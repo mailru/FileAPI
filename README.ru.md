@@ -1,24 +1,58 @@
-﻿<a name="install" data-name="Installation"></a>
-## Installation, testing, assembling
-`npm install fileapi`<br/>
-`cd fileapi`<br/>
-`npm install`<br/>
-`grunt`
-
-
----
-
-
-<a name="FileAPI"></a>
+﻿<a name="FileAPI"></a>
 ## FileAPI
 Набор JavaScript инструментов для работы с файлами.
 
+<a name="started"></a>
+### Get started
+
+```html
+	<div>
+		<!-- "js-fileapi-wrapper" -- обязательный class -->
+		<div class="js-fileapi-wrapper upload-btn" id="choose">
+			<div class="upload-btn__txt">Choose files</div>
+			<input name="files" type="file" multiple />
+		</div>
+		<div id="images"><!-- предпросмотр --></div>
+	</div>
+
+	<script>window.FileAPI = { staticPath: '/js/FileAPI/dist/' };</script>
+	<script src="/js/FileAPI/dist/FileAPI.min.js"></script>
+	<script>
+		FileAPI.event.on(choose, 'change', function (evt){
+			var files = FileAPI.getFiles(evt); // Retrieve file list
+
+			FileAPI.filterFiles(files, function (file, info/**Object*/){
+				if( /^image/.test(file.type) ){
+					return	info.width >= 320 && info.height >= 240;
+				}
+				return	false;
+			}, function (files/**Array*/, rejected/**Array*/){
+				if( files.length ){
+					// Создаем предпросмотр 100x100
+					FileAPI.each(files, function (file){
+						FileAPI.Image(file).preview(100).get(function (err, img){
+							images.appendChild(img);
+						});
+					});
+
+					// Загружаем файлы
+					FileAPI.upload({
+						url: './ctrl.php',
+						files: { images: files },
+						progress: function (evt){ /* ... */ },
+						complete: function (err, xhr){ /* ... */ }
+					});
+				}
+			});
+		});
+	</script>
+```
+
+---
 
 <a name="FileAPI.setup"></a>
-### Setup
-Подключение библиотеки к проекту.
-Если вы собираетесь использовать CORS, то отредактируйте файл `crossdomain.xml` и
-разместите в коре удаленного домена.
+### Setup options
+Отредактируйте файл `crossdomain.xml` и разместите его в корне домена, на который будут загружаться файлы.
 
 ```html
 	<script>
