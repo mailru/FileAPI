@@ -179,7 +179,7 @@ FileAPI.event.on(document, 'drop', function (evt/**Event*/){
 
 <a name="FileAPI.upload"></a>
 ### upload(opts`:Object`)`:XmlHttpRequest`
-Uploading files to the server. Returns XHR-like object.
+Uploading files to the server (successively). Returns XHR-like object.
 It is important to remember to correctly worked flash-transport server response body must not be empty,
 for example, you can pass, just text "ok".
 
