@@ -177,7 +177,7 @@ FileAPI.event.on(document, 'drop', function (evt/**Event*/){
 ---
 
 <a name="FileAPI.upload"></a>
-### upload(opts`:Object`)`:XmlHttpRequest`
+### upload(opts`:Object`)`:XmlHttpRequestPromise`
 Загрузка файлов на сервер (последовательно). Возвращает XHR-подобный объект.
 Помните, для корректной работы flash-транспорта, тело ответа сервера не должно быть пустым,
 например можно ответить простым текстом "ok".
@@ -614,6 +614,71 @@ MIME type
 <a name="File.size"></a>
 ### size
 Размер файла в байтах.
+
+
+---
+
+<a name="XmlHttpRequestPromise"></a>
+## XmlHttpRequestPromise
+
+
+<a name="XmlHttpRequestPromise.status"></a>
+### status`:Number`
+HTTP-статус в виде числа (404 — «Not Found», 200 — «OK» и т. д.)
+
+---
+
+<a name="XmlHttpRequestPromise.statusText"></a>
+### statusText`:String`
+Статус в виде строки («Not Found», «OK» и т. д.).
+
+---
+
+<a name="XmlHttpRequestPromise.responseXML"></a>
+### responseXML`:Document`
+Текст ответа на запрос в виде XML, который затем может быть обработан посредством DOM.
+
+---
+
+<a name="XmlHttpRequestPromise.responseText"></a>
+### responseText`:String`
+Текст ответа на запрос.
+
+---
+
+<a name="XmlHttpRequestPromise.abort"></a>
+### abort()`:void`
+Отменяет текущий запрос, удаляет все заголовки, ставит текст ответа сервера в null.
+
+---
+
+<a name="XmlHttpRequestPromise.getAllResponseHeaders"></a>
+### getAllResponseHeaders()`:String`
+Возвращает полный список HTTP-заголовков в виде строки.
+
+---
+
+<a name="XmlHttpRequestPromise.getResponseHeader"></a>
+### getResponseHeader(name`:String`)`:String`
+Возвращает значение указанного заголовка. Если заголовок не найден, возвращает null.
+
+* name — имя заголовка
+
+---
+
+<a name="XmlHttpRequestPromise.success"></a>
+### success(callback`:Function`)`:XmlHttpRequestPromise`
+Функция, которая исполняется в случае неудачного запроса.
+
+ * callback — принимает два аргумента: `xhr` и `options`
+
+---
+
+<a name="XmlHttpRequestPromise.error"></a>
+### error(callback`:Function`)`:XmlHttpRequestPromise`
+Функция, которая исполняется в случае успешного запроса.
+
+ * callback — принимает три аргумента: `error`, `xhr` и `options`
 
 
 ---
