@@ -1,4 +1,4 @@
-/*! fileapi 2.0.0 - BSD | git://github.com/mailru/FileAPI.git
+/*! fileapi 2.0.1 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -187,7 +187,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.0',
+			version: '2.0.1',
 
 			cors: false,
 			html5: true,
@@ -1527,7 +1527,7 @@
 		var key;
 		for( key in trans ){
 			if( trans.hasOwnProperty(key) ){
-				if( !(trans[key] instanceof Object || key === 'overlay') ){
+				if( !(trans[key] instanceof Object || key === 'overlay' || key === 'filter') ){
 					return	true;
 				}
 			}
@@ -2029,6 +2029,7 @@
 							, type: params.type || file.type || 'image/png'
 							, quality: params.quality || 1
 							, overlay: params.overlay
+							, filter: params.filter
 						});
 
 						queue.inc();
