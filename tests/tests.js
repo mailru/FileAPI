@@ -103,6 +103,29 @@ module('FileAPI');
 	}
 
 
+
+	test('defer', function (){
+		expect(4);
+		FileAPI.defer().resolve("resolve").done(function (val){ equal(val, "resolve") });
+		FileAPI.defer().reject("reject").fail(function (val){ equal(val, "reject") });
+
+		FileAPI.defer().then(function (val){ equal(val, "resolve") }).resolve("resolve");
+		FileAPI.defer().then(null, function (val){ equal(val, "reject") }).reject("reject");
+	});
+
+
+	test('defer.progress', function (){
+		var log = [];
+		var defer = FileAPI.defer();
+		defer.progress(function (a, b, c){ log.push((a|0) + (b|0) + (c|0)); });
+		defer.notify();
+		defer.notify(1);
+		defer.notify(1, 2);
+		defer.notify(1, 2, 3);
+		equal(log.join('->'), '0->1->3->6');
+	});
+
+
 	test('1px.gif', function (){
 		var file	= FileAPI.getFiles(uploadForm['1px.gif'])[0];
 
@@ -269,11 +292,12 @@ module('FileAPI');
 
 
 	test('upload input', function (){
+		stop();
+
 		var events = [];
 		expect(12);
 
-		stop();
-		FileAPI.upload({
+		var xhr = FileAPI.upload({
 			url: serverUrl,
 			data: { foo: 'bar' },
 			files: uploadForm['1px.gif'],
@@ -323,9 +347,13 @@ module('FileAPI');
 			},
 			complete: function (err, xhr){
 				events.push('complete');
-				equal(events.join('->'), 'prepare->upload->fileupload->fileprogress->filecomplete->complete');
+				equal(events.join('->'), 'prepare->upload->fileupload->fileprogress->filecomplete->success->complete');
 				start();
 			}
+		});
+
+		xhr.success(function (xhr){
+			events.push('success');
 		});
 	});
 

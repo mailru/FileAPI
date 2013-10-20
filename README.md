@@ -178,7 +178,7 @@ FileAPI.event.on(document, 'drop', function (evt/**Event*/){
 ---
 
 <a name="FileAPI.upload"></a>
-### upload(opts`:Object`)`:XmlHttpRequest`
+### upload(opts`:Object`)`:XmlHttpRequestPromise`
 Uploading files to the server (successively). Returns XHR-like object.
 It is important to remember to correctly worked flash-transport server response body must not be empty,
 for example, you can pass, just text "ok".
@@ -633,9 +633,70 @@ The type (MIME type) of the file referenced by the File object.
 ### size
 The size (in bytes) of the file referenced by the File object.
 
+---
+
+<a name="XmlHttpRequestPromise"></a>
+## XmlHttpRequestPromise
+
+<a name="XmlHttpRequestPromise.status"></a>
+### status`:Number`
+The status of the response to the request. This is the HTTP result code (for example, status is 200 for a successful request).
 
 ---
 
+<a name="XmlHttpRequestPromise.statusText"></a>
+### statusText`:String`
+The response string returned by the HTTP server. Unlike status, this includes the entire text of the response message ("200 OK", for example).
+
+---
+
+<a name="XmlHttpRequestPromise.responseXML"></a>
+### responseXML`:Document`
+The response to the request as a DOM Document object, or null if the request was unsuccessful, has not yet been sent, or cannot be parsed as XML or HTML. The response is parsed as if it were a text/xml stream. When the responseType is set to "document" and the request has been made asynchronously, the response is parsed as it were a text/html stream.
+
+---
+
+<a name="XmlHttpRequestPromise.responseText"></a>
+### responseText`:String`
+The response to the request as text, or null if the request was unsuccessful or has not yet been sent.
+
+---
+
+<a name="XmlHttpRequestPromise.abort"></a>
+### abort()`:void`
+Aborts the request if it has already been sent.
+
+---
+
+<a name="XmlHttpRequestPromise.getAllResponseHeaders"></a>
+### getAllResponseHeaders()`:String`
+Returns all the response headers as a string, or null if no response has been received.
+
+---
+
+<a name="XmlHttpRequestPromise.getResponseHeader"></a>
+### getResponseHeader(name`:String`)`:String`
+Returns the string containing the text of the specified header, or null if either the response has not yet been received or the header doesn't exist in the response.
+
+* name — header name
+
+---
+
+<a name="XmlHttpRequestPromise.success"></a>
+### success(callback`:Function`)`:XmlHttpRequestPromise`
+A function to be called if the request succeeds.
+
+ * callback — receives two arguments: `xhr` and `options`
+
+---
+
+<a name="XmlHttpRequestPromise.error"></a>
+### error(callback`:Function`)`:XmlHttpRequestPromise`
+A function to be called if the request succeeds.
+
+ * callback — receives three arguments: `error`, `xhr` and `options`
+
+---
 
 <a name="FileAPI.event"></a>
 ## FileAPI.event

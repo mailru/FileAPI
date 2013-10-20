@@ -57,7 +57,7 @@ FileAPI.addInfoReader(/^audio/i, function (file, callback){
 					}
 				});
 			} else if( evt.type == 'error' ){
-				callback('read_as_binary_string_id3');
+				defer.resolve('read_as_binary_string_id3');
 			}
 		});
 	}
