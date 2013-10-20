@@ -174,7 +174,6 @@ module('FileAPI');
 	});
 
 
-
 	test('hello.txt', function (){
 		var file	= FileAPI.getFiles(uploadForm['hello.txt'])[0];
 
@@ -190,7 +189,6 @@ module('FileAPI');
 			});
 		}
 	});
-
 
 
 	test('image.jpg', function (){
@@ -234,8 +232,6 @@ module('FileAPI');
 	});
 
 
-
-
 	test('upload without files', function (){
 		stop();
 
@@ -264,6 +260,7 @@ module('FileAPI');
 
 	test('upload + postName (default)', function (){
 		stop();
+
 		FileAPI.upload({
 			url: serverUrl,
 			files: FileAPI.getFiles(uploadForm['1px.gif'])[0],
@@ -358,7 +355,6 @@ module('FileAPI');
 	});
 
 
-
 	test('upload file', function (){
 		stop();
 		FileAPI.upload({
@@ -375,8 +371,7 @@ module('FileAPI');
 	});
 
 
-
-	test('multiupload', function (){
+	test('multiupload (serial)', function (){
 		stop();
 		var
 			  _start = 0
@@ -409,13 +404,30 @@ module('FileAPI');
 				equal(_start, _complete, 'uploaded');
 				equal(_progressFail, false, 'progress');
 
-				checkFile(_files['1px.gif'], '1px.gif', 'image/gif', 34);
-				checkFile(_files['dino.png'], 'dino.png', 'image/png', 461003);
-				checkFile(_files['hello.txt'], 'hello.txt', 'text/plain', 15);
-				checkFile(_files['image.jpg'], 'image.jpg', 'image/jpeg', 108338);
+				checkMultiuploadFiles(_files);
+			}
+		});
+	});
 
-				// @todo: Сейчас через phantom "application/octet-stream"
-	//			checkFile(_files['lebowski.json'], 'lebowski.json', 'application/json', 5392);
+
+	test('multiupload (one piece)', function (){
+		stop();
+		var bytesLoaded = -1;
+
+		FileAPI.upload({
+			url: serverUrl,
+			files: FileAPI.getFiles(uploadForm['multiple']),
+			serial: false,
+			progress: function (evt, files){
+				equal(files.length, 5);
+				bytesLoaded = evt.loaded > bytesLoaded ? evt.loaded : -1;
+			},
+			complete: function (err, xhr){
+				var files = FileAPI.parseJSON(xhr.responseText).data._FILES.files;
+				FileAPI.each(files, function (file){ files[file.name] = file; });
+				checkMultiuploadFiles(files);
+				equal(xhr.total, bytesLoaded);
+				start();
 			}
 		});
 	});
@@ -440,7 +452,6 @@ module('FileAPI');
 	});
 
 
-
 	FileAPI.html5 && test('upload + imageTransform', function (){
 		var file = FileAPI.getFiles(uploadForm['image.jpg'])[0];
 
@@ -463,7 +474,6 @@ module('FileAPI');
 			}
 		});
 	});
-
 
 
 	FileAPI.html5 && test('upload + multi imageTransform', function (){
@@ -554,4 +564,15 @@ module('FileAPI');
 			}
 		});
 	});
+
+
+	function checkMultiuploadFiles(files){
+		checkFile(files['1px.gif'], '1px.gif', 'image/gif', 34);
+		checkFile(files['dino.png'], 'dino.png', 'image/png', 461003);
+		checkFile(files['hello.txt'], 'hello.txt', 'text/plain', 15);
+		checkFile(files['image.jpg'], 'image.jpg', 'image/jpeg', 108338);
+
+		// @todo: Сейчас через phantom "application/octet-stream"
+//		checkFile(_files['lebowski.json'], 'lebowski.json', 'application/json', 5392);
+	}
 })();

@@ -179,7 +179,7 @@ FileAPI.event.on(document, 'drop', function (evt/**Event*/){
 
 <a name="FileAPI.upload"></a>
 ### upload(opts`:Object`)`:XmlHttpRequestPromise`
-Uploading files to the server (successively). Returns XHR-like object.
+Uploading files to the server (`serial: true` by default). Returns XHR-like object.
 It is important to remember to correctly worked flash-transport server response body must not be empty,
 for example, you can pass, just text "ok".
 
@@ -393,6 +393,37 @@ var xhr = FileAPI.upload({
 	files: {
 		audio: files
 	}
+});
+```
+
+---
+
+<a name="options.postName"></a>
+### postName`:String`
+The parameter name for the file form data (the request argument name). Default: 'files'.
+
+
+```js
+var xhr = FileAPI.upload({
+	url: '...',
+	files: myFiles,
+	postName: 'images'
+});
+```
+
+---
+
+<a name="options.serial"></a>
+### serial`:Boolean`
+Serially uploading files to the server. Default: 'true'.
+`false` — only HTML5, all files are uploading to the server a single request.
+
+
+```js
+var xhr = FileAPI.upload({
+	url: '...',
+	files: myFiles,
+	serial: false /* false — only HTML5 */
 });
 ```
 
@@ -811,8 +842,8 @@ FileAPI.Image(imageFile)
 ### crop(x`:Number`, y`:Number`, width`:Number`, height`:Number`)`:FileAPI.Image`
 Crop image by x, y, width and height.
 
-* x — offset from the top corner
-* y — offset from the left corner
+* x — offset from the left corner
+* y — offset from the top corner
 
 ```js
 FileAPI.Image(imageFile)
@@ -1438,6 +1469,11 @@ Button like link.
 
 <a name="Changelog"></a>
 ## Changelog
+<ul>
+	<li>+ `serial: true` upload option</li>
+	<li>+ `postName: 'files'` uplaod option</li>
+</ul>
+
 
 ### 2.0.0
 <ul>

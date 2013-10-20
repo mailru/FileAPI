@@ -178,7 +178,7 @@ FileAPI.event.on(document, 'drop', function (evt/**Event*/){
 
 <a name="FileAPI.upload"></a>
 ### upload(opts`:Object`)`:XmlHttpRequestPromise`
-Загрузка файлов на сервер (последовательно). Возвращает XHR-подобный объект.
+Загрузка файлов на сервер (`serial: true` по умолчанию). Возвращает XHR-подобный объект.
 Помните, для корректной работы flash-транспорта, тело ответа сервера не должно быть пустым,
 например можно ответить простым текстом "ok".
 
@@ -376,6 +376,53 @@ var xhr = FileAPI.upload({
 	url: '...',
 	headers: { 'x-upload': 'fileapi' },
 	files: { .. },
+});
+```
+
+---
+
+<a name="options.files"></a>
+### files`:Object`
+Объект ключ-значение, `key` — название POST параметра, `value` — Файл ил FileAPI.Image.
+
+
+```js
+var xhr = FileAPI.upload({
+	url: '...',
+	files: {
+		audio: files
+	}
+});
+```
+
+---
+
+<a name="options.postName"></a>
+### postName`:String`
+Название POST-параметра. По умолчанию: 'files'.
+
+
+```js
+var xhr = FileAPI.upload({
+	url: '...',
+	files: myFiles,
+	postName: 'images'
+});
+```
+
+---
+
+<a name="options.serial"></a>
+### serial`:Boolean`
+Последовательная загрузка файлов. Default: 'true'.
+`false` — только HTML5, все файлы будет загружены один запросом.
+
+
+```js
+var xhr = FileAPI.upload({
+	url: '...',
+	files: myFiles,
+	serial: false /* false — только HTML5 */
 });
 ```
 
@@ -797,8 +844,8 @@ FileAPI.Image(imageFile)
 ### crop(x`:Number`, y`:Number`, width`:Number`, height`:Number`)`:FileAPI.Image`
 Кроп изображения по ширине и высоте, а также смещению по x и y.
 
-* x — смещение относительно по x левого угла
-* y — смещение относительно по y левого угла
+* x — смещение по x относительно левого края
+* y — смещение по y относительно вернего края
 
 ```js
 FileAPI.Image(imageFile)
