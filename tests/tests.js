@@ -1,6 +1,7 @@
 module('FileAPI');
 
 (function (){
+	var serverUrl = 'http://rubaxa.org/FileAPI/server/ctrl.php';
 	var uploadForm = document.forms.upload;
 	var base64_1px_gif = 'R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 	var browser = (navigator.userAgent.match(/(phantomjs|safari|firefox|chrome)/i) || ['', 'chrome'])[1].toLowerCase();
@@ -216,7 +217,7 @@ module('FileAPI');
 		stop();
 
 		FileAPI.upload({
-			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			url: serverUrl,
 			data: { str: 'foo', num: 1, array: [1, 2, 3], object: { foo: 'bar' } },
 			complete: function (err, xhr){
 				var res = FileAPI.parseJSON(xhr.responseText).data._REQUEST;
@@ -238,29 +239,66 @@ module('FileAPI');
 	});
 
 
+	test('upload + postName (default)', function (){
+		stop();
+		FileAPI.upload({
+			url: serverUrl,
+			files: FileAPI.getFiles(uploadForm['1px.gif'])[0],
+			complete: function (err, xhr){
+				var res = FileAPI.parseJSON(xhr.responseText);
+				equal(res.data._FILES['files'].name, '1px.gif', 'file.name');
+				start();
+			}
+		});
+	});
+
+
+	test('upload + postName (gif)', function (){
+		stop();
+		FileAPI.upload({
+			url: serverUrl,
+			files: FileAPI.getFiles(uploadForm['1px.gif']),
+			postName: 'gif',
+			complete: function (err, xhr){
+				var res = FileAPI.parseJSON(xhr.responseText);
+				equal(res.data._FILES['gif'].name, '1px.gif', 'file.name');
+				start();
+			}
+		});
+	});
+
 
 	test('upload input', function (){
-		expect(13);
+		var events = [];
+		expect(12);
 
 		stop();
 		FileAPI.upload({
-			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			url: serverUrl,
 			data: { foo: 'bar' },
 			files: uploadForm['1px.gif'],
-			upload: function (){
-				ok(true, 'upload event');
-			},
 			prepare: function (file, options){
 				options.data.bar = 'qux';
+				events.push('prepare');
+			},
+			upload: function (){
+				events.push('upload');
 			},
 			fileupload: function (file/**Object*/, xhr/**Object*/, options/**Object*/){
+				events.push('fileupload');
 				equal(file.name, '1px.gif', 'name');
 				equal(options.data.foo, 'bar', 'data.foo');
 				equal(options.data.bar, 'qux', 'data.qux');
 			},
+			fileprogress: function (evt){
+				if( evt.loaded == evt.total ){
+					events.push('fileprogress');
+				}
+			},
 			filecomplete: function (err, xhr){
 				var res = FileAPI.parseJSON(xhr.responseText);
 
+				events.push('filecomplete');
 				equal(res.data._REQUEST.foo, 'bar');
 				equal(res.data._REQUEST.bar, 'qux');
 
@@ -269,6 +307,9 @@ module('FileAPI');
 					equal(res.data._FILES['1px_gif'].name, '1px.gif', 'file.name');
 					equal(type, /application/.test(type) ? 'application/octet-stream' : 'image/gif', 'file.type');
 				}
+				else {
+					ok(false, '1px_gif files');
+				}
 
 				if( res.images['1px_gif'] ){
 					equal(res.images['1px_gif'].dataURL, 'data:image/gif;base64,' + base64_1px_gif, 'dataURL');
@@ -276,9 +317,13 @@ module('FileAPI');
 					equal(res.images['1px_gif'].width, 1, 'width');
 					equal(res.images['1px_gif'].height, 1, 'height');
 				}
+				else {
+					ok(false, '1px_gif images');
+				}
 			},
 			complete: function (err, xhr){
-				ok(true, 'complete event');
+				events.push('complete');
+				equal(events.join('->'), 'prepare->upload->fileupload->fileprogress->filecomplete->complete');
 				start();
 			}
 		});
@@ -289,7 +334,7 @@ module('FileAPI');
 	test('upload file', function (){
 		stop();
 		FileAPI.upload({
-			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			url: serverUrl,
 			files: { text: FileAPI.getFiles(uploadForm['hello.txt']) },
 			complete: function (err, res){
 				start();
@@ -314,7 +359,7 @@ module('FileAPI');
 		;
 
 		FileAPI.upload({
-			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			url: serverUrl,
 			files: uploadForm['multiple'],
 			fileupload: function (){
 				_start++;
@@ -354,7 +399,7 @@ module('FileAPI');
 
 		stop();
 		FileAPI.upload({
-			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			url: serverUrl,
 			files: { image: image },
 			complete: function (err, res){
 				var res = FileAPI.parseJSON(res.responseText);
@@ -373,7 +418,7 @@ module('FileAPI');
 
 		stop();
 		FileAPI.upload({
-			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			url: serverUrl,
 			files: { image: file },
 			imageTransform: {
 				width: 100,
@@ -398,7 +443,7 @@ module('FileAPI');
 
 		stop();
 		FileAPI.upload({
-			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			url: serverUrl,
 			files: { image: file },
 			imageTransform: {
 				'jpeg': {
@@ -435,7 +480,7 @@ module('FileAPI');
 
 		stop();
 		FileAPI.upload({
-			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			url: serverUrl,
 			files: { image: file },
 			imageTransform: {
 				'180deg': {
@@ -468,7 +513,7 @@ module('FileAPI');
 				var shot = cam.shot();
 
 				FileAPI.upload({
-					url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+					url: serverUrl,
 					files: { shot: shot },
 					complete: function (err, res){
 						var res = FileAPI.parseJSON(res.responseText);
