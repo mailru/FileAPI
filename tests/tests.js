@@ -302,12 +302,12 @@ module('FileAPI');
 			},
 			complete: function (err, xhr){
 				ok(!err, 'complete event');
+				start();
 			}
 		});
 
 		xhr.success(function (xhr){
 			equal(xhr.status, 200, "success");
-			start();
 		});
 	});
 
