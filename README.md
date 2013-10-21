@@ -479,7 +479,7 @@ var xhr = FileAPI.upload({
 
 --
 
-<a name="options.imageTransform-multi"></a>
+<a name="options.imageTransform-multiple" data-name="imageTransform: multiple"></a>
 ### imageTransform`:Object`
 Rules of image transformation on the client, for more images.
 
@@ -494,7 +494,7 @@ var xhr = FileAPI.upload({
 		'medium': { width: 320, height: 240, preview: true },
 		// crop & resize + watemark
 		'small': {
-			width: 100, height: 100,
+			width: 100, height: 100, preview: true,
 			// Add watermark
 			overlay: [{ x: 5, y: 5, src: '/i/watemark.png', rel: FileAPI.Image.RIGHT_BOTTOM }]
 		}
@@ -504,7 +504,7 @@ var xhr = FileAPI.upload({
 
 --
 
-<a name="options.imageTransform-jpeg"></a>
+<a name="options.imageTransform-convert" data-name="imageTransform: convert"></a>
 ### imageTransform`:Object`
 Convert all images to jpeg or png.
 

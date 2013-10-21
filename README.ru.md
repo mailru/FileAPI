@@ -478,7 +478,7 @@ var xhr = FileAPI.upload({
 
 --
 
-<a name="options.imageTransform-multi"></a>
+<a name="options.imageTransform-multiple" data-name="imageTransform: multiple"></a>
 ### imageTransform`:Object`
 Правила для нарезки дополнительных изображения на клиенте.
 
@@ -491,9 +491,9 @@ var xhr = FileAPI.upload({
 		'huge': { maxWidth: 800, maxHeight: 600 },
 		// Ресайз и кроп
 		'medium': { width: 320, height: 240, preview: true },
-		// ресайз и кроп + водяной знак
+		// Ресайз и кроп + водяной знак
 		'small': {
-			width: 100, height: 100,
+			width: 100, height: 100, preview: true,
 			// Добавляем водяной знак
 			overlay: [{ x: 5, y: 5, src: '/i/watemark.png', rel: FileAPI.Image.RIGHT_BOTTOM }]
 		}
@@ -503,7 +503,7 @@ var xhr = FileAPI.upload({
 
 --
 
-<a name="options.imageTransform-jpeg"></a>
+<a name="options.imageTransform-convert" data-name="imageTransform: convert"></a>
 ### imageTransform`:Object`
 Конвертация всех изображений в jpeg или png.
 
