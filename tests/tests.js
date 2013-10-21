@@ -103,7 +103,6 @@ module('FileAPI');
 	}
 
 
-
 	test('defer', function (){
 		expect(4);
 		FileAPI.defer().resolve("resolve").done(function (val){ equal(val, "resolve") });
@@ -123,6 +122,19 @@ module('FileAPI');
 		defer.notify(1, 2);
 		defer.notify(1, 2, 3);
 		equal(log.join('->'), '0->1->3->6');
+	});
+
+
+	test('getMimeType', function (){
+		equal(FileAPI.getMimeType('image.jpg'), 'image/jpeg');
+		equal(FileAPI.getMimeType('image.jpeg'), 'image/jpeg');
+		equal(FileAPI.getMimeType({ name: 'image.jpg' }), 'image/jpeg');
+		equal(FileAPI.getMimeType({ name: 'image.jpeg', type: '' }), 'image/jpeg');
+		equal(FileAPI.getMimeType({ name: 'image', type: 'jpg' }), 'image/jpeg');
+		equal(FileAPI.getMimeType({ name: 'image', type: 'jpeg' }), 'image/jpeg');
+		equal(FileAPI.getMimeType('file.txt'), 'text/plain');
+		equal(FileAPI.getMimeType('audio.flac'), 'audio/flac');
+		equal(FileAPI.getMimeType('paint.bmp'), 'image/bmp');
 	});
 
 

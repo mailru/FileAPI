@@ -1470,6 +1470,7 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 <ul>
+	<li>#134: + `FileAPI.getMimeType`</li>
 	<li>+ `serial: true` upload option</li>
 	<li>+ `postName: 'files'` uplaod option</li>
 </ul>
