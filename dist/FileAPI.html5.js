@@ -191,6 +191,7 @@
 			cors: false,
 			html5: true,
 			media: false,
+			formData: true,
 
 			debug: false,
 			pingUrl: false,
@@ -696,33 +697,29 @@
 
 
 			/**
-			 * Make file by name
-			 *
-			 * @param	{String}	name
-			 * @return	{Array}
+			 * Get mime type by File or name
+			 * @param   {Object|String}  file
+			 * @returns {String}
 			 */
-			checkFileObj: function (name){
-				var file = {}, accept = api.accept;
+			getMimeType: function (file){
+				var
+					  mime = file && (file.type || String(file.name || file).split('.').pop())
+					, accept = api.accept
+					, ext, type
+				;
 
-				if( typeof name == 'object' ){
-					file = name;
-				}
-				else {
-					file.name = (name + '').split(/\\|\//g).pop();
-				}
+				if( !/^[^/]+\/[^/]+$/.test(mime) ){
+					for( type in accept ){
+						ext = new RegExp(accept[type].replace(/\s/g, '|'), 'i');
 
-				if( file.type == null ){
-					file.type = file.name.split('.').pop();
-				}
-
-				_each(accept, function (ext, type){
-					ext = new RegExp(ext.replace(/\s/g, '|'), 'i');
-					if( ext.test(file.type) || api.ext2mime[file.type] ){
-						file.type = api.ext2mime[file.type] || (type.split('/')[0] +'/'+ file.type);
+						if( ext.test(mime) || api.ext2mime[mime] ){
+							mime = api.ext2mime[mime] || (type.split('/')[0] +'/'+ mime);
+							break;
+						}
 					}
-				});
+				}
 
-				return	file;
+				return	mime;
 			},
 
 
@@ -831,7 +828,7 @@
 				}
 				else if( !html5 && isInputFile(input) ){
 					if( api.trim(input.value) ){
-						files = [api.checkFileObj(input.value)];
+						files = [_toFileObject(input.value)];
 						files[0].blob   = input;
 						files[0].iframe = true;
 					}
@@ -871,7 +868,7 @@
 					(function _next(){
 						var reader = readers.shift();
 						if( reader ){
-							if( reader.test(file.type) ){
+							if( reader.test(api.getMimeType(file)) ){
 								reader(file, function (err, res){
 									if( err ){
 										fn(err);
@@ -1368,6 +1365,14 @@
 	}
 
 
+	function _toFileObject(name){
+		return {
+			  name: (name + '').split(/\\|\//g).pop()
+			, type: api.getMimeType(name)
+		};
+	}
+	
+
 	function _isRegularFile(file, callback){
 		// http://stackoverflow.com/questions/8856628/detecting-folders-directories-in-javascript-filelist-objects
 		if( !file.type && (file.size % 4096) === 0 && (file.size <= 102400) ){
@@ -1625,7 +1630,7 @@
 		var key;
 		for( key in trans ){
 			if( trans.hasOwnProperty(key) ){
-				if( !(trans[key] instanceof Object || key === 'overlay') ){
+				if( !(trans[key] instanceof Object || key === 'overlay' || key === 'filter') ){
 					return	true;
 				}
 			}
@@ -2127,6 +2132,7 @@
 							, type: params.type || file.type || 'image/png'
 							, quality: params.quality || 1
 							, overlay: params.overlay
+							, filter: params.filter
 						});
 
 						queue.inc();
@@ -2236,7 +2242,7 @@
 	api.Image = Image;
 })(FileAPI, document);
 
-/*global window, navigator, FileAPI */
+/*global window, FileAPI */
 
 (function (api, window){
 	"use strict";
@@ -2246,7 +2252,6 @@
 		, FormData = window.FormData
 		, Form = function (){ this.items = []; }
 		, encodeURIComponent = window.encodeURIComponent
-		, isPhantomJS = /phantomjs/i.test(navigator.userAgent)// @todo: fixed it
 	;
 
 
@@ -2277,7 +2282,7 @@
 				api.log('FileAPI.Form.toHtmlData');
 				this.toHtmlData(fn);
 			}
-			else if( isPhantomJS || this.multipart || !FormData ){
+			else if( !api.formData || this.multipart || !FormData ){
 				api.log('FileAPI.Form.toMultipartData');
 				this.toMultipartData(fn);
 			}
