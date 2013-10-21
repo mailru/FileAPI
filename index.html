@@ -107,8 +107,10 @@
 
 										<div class="descr">{*prop.descr[ctx.lang] | markdown*}</div>
 
-										<div x:if="prop.code" x:highlight="prop.code.source[ctx.lang]"></div>
-										<div x:if="prop.code" style="height: 20px;"></div>
+										<div x:if="prop.code">
+											<div x:highlight="prop.code[ctx.lang]"></div>
+											<div style="height: 20px;"></div>
+										</div>
 									</div>
 								</div>
 
@@ -162,7 +164,7 @@
 											</ul>
 
 											<div>
-												<div x:if="fn.code" x:highlight="fn.code.source[ctx.lang]"></div>
+												<div x:if="fn.code" x:highlight="fn.code[ctx.lang]"></div>
 											</div>
 
 											<div style="height: 20px;"></div>
@@ -188,10 +190,9 @@
 		if( window.hljs ){
 			xtpl.decl('x:highlight', {
 				init: function (el, code){
-					var type = $.attr(el, 'data-type');
-					el.className += ' language-' + (type == 'js' ? 'javascript' : type);
+					el.className += ' language-' + (code.type == 'js' ? 'javascript' : code.type);
 					el.innerHTML = '<pre><code></code></pre>';
-					el.firstChild.firstChild.appendChild(document.createTextNode(code));
+					el.firstChild.firstChild.appendChild(document.createTextNode(code.source));
 					hljs.highlightBlock(el);
 				},
 				update: function (el, code){
