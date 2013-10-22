@@ -2248,12 +2248,21 @@
 	"use strict";
 
 	var
-		  document = window.document
-		, FormData = window.FormData
-		, Form = function (){ this.items = []; }
+		  FormData = window.FormData
+
+		, document = window.document
+		, unescape = window.unescape
 		, encodeURIComponent = window.encodeURIComponent
 	;
 
+
+	/**
+	 * @class FileAPI.Form
+	 * @constructor
+	 */
+	function Form(){
+		this.items = [];
+	}
 
 	Form.prototype = {
 
@@ -2395,11 +2404,13 @@
 				queue.inc();
 				_convertFile(file, function (file, blob){
 					data.push(
-						  '--_' + boundary + ('\r\nContent-Disposition: form-data; name="'+ file.name +'"'+ (file.file ? '; filename="'+ encodeURIComponent(file.file) +'"' : '')
-						+ (file.file ? '\r\nContent-Type: '+ (file.type || 'application/octet-stream') : '')
+						  '--_' + boundary
+						+ '\r\nContent-Disposition: form-data; name="'+ file.name +'"'
+						+ (file.file ? '; filename="'+ unescape( encodeURIComponent(file.file) ) +'"' : '') // `unescape + encodeURIComponent` -- for сyrillic characters and similar.
+						+ (file.file ? '\r\nContent-Type: ' + (file.type || 'application/octet-stream') : '')
 						+ '\r\n'
-						+ '\r\n'+ (file.file ? blob : encodeURIComponent(blob))
-						+ '\r\n')
+						+ '\r\n' + blob
+						+ '\r\n'
 					);
 					queue.next();
 				}, true);
