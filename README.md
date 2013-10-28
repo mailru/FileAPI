@@ -698,6 +698,7 @@ All the other codes - fatal error, user's involvement is recommend.
  * + iOS fix (https://github.com/blueimp/JavaScript-Load-Image)
  * [#121](https://github.com/mailru/FileAPI/issues/121): + FileAPI.`postNameConcat:Function(name, idx)`
  * [#116](https://github.com/mailru/FileAPI/issues/116): + `cache:false` option for FileAPI.upload
+ * fix `isArray` for Safari 5
 
 
 ### 1.2.6
