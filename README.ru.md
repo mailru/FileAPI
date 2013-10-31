@@ -808,23 +808,6 @@ FileAPI.Image(imageFile)
 
 ---
 
-<a name="FileAPI.Image.rotate-auto"></a>
-### rotate(deg`:String`)`:FileAPI.Image`
-Автоматический поворот по EXIF.
-
-* deg — "auto"
-
-```js
-FileAPI.Image(imageFile)
-	.rotate("auto")
-	.get(function (err/**String*/, img/**HTMLElement*/){
-
-	})
-;
-```
-
----
-
 <a name="FileAPI.Image.filter"></a>
 ### filter(callback`:Function`)`:FileAPI.Image`
 Применить фильтр функцию. Только `HTML5`.
