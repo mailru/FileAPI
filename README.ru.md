@@ -279,7 +279,7 @@ FileAPI.readAsBinaryString(file, function (evt/**Object*/){
 ---
 
 <a name="FileAPI.readAsArrayBuffer"></a>
-### readAsBinaryString(file`:Object`, callback`:Function`)`:void`
+### readAsArrayBuffer(file`:Object`, callback`:Function`)`:void`
 Чтение содержимого указанного файла как `ArrayBuffer`.
 
 * file — файл для чтения
@@ -330,14 +330,7 @@ FileAPI.readAsText(file, function (evt/**Object*/){
 
 ```js
 FileAPI.readAsText(file, "utf-8", function (evt/**Object*/){
-	if( evt.type == 'load' ){
-		// Всё хорошо
-	 	var text = evt.result;
-	} else if( evt.type =='progress' ){
-		var pr = evt.loaded/evt.total * 100;
-	} else {
-		// Ошибка
-	}
+	/*__*/
 })
 ```
 
@@ -651,15 +644,15 @@ var xhr = FileAPI.upload({
 ## File object
 
 <a name="File.name"></a>
-### name
+### name`:String`
 Имя файла.
 
 <a name="File.type"></a>
-### type
+### type`:String`
 MIME type
 
 <a name="File.size"></a>
-### size
+### size`:Number`
 Размер файла в байтах.
 
 
@@ -715,18 +708,17 @@ HTTP-статус в виде числа (404 — «Not Found», 200 — «OK» 
 
 <a name="XmlHttpRequestPromise.success"></a>
 ### success(callback`:Function`)`:XmlHttpRequestPromise`
-Функция, которая исполняется в случае неудачного запроса.
+Функция, которая исполняется в случае успешного запроса.
 
- * callback — принимает два аргумента: `xhr` и `options`
+* callback — принимает два аргумента: `xhr` и `options`
 
 ---
 
 <a name="XmlHttpRequestPromise.error"></a>
 ### error(callback`:Function`)`:XmlHttpRequestPromise`
-Функция, которая исполняется в случае успешного запроса.
+Функция, которая исполняется в случае неудачного запроса.
 
- * callback — принимает три аргумента: `error`, `xhr` и `options`
-
+* callback — принимает три аргумента: `error`, `xhr` и `options`
 
 ---
 
@@ -912,6 +904,23 @@ FileAPI.Image(imageFile)
 ```js
 FileAPI.Image(imageFile)
 	.rotate(90)
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+```
+
+---
+
+<a name="FileAPI.Image.rotate-auto"></a>
+### rotate(type`:String`)`:FileAPI.Image`
+Автоматический поворот по EXIF.
+
+* type — "auto"
+
+```js
+FileAPI.Image(imageFile)
+	.rotate("auto")
 	.get(function (err/**String*/, img/**HTMLElement*/){
 
 	})

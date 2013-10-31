@@ -280,7 +280,7 @@ FileAPI.readAsBinaryString(file, function (evt/**Object*/){
 ---
 
 <a name="FileAPI.readAsArrayBuffer"></a>
-### readAsBinaryString(file`:Object`, callback`:Function`)`:void`
+### readAsArrayBuffer(file`:Object`, callback`:Function`)`:void`
 Reading the contents of the specified `File` as `ArrayBuffer`.
 
 * file — file object
@@ -331,14 +331,7 @@ Reading the contents of the specified `File` as `text`.
 
 ```js
 FileAPI.readAsText(file, "utf-8", function (evt/**Object*/){
-	if( evt.type == 'load' ){
-		// Success
-	 	var text = evt.result;
-	} else if( evt.type =='progress' ){
-		var pr = evt.loaded/evt.total * 100;
-	} else {
-		// Error
-	}
+	/*__*/
 })
 ```
 
@@ -653,15 +646,15 @@ var xhr = FileAPI.upload({
 ## File object
 
 <a name="File.name"></a>
-### name
+### name`:String`
 The name of the file referenced by the File object.
 
 <a name="File.type"></a>
-### type
+### type`:String`
 The type (MIME type) of the file referenced by the File object.
 
 <a name="File.size"></a>
-### size
+### size`:Number`
 The size (in bytes) of the file referenced by the File object.
 
 ---
@@ -717,15 +710,15 @@ Returns the string containing the text of the specified header, or null if eithe
 ### success(callback`:Function`)`:XmlHttpRequestPromise`
 A function to be called if the request succeeds.
 
- * callback — receives two arguments: `xhr` and `options`
+* callback — receives two arguments: `xhr` and `options`
 
 ---
 
 <a name="XmlHttpRequestPromise.error"></a>
 ### error(callback`:Function`)`:XmlHttpRequestPromise`
-A function to be called if the request succeeds.
+A function to be called if the request failure.
 
- * callback — receives three arguments: `error`, `xhr` and `options`
+* callback — receives three arguments: `error`, `xhr` and `options`
 
 ---
 
@@ -910,6 +903,23 @@ Rotate image.
 ```js
 FileAPI.Image(imageFile)
 	.rotate(90)
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+```
+
+---
+
+<a name="FileAPI.Image.rotate-auto"></a>
+### rotate(type`:String`)`:FileAPI.Image`
+Auto rotate image by exif.
+
+* type — "auto"
+
+```js
+FileAPI.Image(imageFile)
+	.rotate("auto")
 	.get(function (err/**String*/, img/**HTMLElement*/){
 
 	})
