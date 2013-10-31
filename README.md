@@ -824,6 +824,21 @@ FileAPI.Image(imageFile)
 ;
 ```
 
+<a name="FileAPI.Image.rotate-auto"></a>
+### rotate(deg`:String`)`:FileAPI.Image`
+Auto rotate image by exif.
+
+* deg — "auto"
+
+```js
+FileAPI.Image(imageFile)
+	.rotate("auto")
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+```
+
 ---
 
 <a name="FileAPI.Image.filter"></a>
