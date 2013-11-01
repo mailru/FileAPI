@@ -1499,8 +1499,8 @@ Button like link.
 	<li>+iOS fix (https://github.com/blueimp/JavaScript-Load-Image)</li>
 	<li>[#121](https://github.com/mailru/FileAPI/issues/121): + FileAPI.`postNameConcat:Function(name, idx)`</li>
 	<li>[#116](https://github.com/mailru/FileAPI/issues/116): + `cache:false` option for FileAPI.upload</li>
+	<li>fix `isArray` for Safari 5</li>
 </ul>
-
 
 ### 1.2.6
 <ul>
