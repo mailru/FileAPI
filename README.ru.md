@@ -362,7 +362,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.headers"></a>
 ### headers`:Object`
-Дополнительные заголовки запроса, только HTML5.
+Дополнительные заголовки запроса, только `HTML5 or Flash`.
 
 ```js
 var xhr = FileAPI.upload({
