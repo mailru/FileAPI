@@ -194,11 +194,27 @@ FileAPI.event.on(el, 'change', function (evt/**Event*/){
 		files: { file: files[0] },
 		complete: function (err, xhr){
 			if( !err ){
-				var result = xhr.responseText;
+				var result = FileAPI.parseJSON(xhr.responseText);
 				// ...
 			}
 		}
 	});
+});
+```
+
+---
+
+<a name="FileAPI.upload-short"></a>
+### upload(url`:String`, files`:Mixed`[, opts`:Object`])`:XmlHttpRequestPromise`
+
+* url — a string containing the URL to which the request is sent.
+* files — Array, Object or HTMLInput
+
+
+```js
+FileAPI.upload('./ctpl.php', files).done(function (xhr){
+	var result = FileAPI.parseJSON(xhr.responseText);
+	// ...
 });
 ```
 
@@ -376,8 +392,9 @@ var xhr = FileAPI.upload({
 ---
 
 <a name="options.files"></a>
-### files`:Object`
+### files`:Object|Array`
 Key-value object, `key` — post name, `value` — File or FileAPI.Image object.
+Or an array of files.
 
 
 ```js
@@ -1479,12 +1496,14 @@ Button like link.
 
 <a name="Changelog"></a>
 ## Changelog
+
+### 2.1.0
 <ul>
+	<li>+ `FileAPI.upload(url, files[, opts])`</li>
 	<li>#134: + `FileAPI.getMimeType`</li>
 	<li>+ `serial: true` upload option</li>
 	<li>+ `postName: 'files'` uplaod option</li>
 </ul>
-
 
 ### 2.0.0
 <ul>

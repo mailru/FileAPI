@@ -266,7 +266,46 @@ module('FileAPI');
 
 				deepEqual(res.object, { foo: 'bar' });
 			}
-		})
+		});
+	});
+
+
+	test('upload without files (II)', function (){
+		var queue = FileAPI.queue(function (){
+			start();
+		});
+		var doneFn = function (xhr){
+			var res = FileAPI.parseJSON(xhr.responseText).data._REQUEST;
+			equal(res.foo, 'bar');
+			queue.next();
+		};
+
+		stop();
+		queue.inc();
+		queue.inc();
+
+		FileAPI.upload(serverUrl+'?foo=bar').always(doneFn);
+		FileAPI.upload(serverUrl+'?foo=bar', []).always(doneFn);
+	});
+
+
+	test('upload (short)', function (){
+		stop();
+		FileAPI.upload(serverUrl, FileAPI.getFiles(uploadForm['1px.gif'])).always(function (xhr){
+			var res = FileAPI.parseJSON(xhr.responseText);
+			equal(res.data._FILES['files'].name, '1px.gif', 'file.name');
+			start();
+		});
+	});
+
+
+	test('upload (short + postName)', function (){
+		stop();
+		FileAPI.upload(serverUrl, FileAPI.getFiles(uploadForm['1px.gif'])[0], { postName: "foo" }).always(function (xhr){
+			var res = FileAPI.parseJSON(xhr.responseText);
+			equal(res.data._FILES['foo'].name, '1px.gif', 'file.name');
+			start();
+		});
 	});
 
 

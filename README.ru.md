@@ -182,7 +182,7 @@ FileAPI.event.on(document, 'drop', function (evt/**Event*/){
 Помните, для корректной работы flash-транспорта, тело ответа сервера не должно быть пустым,
 например можно ответить простым текстом "ok".
 
-* opts — объект настрое, см. раздел [Upload options](#options)
+* opts — объект настроек, см. раздел [Upload options](#options)
 
 ```js
 var el = document.getElementById('my-input');
@@ -198,6 +198,21 @@ FileAPI.event.on(el, 'change', function (evt/**Event*/){
 			}
 		}
 	});
+});
+```
+---
+
+<a name="FileAPI.upload-short"></a>
+### upload(url`:String`, files`:Mixed`[, opts`:Object`])`:XmlHttpRequestPromise`
+
+* url — куда загружать файлы
+* files — Array, Object или HTMLInput
+
+
+```js
+FileAPI.upload('./ctpl.php', files).done(function (xhr){
+	var result = FileAPI.parseJSON(xhr.responseText);
+	// ...
 });
 ```
 
