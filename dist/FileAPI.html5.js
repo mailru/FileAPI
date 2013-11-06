@@ -192,6 +192,7 @@
 			cors: false,
 			html5: true,
 			media: false,
+			formData: true,
 
 			debug: false,
 			pingUrl: false,
@@ -2139,7 +2140,7 @@
 	api.Image = Image;
 })(FileAPI, document);
 
-/*global window, navigator, FileAPI */
+/*global window, FileAPI */
 
 (function (api, window){
 	"use strict";
@@ -2149,7 +2150,6 @@
 		, FormData = window.FormData
 		, Form = function (){ this.items = []; }
 		, encodeURIComponent = window.encodeURIComponent
-		, isPhantomJS = /phantomjs/i.test(navigator.userAgent)// @todo: fixed it
 	;
 
 
@@ -2180,7 +2180,7 @@
 				api.log('FileAPI.Form.toHtmlData');
 				this.toHtmlData(fn);
 			}
-			else if( isPhantomJS || this.multipart || !FormData ){
+			else if( !api.formData || this.multipart || !FormData ){
 				api.log('FileAPI.Form.toMultipartData');
 				this.toMultipartData(fn);
 			}
@@ -2831,6 +2831,10 @@
 				}
 			}
 		};
+
+
+		el.style.width	= _px(options.width);
+		el.style.height	= _px(options.height);
 
 
 		if( api.html5 && html5 ){

@@ -192,6 +192,7 @@
 			cors: false,
 			html5: true,
 			media: false,
+			formData: true,
 
 			debug: false,
 			pingUrl: false,
@@ -2139,7 +2140,7 @@
 	api.Image = Image;
 })(FileAPI, document);
 
-/*global window, navigator, FileAPI */
+/*global window, FileAPI */
 
 (function (api, window){
 	"use strict";
@@ -2149,7 +2150,6 @@
 		, FormData = window.FormData
 		, Form = function (){ this.items = []; }
 		, encodeURIComponent = window.encodeURIComponent
-		, isPhantomJS = /phantomjs/i.test(navigator.userAgent)// @todo: fixed it
 	;
 
 
@@ -2180,7 +2180,7 @@
 				api.log('FileAPI.Form.toHtmlData');
 				this.toHtmlData(fn);
 			}
-			else if( isPhantomJS || this.multipart || !FormData ){
+			else if( !api.formData || this.multipart || !FormData ){
 				api.log('FileAPI.Form.toMultipartData');
 				this.toMultipartData(fn);
 			}
@@ -2833,6 +2833,10 @@
 		};
 
 
+		el.style.width	= _px(options.width);
+		el.style.height	= _px(options.height);
+
+
 		if( api.html5 && html5 ){
 			// Create video element
 			var video = document.createElement('video');
@@ -2927,6 +2931,9 @@
 		  document = window.document
 		, location = window.location
 		, navigator = window.navigator
+
+		, _each = api.each
+		, _cameraQueue = []
 	;
 
 
@@ -3170,13 +3177,13 @@
 						// Set files filter
 						var accept = [], exts = {};
 
-						api.each((node.getAttribute('accept') || '').split(/,\s*/), function (mime){
-							api.accept[mime] && api.each(api.accept[mime].split(' '), function (ext){
+						_each((node.getAttribute('accept') || '').split(/,\s*/), function (mime){
+							api.accept[mime] && _each(api.accept[mime].split(' '), function (ext){
 								exts[ext] = 1;
 							});
 						});
 
-						api.each(exts, function (i, ext){
+						_each(exts, function (i, ext){
 							accept.push( ext );
 						});
 
@@ -3214,7 +3221,7 @@
 						, event
 					;
 
-					api.each(files, function (file){
+					_each(files, function (file){
 						api.checkFileObj(file);
 					});
 
@@ -3446,6 +3453,12 @@
 						}));
 					};
 
+					// Run
+					_each(_cameraQueue, function (args){
+						api.Camera.fallback.apply(api.Camera, args);
+					});
+					_cameraQueue = [];
+
 
 					// FileAPI.Camera:proto
 					_inherit(api.Camera.prototype, {
@@ -3465,7 +3478,7 @@
 									}
 									else {
 										api.log('FlashAPI.camera.on.success: ' + _this._id());
-										_this.active = true;
+										_this._active = true;
 										callback(null, _this);
 									}
 								})
@@ -3473,7 +3486,7 @@
 						},
 
 						stop: function (){
-							this.active = false;
+							this._active = false;
 							flash.cmd(this._id(), 'camera.off');
 						},
 
@@ -3528,7 +3541,7 @@
 								, fileId
 							;
 
-							api.each(formData, function (item){
+							_each(formData, function (item){
 								if( item.file ){
 									files[item.name] = item = _getFileDescr(item.blob);
 									fileId  = item.id;
@@ -3593,7 +3606,7 @@
 
 
 							// #2174: FileReference.load() call while FileReference.upload() or vice versa
-							api.each(files, function (file){
+							_each(files, function (file){
 								queue.inc();
 								api.getInfo(file, queue.next);
 							});
@@ -3636,7 +3649,7 @@
 
 
 		function _inherit(obj, methods){
-			api.each(methods, function (fn, name){
+			_each(methods, function (fn, name){
 				var prev = obj[name];
 				obj[name] = function (){
 					this.parent = prev;
@@ -3760,6 +3773,11 @@
 				, height:	box.bottom - box.top
 			};
 		}
+
+
+		api.Camera.fallback = function (){
+			_cameraQueue.push(arguments);
+		};
 
 
 		// @export
