@@ -1393,7 +1393,7 @@
 
 
 	function _isLikeFile(obj){
-		return	obj && (obj instanceof File || obj.image && obj.file || obj.flashId);
+		return	obj && (File && (obj instanceof File) || obj.image && obj.file || obj.flashId);
 	}
 
 
