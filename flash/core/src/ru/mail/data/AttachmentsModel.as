@@ -51,7 +51,7 @@ package ru.mail.data
 			return _filesBuilder;
 		}
 		
-		public var useCamera:Boolean = false;
+		public var useCamera:String = null;
 		
 		/**
 		 * if true, user can select multiple files 

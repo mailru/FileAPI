@@ -107,9 +107,10 @@ package ru.mail.controller
 				JSCaller.flashId = options["flashId"];
 			}
 
-			// use camera
-			_model.useCamera = !!options["useCamera"];
-			if (_model.useCamera) {
+			// use camera 
+			// options["useCamera"], if not false, contains url to camera swf
+			_model.useCamera = options["useCamera"];
+			if (_model.useCamera && _model.useCamera !== 'false') {
 				setupCamera();
 			}
 
