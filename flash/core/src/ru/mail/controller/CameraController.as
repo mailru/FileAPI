@@ -97,8 +97,8 @@ package ru.mail.controller
 					initComplete(false, evt.error.getError());
 				}
 			});
-			// todo: parametrize swf path
-			loader.loadGraphic(new URLRequest('../dist/FileAPI.flash.camera.swf'));
+			
+			loader.loadGraphic(new URLRequest(_model.useCamera || 'FileAPI.flash.camera.swf'));
 		}
 		
 		private function onCameraStatus(event:StatusEvent):void
