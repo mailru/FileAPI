@@ -94,7 +94,6 @@ module.exports = function (grunt){
 				files: {
 					  'dist/<%= pkg.name %>.min.js': ['<%= concat.all.dest %>']
 					, 'dist/<%= pkg.name %>.html5.min.js': ['<%= concat.html5.dest %>']
-					, 'dist/jquery.fileapi.min.js': ['plugins/jquery.fileapi.js']
 				}
 			}
 		},

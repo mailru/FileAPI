@@ -1,6 +1,6 @@
 {
 	"name": "fileapi",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"devDependencies": {
 		"grunt": "~0.4.0",
 		"grunt-version": "*",
