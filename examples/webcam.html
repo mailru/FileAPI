@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!--
+
+
+		~~~ Демонстрация работы с Камерой ~~~
+		           (NativeJS + FileAPI)
+
+
+-->
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=1, maximum-scale=1" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<title>FileAPI :: WebCam :: example</title>
+
+	<script>
+		// Settings
+		var FileAPI = {
+			  debug: true // debug mode
+			, media: true // use webcam
+			, staticPath: '../dist/'
+		};
+	</script>
+
+	<script src="../dist/FileAPI.js"></script>
+	<script src="../plugins/FileAPI.exif.js"></script>
+
+	<style>
+		body {
+			font-size: 15px;
+			font-family: "Helvetica Neue";
+		}
+
+		button {
+			font-size: 20px;
+		}
+	</style>
+
+</head>
+<body>
+	<div style="left: 0; right: 0; bottom: 0; position: fixed; box-shadow: 0 0 5px rgba(0,0,0,.65); background-color: #f3f3f3;">
+		<div style="padding: 5px 10px 10px">
+			<a href="../">&larr; index</a> |
+			<a href="./demo.html">demo</a> -
+			<a href="./userpic.html">userpic</a> -
+			<a href="./thumbnails.html">thumbnails</a> -
+			<a href="./watermark.html">watermark</a> -
+			<b>webcam</b> -
+			<a href="./caman.html">caman.js</a>
+		</div>
+	</div>
+
+	<div style="padding-bottom: 100px;">
+		<h2>WebCam</h2>
+		<div id="box"></div>
+
+		<div id="readyBox" style="display: none">
+			<button id="shotBtn">shot</button>
+			<button id="startBtn">start</button>
+			<button id="stopBtn">stop</button>
+
+			<h3>Shots</h3>
+			<div id="shots"><b></b></div>
+
+			<h3>Server</h3>
+			<div id="server"><b></b></div>
+		</div>
+	</div>
+
+	<script>
+		(function (){
+			FileAPI.Camera.publish(box, { width: 320, height: 240 }, function (err, cam){
+				if( err ){
+					alert('WebCam or Flash not supported :[');
+				} else {
+					readyBox.style.display = '';
+
+					FileAPI.event.on(startBtn, 'click', function (){
+						cam.start();
+					});
+
+					FileAPI.event.on(stopBtn, 'click', function (){
+						cam.stop();
+					});
+
+					FileAPI.event.on(shotBtn, 'click', function (){
+						if( cam.isActive() ){
+							var shot = cam.shot();
+
+							shot
+								.clone()
+								.preview(100, 100)
+								.get(function (err, img){
+									img.style.marginRight = '5px';
+									shots.insertBefore(img, shots.firstChild);
+								})
+							;
+
+							var file = shot
+								.preview(200, 200)
+								.overlay({
+									  x: 5
+									, y: 5
+									, src: '../statics/watermark.png'
+									, rel: FileAPI.Image.RIGHT_TOP
+								})
+							;
+
+							FileAPI.upload({
+								  url: 'http://rubaxa.org/FileAPI/server/ctrl.php'
+								, files: { shot: file }
+								, complete: function (err, xhr){
+									var res = JSON.parse(xhr.responseText);
+									var img = new Image;
+									img.src = res.images.shot.dataURL;
+									img.style.marginRight = '5px';
+									server.insertBefore(img, server.firstChild);
+								}
+							});
+						}
+					});
+				}
+			});
+		})();
+	</script>
+</body>
+</html>

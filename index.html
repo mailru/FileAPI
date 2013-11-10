@@ -1,0 +1,259 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+
+	<title>FileAPI — a set of javascript tools for working with files.</title>
+
+	<meta name="keywords" content="FileAPI, upload, file, multipart, chunk, dragndrop, images, html5, rubaxa"/>
+	<meta name="description" content="The best library to upload files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF."/>
+
+	<link rel="stylesheet" href="statics/main.css"/>
+	<link href="http://fonts.googleapis.com/css?family=Roboto:300,400" rel="stylesheet" type="text/css"/>
+
+	<script src="//code.jquery.com/jquery-1.8.2.js"></script>
+	<script>!window.jQuery && document.write('<script src="/js/jquery.dev.js"><'+'/script>');</script>
+
+	<script src="./statics/xtpl.min.js"></script>
+</head>
+<body class="body">
+
+	<script x-ctrl="main" type="text/xtpl-xml">
+		<div id="sidebar" class="sidebar">
+			<div class="menu">
+				<div>
+					<ul x:if="ctx.lang == 'ru'">
+						<li><a href="https://github.com/mailru/FileAPI">Репозиторий на GitHub</a></li>
+						<li><a href="http://rubaxa.github.io/jquery.fileapi/">jQuery Plugin</a></li>
+						<li><a href="./examples/demo.html">Пример #1: demo</a></li>
+						<li><a href="./examples/userpic.html">Пример #2: userpic</a></li>
+						<li><a href="./examples/thumbnails.html">Пример #3: thumbnails</a></li>
+						<li><a href="./examples/watermark.html">Пример #4: watermark</a></li>
+						<li><a href="./examples/webcam.html">Пример #5: webcam</a></li>
+						<li><a href="./examples/caman.html">Пример #6: CamanJS</a></li>
+						<li><a href="#en/{{ctx.relpath}}">English version</a></li>
+					</ul>
+				</div>
+
+				<div>
+					<ul x:if="ctx.lang != 'ru'">
+						<li><a href="https://github.com/mailru/FileAPI">GitHub repository</a></li>
+						<li><a href="http://rubaxa.github.io/jquery.fileapi/">jQuery Plugin</a></li>
+						<li><a href="./examples/demo.html">Example #1: demo</a></li>
+						<li><a href="./examples/userpic.html">Example #2: userpic</a></li>
+						<li><a href="./examples/thumbnails.html">Example #3: thumbnails</a></li>
+						<li><a href="./examples/watermark.html">Example #4: watermark</a></li>
+						<li><a href="./examples/webcam.html">Example #5: webcam</a></li>
+						<li><a href="./examples/caman.html">Example #6: CamanJS</a></li>
+						<li><a href="#ru/{{ctx.relpath}}">Русская версия</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div>
+				<div class="menu" x:repeat="item in ctx.api">
+					<a href="#{{ctx.lang}}/{{item.label}}" class="menu__name">{{item['class']}}</a>
+					<ul>
+						<li x:repeat="prop in item.props">
+							<a href="#{{ctx.lang}}/{{prop.label}}">{{prop.name}}</a>
+						</li>
+					</ul>
+					<ul>
+						<li x:repeat="(name, item) in item.fn">
+							<a href="#{{ctx.lang}}/{{item.label}}">{{name}}</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<div style="height: 5px;"></div>
+		</div>
+
+		<div>
+			<div class="body__top"></div>
+			<div>&nbsp;</div>
+
+			<div class="content">
+				<div class="logo"></div>
+
+				<div style="font-size: 30px; margin: 80px 0; text-align: center;">
+					<a href="https://github.com/mailru/FileAPI">Stable version</a>,
+					it is <a href="https://github.com/mailru/FileAPI/tree/gh-pages">2.0 beta</a>.
+				</div>
+
+				<div>
+					<div x:repeat="item in ctx.api">
+						<a name="{{ctx.lang}}/{{item.label}}"></a>
+
+						<h3>{{item['class']}}</h3>
+
+						<div style="margin-bottom: 30px;">
+							<div>{*item.descr[ctx.lang] | markdown*}</div>
+							<br/>
+
+							<div style="margin-left: 20px;">
+								<div>
+									<div x:repeat="prop in item.props">
+										<a name="{{ctx.lang}}/{{prop.label}}"></a>
+
+										<h4 class="fn" data-anchor="prop">
+											<span><x:value>prop.name</x:value></span>
+											<x:if test="prop.type != -1">
+												<x:text value=": "/>
+												<span class="type">{{prop.type}}</span>
+											</x:if>
+										</h4>
+
+										<div class="descr">{*prop.descr[ctx.lang] | markdown*}</div>
+
+										<div x:if="prop.code" x:highlight="prop.code.source[ctx.lang]"></div>
+										<div x:if="prop.code" style="height: 20px;"></div>
+									</div>
+								</div>
+
+								<div>
+									<div x:repeat="fn in item.fn">
+										<div x:repeat="variant in fn.variants">
+											<a name="{{ctx.lang}}/{{fn.label}}"></a>
+
+											<h4 data-anchor="fn" class="fn">
+												<span class="fn__name">{{fn.name}}</span>
+												<span class="fn__args">
+													<span>( </span>
+													<span>
+														<span x:repeat="(idx, arg) in variant.args">
+															<span>
+																<x:if test="arg.optional">
+																	<span class="fn__arg__optional">
+																		<span>[</span>
+																		<span x:if="idx">, </span>
+																		<span>{{arg.name}}:</span>
+																		<span class="type">{{arg.type}}</span>
+																		<span>]</span>
+																	</span>
+																</x:if>
+															</span>
+
+															<span>
+																<x:if test="!arg.optional">
+																	<span x:if="idx">, </span>
+																	<span>{{arg.name}}:</span>
+																	<span class="type">{{arg.type}}</span>
+																</x:if>
+															</span>
+														</span>
+													</span>
+													<span> ):</span>
+												</span>
+												<span class="type">{{fn.returns}}</span>
+											</h4>
+
+											<div class="descr">
+												{*variant.descr[ctx.lang] | markdown*}
+											</div>
+
+											<ul>
+												<li x:repeat="arg in variant.args">
+													<b>{{arg.name}}</b>
+													<span> — </span>
+													<span>{{fn.args[arg.name][ctx.lang]}}</span>
+												</li>
+											</ul>
+
+											<div>
+												<div x:if="fn.code" x:highlight="fn.code.source[ctx.lang]"></div>
+											</div>
+
+											<div style="height: 20px;"></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</script>
+
+
+
+	<script src="./dist/FileAPI.min.js"></script>
+	<script src="//yandex.st/highlightjs/7.2/highlight.min.js"></script>
+
+
+	<script>
+		/** @namespace hljs -- highlight.js */
+		if( window.hljs ){
+			xtpl.decl('x:highlight', {
+				init: function (el, code){
+					var type = $.attr(el, 'data-type');
+					el.className += ' language-' + (type == 'js' ? 'javascript' : type);
+					el.innerHTML = '<pre><code></code></pre>';
+					el.firstChild.firstChild.appendChild(document.createTextNode(code));
+					hljs.highlightBlock(el);
+				},
+				update: function (el, code){
+					this.init(el, code);
+				}
+			});
+		}
+
+
+		xtpl.mod('markdown', function (text){
+			return	text ? text.replace(/`([^`]+)`/g, '<span class="code">$1</span>') : text;
+		});
+
+
+		$(window).resize(function (){
+			$('#sidebar').css('height', $(window).height());
+		});
+
+
+		xtpl.ctrl('main', function (ctx){
+			var lang = (window.navigator.userLanguage || window.navigator.language).split('-')[0];
+			var _rlang = /(?:\/|^)(en|ru)\//;
+			var _updScroll = function (){
+				var anchor = location.toString().replace(/^.+#/, '');
+				if( anchor ){
+					var offset = $('a[name="'+anchor+'"]').offset();
+					offset && $(window).scrollTop(offset.top);
+				}
+				$(window).trigger('resize');
+			};
+
+			ctx.api = {};
+			ctx.lang = /(en|ru)/.test(lang) ? lang : 'en';
+
+
+			ctx.getArgs = function (args){
+				return	xtpl.utils.map(args, function (arg){
+					return	arg.name;
+				}).join(', ');
+			};
+
+
+			$(window).bind('hashchange', function (evt, force){
+				var href = location.toString().split('#').pop();
+				var lang = (href.match(_rlang) || [,ctx.lang])[1];
+
+				ctx.lang = lang;
+				ctx.relpath = href.replace(/^.+\//, '');
+
+				if( !force ){
+					ctx.$apply(_updScroll);
+				}
+			}).trigger('hashchange', true);
+
+
+			$.getJSON('./statics/docs.json?ver='+FileAPI.version, function (json){
+				ctx.api = json;
+				ctx.$apply(_updScroll);
+			});
+
+			window.ctx = ctx;
+		});
+	</script>
+</body>
+</html>

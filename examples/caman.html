@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--
+
+
+		~~~ Демонстрация возможностей FileAPI и CamanJS ~~~
+
+
+-->
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<title>FileAPI :: CamanJS :: example</title>
+
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=0.8, maximum-scale=0.8" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<script>
+		var FileAPI = {
+			  debug: true
+			, media: true
+			, staticPath: '../dist/'
+		};
+	</script>
+	<script src="../dist/FileAPI.min.js"></script>
+	<script src="../plugins/caman.full.min.js"></script>
+
+	<link rel="stylesheet" href="toolkit.css"/>
+	<style>
+		body {
+			margin: 0 auto;
+			max-width: 800px;
+			font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
+		}
+
+		#PresetFilters a {
+			border-radius: 3px;
+			-webkit-transition: background-color .3s ease-out;
+			-moz-transition: background-color .3s ease-out;
+			transition: background-color .3s ease-out;
+			background-color: #368ad2;
+			display: block;
+			float: left;
+			text-align: center;
+			padding: 8px 10px;
+			color: #f8f8f2;
+			margin: 5px;
+			border: none;
+			font-size: 13px;
+			width: 120px;
+			cursor: pointer;
+		}
+			#PresetFilters a.Active {
+				background-color: #e69751;
+			}
+	</style>
+
+</head>
+<body>
+	<div style="left: 0; right: 0; bottom: 0; position: fixed; box-shadow: 0 0 5px rgba(0,0,0,.65); background-color: #f3f3f3;">
+		<div style="padding: 5px 10px 10px">
+			<a href="../">&larr; index</a> |
+			<a href="./demo.html">demo</a> -
+			<a href="./userpic.html">userpic</a> -
+			<a href="./thumbnails.html">thumbnails</a> -
+			<a href="./watermark.html">watermark</a> -
+			<a href="./webcam.html">webcam</a> -
+			<b>caman.js</b>
+		</div>
+	</div>
+
+
+
+	<div id="output" style="display: none; padding: 10px 20px 40px;">
+
+		<div id="result" style="text-align: center; margin: 0 auto;">
+			<div class="loader"></div>
+		</div>
+
+		<div id="PresetFilters">
+			<a data-preset="vintage" class="Active">Vintage</a>
+			<a data-preset="lomo">Lomo</a>
+			<a data-preset="clarity">Clarity</a>
+			<a data-preset="sinCity">Sin City</a>
+			<a data-preset="sunrise">Sunrise</a>
+			<a data-preset="crossProcess">Cross Process</a>
+			<a data-preset="orangePeel">Orange Peel</a>
+			<a data-preset="love">Love</a>
+			<a data-preset="grungy">Grungy</a>
+			<a data-preset="jarques">Jarques</a>
+			<a data-preset="pinhole">Pinhole</a>
+			<a data-preset="oldBoot">Old Boot</a>
+			<a data-preset="glowingSun">Glowing Sun</a>
+			<a data-preset="hazyDays">Hazy Days</a>
+			<a data-preset="herMajesty">Her Majesty</a>
+			<a data-preset="nostalgia">Nostalgia</a>
+			<a data-preset="hemingway">Hemingway</a>
+			<a data-preset="concentrate">Concentrate</a>
+		</div>
+
+	</div>
+
+	<div style="text-align: center; padding: 50px; clear: both; font-size: 20px;">
+		<div id="choose">
+			<label for="browse" class="btn">Select photo</label>
+			<input id="browse" type="file" accept="image/*" style="font-size: 20px; display: none;" />
+
+			<br/>
+			<br/>
+
+			<div id="openCam" class="btn">WebCam</div>
+		</div>
+
+		<div id="photoBooth" style="visibility: hidden; position: absolute; overflow: hidden; height: 0">
+			<div id="cam" style="border: 2px solid #80BD95; padding: 2px; width: 640px; height: 480px; margin: 0 auto;"></div>
+			<div id="shot" class="btn" style="border-radius: 100%; width: 80px; height: 80px; padding: 0; margin: 30px;"></div>
+		</div>
+	</div>
+
+
+
+	<script>
+		(function (){
+			var
+				  file
+				, webcam // current Camera
+				, filter = 'vintage' // default filter
+				, processing = false
+			;
+
+			function _choose(state){
+				choose.style.display = state ? '' : 'none';
+				photoBooth.style.visibility = !state ? '' : 'hidden';
+				photoBooth.style.height = !state ? '' : '20px';
+			}
+
+			// Open PhotoBooth
+			FileAPI.event.on(openCam, 'click', function (){
+				_choose(false);
+				output.style.display = 'none';
+
+				FileAPI.Camera.publish(cam, { width: 640, height: 480 }, function (err, cam){
+					if( err ){
+						_choose(true);
+						alert(err);
+					} else {
+						webcam = cam;
+					}
+				});
+			});
+
+
+			// Create shot
+			FileAPI.event.on(shot, 'click', function (){
+				if( webcam ){
+					file = webcam.shot();
+
+					webcam.stop();
+					webcam = null;
+
+					_choose(true);
+					_applyFilter(true);
+				}
+			});
+
+
+			// Open dialog
+			FileAPI.event.on(browse, 'change', function (evt){
+				file = FileAPI.getFiles(evt)[0];
+
+				if( file ){
+					_applyFilter(true);
+				}
+			});
+
+
+			// Set filter
+			FileAPI.event.on(PresetFilters, 'click', function (evt){
+				var el = evt.target;
+
+				if( !processing && el.tagName == 'A' ){
+					filter = el.dataset.preset;
+					processing = { el: el, html: el.innerHTML };
+
+					el.parentNode.querySelector('.Active').classList.remove('Active');
+					el.innerHTML = 'Rendering&hellip;';
+					el.className = 'Active';
+
+					_applyFilter();
+				}
+			});
+
+
+			function _applyFilter(loading){
+				if( loading ){
+					result.innerHTML = '<div class="loader"></div>';
+				}
+				output.style.display = '';
+
+				FileAPI.Image(file)
+					.resize(800, 600, 'max')
+					.filter(filter)
+					.get(function (err, img){
+						result.innerHTML = '';
+						result.appendChild(img);
+
+						if( processing ){
+							processing.el.innerHTML = processing.html;
+							processing = false;
+						}
+					})
+				;
+			}
+		})();
+	</script>
+
+</body>
+</html>

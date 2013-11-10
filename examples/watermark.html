@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<!--
+
+
+		~~~ Демонстрация работы с изображениями ~~~
+		           (NativeJS + FileAPI)
+
+
+-->
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=1, maximum-scale=1" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<title>FileAPI :: Watermark :: example</title>
+
+	<script>
+		// Settings
+		var FileAPI = {
+			  html5: !!1
+			, debug: !0 // debug mode
+			, staticPath: '../dist/'
+		};
+	</script>
+
+	<script src="../dist/FileAPI.js"></script>
+	<script src="../plugins/FileAPI.exif.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/json3/3.2.4/json3.min.js"></script>
+
+	<style>
+		body {
+			font-size: 15px;
+			font-family: "Helvetica Neue";
+		}
+
+		@keyframes color {
+			from { color: #000; }
+			to { color: #f60; }
+		}
+
+		@-moz-keyframes color {
+			from { color: #000; }
+			to { color: #f60; }
+		}
+
+		@-webkit-keyframes color {
+			from { color: #000; }
+			to { color: #f60; }
+		}
+
+		.anim {
+			-webkit-animation: color 1s infinite;
+			-moz-animation: color 1s infinite;
+			animation: color 1s infinite;
+		}
+	</style>
+
+</head>
+<body>
+	<div style="left: 0; right: 0; bottom: 0; position: fixed; box-shadow: 0 0 5px rgba(0,0,0,.65); background-color: #f3f3f3;">
+		<div style="padding: 5px 10px 10px">
+			<a href="../">&larr; index</a> |
+			<a href="./demo.html">demo</a> -
+			<a href="./userpic.html">userpic</a> -
+			<a href="./thumbnails.html">thumbnails</a> -
+			<b>watermark</b> -
+			<a href="./webcam.html">webcam</a> -
+			<a href="./caman.html">caman.js</a>
+		</div>
+	</div>
+
+
+	<style>
+		h4 {
+			margin-bottom: 0;
+		}
+
+		.btn {
+			*zoom: 1;
+			*display: inline;
+			display: inline-block;
+		}
+
+		.col {
+			float: left;
+			margin-left: 10px;
+		}
+	</style>
+
+	<form style="padding: 10px;">
+		<h3>Select image:</h3>
+		<div class="btn js-fileapi-wrapper">
+			<input name="file" type="file" accept="image/*"/>
+		</div>
+
+		<div id="preview" style="display: none;">
+
+			<div class="col">
+				<h4>Watermark position</h4>
+				<div id="pos" style="font-size: 12px;">
+				</div>
+
+				<h4>Output result</h4>
+				<div id="output">
+					<label>
+						<input value="image/jpeg" type="radio" name="type"/>
+						image/jpeg
+					</label>
+					<label>
+						<input value="image/png" type="radio" name="type"/>
+						image/png
+					</label>
+					<br/>
+					<br/>
+
+					<input name="width" type="text" style="width: 50px; text-align: center"/> x
+					<input name="height" type="text" style="width: 50px; text-align: center"/>
+				</div>
+			</div>
+
+			<div class="col">
+				<h4>Preview <span id="preview-processing" class="anim" style="display: none">(processing&hellip;)</span></h4>
+				<div id="image"></div>
+			</div>
+
+			<div class="col" style="position: absolute; right: 10px;">
+				<h4>Server response <span id="uploading" class="anim" style="display: none"></span></h4>
+				<div id="server"></div>
+			</div>
+			<br clear="all"/>
+
+			<div>
+				<h4>EXIF</h4>
+				<div id="exif"></div>
+			</div>
+		</div>
+	</form>
+
+	<script>
+		(function (){
+			var elms = document.forms[0];
+			var positions = ['<table>'];
+
+			FileAPI.each(['TOP', 'CENTER', 'BOTTOM'], function (x, i){
+				positions.push('<tr>');
+				FileAPI.each(['LEFT', 'CENTER', 'RIGHT'], function (y, j){
+					positions.push('<td><label><input type="radio" name="rel" value="'+ (i*3 + j) +'"/> '+x+'_'+y+'</label></td>');
+				});
+				positions.push('</tr>');
+			});
+
+
+			pos.innerHTML += positions.join('')+'</table>';
+
+
+			function _updWatermark(evt){
+				var file = FileAPI.getFiles(elms.file)[0];
+				var rel =  (FileAPI.filter(elms.rel, function (rel){ return rel.checked; })[0] || {}).value;
+				var type = (FileAPI.filter(elms.type, function (type){ return type.checked; })[0] || {}).value;
+				var overlay = { x: 5, y: 5, src: '../statics/watermark.png', rel: rel };
+
+				document.getElementById('preview-processing').style.display = '';
+
+				// Create preview
+				FileAPI.Image(file)
+					.resize(300, 300, 'max')
+					.overlay(overlay)
+					.get(function (err, img){
+						image.innerHTML = '';
+						image.appendChild(img);
+						document.getElementById('preview-processing').style.display = 'none';
+					})
+				;
+
+				document.getElementById('uploading').style.display = '';
+
+				// Upload
+				FileAPI.upload({
+					  url: '//rubaxa.org/FileAPI/server/ctrl.php'
+					, files: elms.file
+					, imageTransform: {
+						  width: elms.width.value|0
+						, height: elms.height.value|0
+						, preview: true
+						, type: type // Output type
+						, overlay: overlay // Add watermark
+					}
+					, upload: function (){
+						document.getElementById('uploading').innerHTML = '(uploading&hellip;)';
+					}
+					, progress: function (evt){
+						document.getElementById('uploading').innerHTML = (evt.loaded/evt.total * 100).toFixed(2) +'%';
+					}
+					, complete: function (err, xhr){
+						if( err ){
+							alert('Oops, server error.');
+						} else {
+							var res = JSON.parse(xhr.responseText);
+
+							FileAPI.each(res.images, function (file){
+								var matrix	= FileAPI.Image.prototype.getMatrix.call({ matrix: { dw: 300, dh: 300, resize: 'max' } }, file);
+
+								FileAPI.Image.fromDataURL(file.dataURL, { width: matrix.dw, height: matrix.dh }, function (img){
+									server.innerHTML = '';
+									server.appendChild(img);
+									server.innerHTML += '<div><b>'+file.width+'x'+file.height+', '+file.mime+', '+(file.size/1024).toFixed(3)+'KB</b></div>';
+								});
+
+								document.getElementById('uploading').style.display = 'none';
+							});
+						}
+					}
+				});
+			}
+
+
+			// Relative position
+			FileAPI.each(pos.getElementsByTagName('input'), function (el){
+				FileAPI.event.on(el, 'click', _updWatermark);
+			});
+
+
+			// Output type
+			FileAPI.each(output.getElementsByTagName('input'), function (el){
+				FileAPI.event.on(el, 'click', _updWatermark);
+			});
+
+
+			FileAPI.event.on(output, 'keyup', function (){
+				clearTimeout(this.pid);
+				this.pid = setTimeout(function (){
+					_updWatermark();
+				}, 1000);
+			});
+
+
+			FileAPI.event.on(elms.file, 'change', function (){
+				FileAPI.getInfo(FileAPI.getFiles(elms.file)[0], function (err, info){
+					var html = ['<table>'];
+
+					FileAPI.each(info && info.exif, function (val, key){
+						html.push('<tr><td>'+ key +'</td><td>'+ val +'</td></tr>');
+					});
+					exif.innerHTML = html.join('')+'</table>';
+
+					elms.width.value = info.width;
+					elms.height.value = info.height;
+
+					preview.style.display = '';
+					_updWatermark();
+				});
+			});
+		})();
+	</script>
+</body>
+</html>

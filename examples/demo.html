@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<!--
+
+
+		~~~ Демонстрация возможностей FileAPI ~~~
+
+
+-->
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<title>FileAPI :: Demo :: example</title>
+
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=0.8, maximum-scale=0.8" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<script src="//yandex.st/jquery/1.8.2/jquery.min.js"></script>
+	<script>if( !window.jQuery )document.write('<script src="/js/jquery.dev.js"><'+'/script>');</script>
+
+	<script>
+		var FileAPI = {
+			  debug: true
+			, staticPath: '../dist/'
+		};
+	</script>
+	<script src="../dist/FileAPI.min.js"></script>
+	<script src="../plugins/FileAPI.id3.js"></script>
+	<script src="../plugins/FileAPI.exif.js"></script>
+
+	<script>
+		// Simple JavaScript Templating
+		// John Resig - http://ejohn.org/ - MIT Licensed
+		(function (){
+			var cache = {};
+
+			this.tmpl = function tmpl(str, data){
+				// Figure out if we're getting a template, or if we need to
+				// load the template - and be sure to cache the result.
+				var fn = !/\W/.test(str) ?
+						cache[str] = cache[str] ||
+								tmpl(document.getElementById(str).innerHTML) :
+
+					// Generate a reusable function that will serve as a template
+					// generator (and which will be cached).
+						new Function("obj",
+								"var p=[],print=function(){p.push.apply(p,arguments);};" +
+
+									// Introduce the data as local variables using with(){}
+										"with(obj){p.push('" +
+
+									// Convert the template into pure JavaScript
+										str
+												.replace(/[\r\t\n]/g, " ")
+												.split("<%").join("\t")
+												.replace(/((^|%>)[^\t]*)'/g, "$1\r")
+												.replace(/\t=(.*?)%>/g, "',$1,'")
+												.split("\t").join("');")
+												.split("%>").join("p.push('")
+												.split("\r").join("\\'")
+										+ "');}return p.join('');");
+
+				// Provide some basic currying to the user
+				return data ? fn(data) : fn;
+			};
+		})();
+	</script>
+
+	<style>
+		body {
+			font-size: 15px;
+			font-family: "Helvetica Neue";
+		}
+
+		.b-button {
+			display: inline-block;
+			*display: inline;
+			*zoom: 1;
+			position: relative;
+			overflow: hidden;
+			cursor: pointer;
+			padding: 4px 15px;
+			vertical-align: middle;
+			border: 1px solid #ccc;
+			border-radius: 3px;
+			background-color: #f5f5f5;
+			background: -moz-linear-gradient(top, #fff 0%, #f5f5f5 49%, #ececec 50%, #eee 100%);
+			background: -webkit-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%);
+			background: -o-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%);
+			background: linear-gradient(to bottom, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%);
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			user-select: none;
+		}
+			.b-button_hover {
+				border-color: #fa0;
+				box-shadow: 0 0 2px #fa0;
+			}
+
+			.b-button__text {
+			}
+
+			.b-button__input {
+				cursor: pointer;
+				opacity: 0;
+				filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);
+				top: -10px;
+				right: -40px;
+				font-size: 50px;
+				position: absolute;
+			}
+
+
+	#preview {
+		max-width: 600px;
+		box-shadow: 0 1px 3px rgba(0,0,0,.4);
+		border-radius: 3px;
+	}
+		.b-file {
+			height: 40px;
+			padding: 5px;
+			position: relative;
+			overflow: hidden;
+			border-radius: 3px;
+			background-color: #fcfcfc;
+			background: -webkit-linear-gradient(top, #fcfcfc 0%, #f6f6f6 100%);
+			background: -moz-linear-gradient(top, #fcfcfc 0%, #f6f6f6 100%);
+			background: -o-linear-gradient(top, #fcfcfc 0%, #f6f6f6 100%);
+			background: linear-gradient(to bottom, #fcfcfc 0%, #f6f6f6 100%);
+			clear: both;
+		}
+			.b-file__left {
+				float: left;
+				margin: 1px 0 0 2px;
+				line-height: 0;
+			}
+				.b-file__left_border {
+					border: 2px solid #fff;
+					border-radius: 4px;
+				}
+
+			.b-file__right {
+				margin-left: 45px;
+			}
+
+			.b-file__name {
+				color: #36c;
+				cursor: pointer;
+				border-bottom: 1px dotted #36c;
+				text-decoration: none;
+			}
+				.b-file__name:hover {
+					color: #f00;
+					border-bottom-color: #f00;
+				}
+
+			.b-file__info {
+				color: #666;
+				position: absolute;
+				font-size: 12px;
+				margin-top: 3px;
+			}
+
+			.b-file__bar {
+				padding-top: 4px;
+			}
+
+			.b-file__error {
+				color: #c00;
+			}
+			.b-file__done {
+				color: #458383;
+			}
+			.b-file__abort {
+				top: 10px;
+				right: 20px;
+				width: 15px;
+				height: 15px;
+				position: absolute;
+				color: #c00;
+				cursor: pointer;
+				font-size: 20px;
+				display: none;
+			}
+				.b-file_upload .b-file__abort { display: block; }
+
+		.b-progress {
+			width: 200px;
+			height: 10px;
+			border: 2px solid #E2E4E2;
+			border-radius: 10px;
+			box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+			background-color: #d3d3d3;
+			position: relative;
+		}
+			.b-progress__bar {
+				width: 0;
+				height: 10px;
+				border-radius: 10px;
+				background-color: #2D9DD7;
+				background: -webkit-linear-gradient(top, #2D9DD7 0%, #1C81C7 100%); /* FF3.6+ */
+				background: -moz-linear-gradient(top, #2D9DD7 0%, #1C81C7 100%); /* FF3.6+ */
+				background: linear-gradient(to bottom, #2D9DD7 0%, #1C81C7 100%); /* FF3.6+ */
+				-webkit-transition: width .5s ease-out;
+				-moz-transition: width .5s ease-out;
+				-ms-transition: width .5s ease-out;
+				transition: width .5s ease-out;
+			}
+
+		.b-dropzone,
+		.b-dropzone__bg {
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 30000;
+			position: absolute;
+		}
+			.b-dropzone__bg {
+				opacity: .2;
+				background-color: #2D9DD7
+			}
+			.b-dropzone__txt {
+				color: #1C81C7;
+				text-shadow: 0 2px 1px #113C53;
+				font-size: 400%;
+				font-weight: bold;
+				text-align: center;
+				width: 500px;
+				top: 50%;
+				left: 50%;
+				margin: -100px 0 0 -250px;
+				z-index: 30001;
+				position: absolute;
+			}
+
+		.b-layer {
+			border: 3px solid #fff;
+			border-radius: 5px;
+			box-shadow: 0 1px 30px #000;
+			background-color: #f3f3f3;
+			top: 50px;
+			left: 50%;
+			z-index: 30002;
+			position: absolute;
+			margin-left: -150px;
+			margin-bottom: 100px;
+		}
+			.b-layer__h1 {
+				color: #fff;
+				padding: 10px 10px;
+				width: 300px;
+				overflow: hidden;
+				background-color: #2D9DD7;
+			}
+			.b-layer__img {
+				padding: 5px 10px;
+				text-align: center;
+				border-top: 2px solid #fff;
+			}
+			.b-layer__info {
+				padding: 2px 15px;
+				border-top: 2px solid #fff;
+			}
+				.b-layer__info div {
+					width: 280px;
+					overflow: hidden;
+					white-space: nowrap;
+				}
+
+
+	</style>
+
+</head>
+<body>
+	<div style="left: 0; right: 0; bottom: 0; position: fixed; box-shadow: 0 0 5px rgba(0,0,0,.65); background-color: #f3f3f3;">
+		<div style="padding: 5px 10px 10px">
+			<a href="../">&larr; index</a> |
+			<b>demo</b> -
+			<a href="./userpic.html">userpic</a> -
+			<a href="./thumbnails.html">thumbnails</a> -
+			<a href="./watermark.html">watermark</a> -
+			<a href="./webcam.html">webcam</a> -
+			<a href="./caman.html">caman.js</a>
+		</div>
+	</div>
+
+	<div id="drop-zone" class="b-dropzone" style="display: none">
+		<div class="b-dropzone__bg"></div>
+		<div class="b-dropzone__txt">Drop files there</div>
+	</div>
+
+	<div id="oooops" style="display: none; margin: 10px; padding: 10px; border: 2px solid #f60; border-radius: 4px;">
+		Увы, ваш браузер не поддерживает html5 и flash,
+		поэтому смотреть тут нечего, а iframe не даёт всей красоты :]
+	</div>
+
+	<div id="buttons-panel">
+		<div class="b-button js-fileapi-wrapper">
+			<div class="b-button__text">Upload one file</div>
+			<input name="files" class="b-button__input" type="file" />
+		</div>
+
+		<div class="b-button js-fileapi-wrapper">
+			<div class="b-button__text">Multiple</div>
+			<input name="files" class="b-button__input" type="file" multiple />
+		</div>
+
+		<div class="b-button js-fileapi-wrapper">
+			<div class="b-button__text">jpg, jpeg & gif</div>
+			<input name="files" class="b-button__input" type="file" accept="image/*" multiple />
+		</div>
+
+		<span id="drag-n-drop" style="display: none; padding: 0 30px">
+			or &nbsp; &nbsp; drag'n'drop
+		</span>
+	</div>
+
+	<div id="preview" style="margin-top: 30px"></div>
+
+	<script id="b-file-ejs" type="text/ejs">
+		<div id="file-<%=FileAPI.uid(file)%>" class="js-file b-file b-file_<%=file.type.split('/')[0]%>">
+			<div class="js-left b-file__left">
+				<img src="<%=icon[file.type.split('/')[0]]||icon.def%>" width="32" height="32" style="margin: 2px 0 0 3px"/>
+			</div>
+			<div class="b-file__right">
+				<div><a class="js-name b-file__name"><%=file.name%></a></div>
+				<div class="js-info b-file__info">size: <%=(file.size/FileAPI.KB).toFixed(2)%> KB</div>
+				<div class="js-progress b-file__bar" style="display: none">
+					<div class="b-progress"><div class="js-bar b-progress__bar"></div></div>
+				</div>
+			</div>
+			<i class="js-abort b-file__abort" title="abort">&times;</i>
+		</div>
+	</script>
+
+	<script id="b-layer-ejs" type="text/ejs">
+		<div class="b-layer">
+			<div class="b-layer__h1"><%=file.name%></div>
+			<div class="js-img b-layer__img"></div>
+			<div class="b-layer__info">
+				<%
+				FileAPI.each(info, function(val, key){
+					if( Object.prototype.toString.call(val) == '[object Object]' ){
+						var sub = '';
+						FileAPI.each(val, function (val, key){ sub += '<div>'+key+': '+val+'</div>'; });
+						if( sub ){
+							%><%=key%><div style="margin: 0 0 5px 20px;"><%=sub%></div><%
+						}
+					} else {
+				%>
+					<div><%=key%>: <%=val%></div>
+				<%
+					}
+				});
+				%>
+			</div>
+		</div>
+	</script>
+
+
+	<script type="text/javascript">
+		jQuery(function ($){
+			if( !(FileAPI.support.cors || FileAPI.support.flash) ){
+				$('#oooops').show();
+				$('#buttons-panel').hide();
+			}
+
+			$(document).on('mouseenter mouseleave', '.b-button', function (evt){
+				$(evt.currentTarget).toggleClass('b-button_hover', evt.type == 'mouseenter');
+			});
+
+
+			if( FileAPI.support.dnd ){
+				$('#drag-n-drop').show();
+				$(document).dnd(function (over){
+					$('#drop-zone').toggle(over);
+				}, function (files){
+					onFiles(files);
+				});
+			}
+
+
+			$('input[type="file"]').on('change', function (evt){
+				var files = FileAPI.getFiles(evt);
+				onFiles(files);
+				FileAPI.reset(evt.currentTarget);
+			});
+
+
+			var FU = {
+				icon: {
+					  def:   '//cdn1.iconfinder.com/data/icons/CrystalClear/32x32/mimetypes/unknown.png'
+					, image: '//cdn1.iconfinder.com/data/icons/humano2/32x32/apps/synfig_icon.png'
+					, audio: '//cdn1.iconfinder.com/data/icons/august/PNG/Music.png'
+					, video: '//cdn1.iconfinder.com/data/icons/df_On_Stage_Icon_Set/128/Video.png'
+				},
+
+				files: [],
+				index: 0,
+				active: false,
+
+				add: function (file){
+					FU.files.push(file);
+
+					if( /^image/.test(file.type) ){
+						FileAPI.Image(file).preview(35).rotate('auto').get(function (err, img){
+							if( !err ){
+								FU._getEl(file, '.js-left')
+									.addClass('b-file__left_border')
+									.html(img)
+								;
+							}
+						});
+					}
+				},
+
+				getFileById: function (id){
+					var i = FU.files.length;
+					while( i-- ){
+						if( FileAPI.uid(FU.files[i]) == id ){
+							return	FU.files[i];
+						}
+					}
+				},
+
+				showLayer: function (id){
+					var $Layer = $('#layer-'+id), file = this.getFileById(id);
+
+					if( !$Layer[0] ){
+						$Layer = $('<div/>').appendTo('body').attr('id', 'layer-'+id);
+					}
+
+					$Layer.css('top', $(window).scrollTop() + 30);
+
+					FileAPI.getInfo(file, function (err, info){
+						$Layer
+							.click(function (){ $(document).click(); })
+							.html(tmpl($('#b-layer-ejs').html(), {
+								  file: file
+								, info: $.extend(err ? {} : info, { size: (file.size/1024).toFixed(3) + ' KB' })
+							}))
+						;
+
+						if( /image/i.test(file.type) ){
+							if( err ){
+								$Layer.find('.js-img').html('Ooops.');
+							}
+							else {
+								FileAPI.Image(file).preview(300).get(function (err, img){
+									$Layer.find('.js-img').append(img);
+								});
+							}
+						} else {
+							$Layer.find('.js-img').remove();
+						}
+
+						$(document).off('click.layer keyup.layer').one('click.layer keyup.layer', function (evt){
+							$Layer.remove();
+						});
+					});
+				},
+
+				start: function (){
+					if( !FU.active && (FU.active = FU.files.length > FU.index) ){
+						FU._upload(FU.files[FU.index]);
+					}
+				},
+
+				abort: function (id){
+					var file = this.getFileById(id);
+					if( file.xhr ){
+						file.xhr.abort();
+					}
+				},
+
+				_getEl: function (file, sel){
+					var $el = $('#file-'+FileAPI.uid(file));
+					return	sel ? $el.find(sel) : $el;
+				},
+
+				_upload: function (file){
+					if( file ){
+						file.xhr = FileAPI.upload({
+							url: 'http://www.rubaxa.org/index.php',
+							files: { file: file },
+							upload: function (){
+								FU._getEl(file).addClass('b-file_upload');
+								FU._getEl(file, '.js-progress')
+									.css({ opacity: 0 }).show()
+									.animate({ opacity: 1 }, 100)
+								;
+							},
+							progress: function (evt){
+								FU._getEl(file, '.js-bar').css('width', evt.loaded/evt.total*100+'%');
+							},
+							complete: function (err, xhr){
+								var state = err ? 'error' : 'done';
+
+								FU._getEl(file).removeClass('b-file_upload');
+								FU._getEl(file, '.js-progress').animate({ opacity: 0 }, 200, function (){ $(this).hide() });
+								FU._getEl(file, '.js-info').append(', <b class="b-file__'+state+'">'+(err ? (xhr.statusText || err) : state)+'</b>');
+
+								FU.index++;
+								FU.active = false;
+
+								FU.start();
+							}
+						});
+					}
+				}
+			};
+
+			function onFiles(files){
+				var $Queue = $('<div/>').prependTo('#preview');
+
+				FileAPI.each(files, function (file){
+					if( file.size >= 25*FileAPI.MB ){
+						alert('Sorrow.\nMax size 25MB')
+					}
+					else if( file.size === void 0 ){
+						$('#oooops').show();
+						$('#buttons-panel').hide();
+					}
+					else {
+						$Queue.append(tmpl($('#b-file-ejs').html(), { file: file, icon: FU.icon }));
+
+						FU.add(file);
+						FU.start();
+					}
+				});
+			}
+
+
+			$(document)
+				.on('click', '.js-file', function (evt){
+					if( !evt.isDefaultPrevented() ){
+						FU.showLayer(evt.currentTarget.id.split('-')[1]);
+						evt.preventDefault();
+					}
+				})
+				.on('click', '.js-abort', function (evt){
+					FU.abort($(evt.target).closest('.js-file').attr('id').split('-')[1]);
+					evt.preventDefault();
+				})
+			;
+		}); // ready
+	</script>
+
+</body>
+</html>

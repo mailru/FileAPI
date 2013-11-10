@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<!--
+
+
+           ~~~ Это пример создания загрузки upserpic ~~~
+                       (NativeJS + FileAPI)
+
+
+    1. Скопируйте исходники себе в проект
+    2. Разместите crossdomain.xml на домене, куда будут грузиться файлы
+    3. Укажите путь к флешкам, он задаётся через "staticPath"
+    4. ...
+    5. Profit!
+
+
+-->
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<meta name="viewport" content="user-scalable=no, width=400, initial-scale=0.8, maximum-scale=0.8" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="yes" />
+	<meta name="format-detection" content="email=no" />
+	<meta name="HandheldFriendly" content="true" />
+
+	<title>FileAPI :: UserPic :: example</title>
+
+	<script>
+		// Объект настройки
+		var FileAPI = {
+			debug: false, // режим отладки
+			staticPath: '../dist/' // путь до флешек
+		};
+	</script>
+	<script src="../dist/FileAPI.min.js"></script>
+
+	<style>
+	body {
+		font-size: 15px;
+		font-family: "Helvetica Neue";
+	}
+
+
+	.upload-link {
+		color: #36c;
+		display: inline-block;
+		*zoom: 1;
+		*display: inline;
+		overflow: hidden;
+		position: relative;
+		text-decoration: none;
+		background-color: #fff;
+		background-color: rgba(255,255,255,.85);
+		padding: 3px 8px;
+	}
+		.upload-link__txt {
+			z-index: 1;
+			position: relative;
+			border-bottom: 1px dotted #36c;
+		}
+			.upload-link:hover .upload-link__txt {
+				color: #f00;
+				border-bottom-color: #f00;
+			}
+
+		.upload-link__inp {
+			top: -10px;
+			right: -40px;
+			z-index: 2;
+			position: absolute;
+			cursor: pointer;
+			opacity: 0;
+			filter: alpha(opacity=0);
+			font-size: 50px;
+		}
+
+
+		.upload {
+			width: 230px;
+			height: 200px;
+			border: 2px solid #ccc;
+			position: relative;
+			background-color: #fff;
+		}
+			.upload__preview {
+				-webkit-transition: opacity .3s ease;
+				-moz-transition: opacity .3s ease;
+				transition: opacity .3s ease;
+			}
+
+			.upload__progress {
+				color: #fff;
+			}
+
+			.upload__link,
+			.upload__progress {
+				top: 45%;
+				width: 100%;
+				position: absolute;
+				text-align: center;
+			}
+
+			.upload__progress,
+			.upload_active .upload__link { display: none; }
+
+			.upload_active .upload__preview { opacity: .75; }
+			.upload_active .upload__progress { display: block; }
+	</style>
+</head>
+<body>
+	<div style="left: 0; right: 0; bottom: 0; position: fixed; box-shadow: 0 0 5px rgba(0,0,0,.65); background-color: #f3f3f3;">
+		<div style="padding: 5px 10px 10px">
+			<a href="../">&larr; index</a> |
+			<a href="./demo.html">demo</a> -
+			<b>userpic</b> -
+			<a href="./thumbnails.html">thumbnails</a> -
+			<a href="./watermark.html">watermark</a> -
+			<a href="./webcam.html">webcam</a> -
+			<a href="./caman.html">caman.js</a>
+		</div>
+	</div>
+
+	<form name="userpic" class="upload">
+		<div id="preview" class="upload__preview"></div>
+
+		<div class="upload__progress">Uploading&hellip;</div>
+
+		<div class="upload__link">
+			<a class="upload-link js-fileapi-wrapper">
+				<span class="upload-link__txt">Browse pic</span>
+				<input class="upload-link__inp" name="photo" type="file" accept=".jpg,.jpeg,.gif" />
+			</a>
+		</div>
+	</form>
+
+	<script>
+		(function (){
+			// Ссылка на uploader
+			var form = document.forms.userpic;
+
+			// Ссылка на инпут, через который юзер будет выбирать файл
+			var input = form.photo;
+
+			// Ссылка на DOM-элемент, где будем отображать preview
+			var preview = document.getElementById('preview');
+
+			// Параметры предварительного просмотра
+			var previewOpts = {
+				  width:  230
+				, height: 200
+			};
+
+			// Параметры загрузки
+			var uploadOpts = {
+				  url: 'http://www.rubaxa.org/index.php' // куда грузить
+				, data: {} // дополнительный POST-параметры
+				, name: 'userpic' // название POST-параметра загружаемого файла
+				, activeClassName: 'upload_active' // класс, который будем добавлять общему контейнеру при загрузке
+			};
+
+			// Функция, которая будет срабатывать при выборе файла
+			var _onSelectFile = function (evt/**Event*/){
+				// Получаем выбранный файл
+				var file = FileAPI.getFiles(evt)[0];
+
+				if( file ){
+					// Строим preview для изображений
+					_createPreview(file);
+
+					// Загружаем файл на сервер
+					_uploadFile(file);
+				}
+			};
+
+			// Функция создающая preview для изображения
+			var _createPreview = function (file/**File*/){
+				FileAPI.Image(file)
+					.preview(previewOpts.width, previewOpts.height)
+					.get(function (err, image){
+						// Если не было ошибок, то вставляем изображение
+						if( !err ){
+							// Отчищаем контейнер от текущего изображения
+							preview.innerHTML = '';
+
+							// Вставляем новое
+							preview.appendChild(image);
+						}
+					})
+				;
+			};
+
+			// Функция загрузки файла на сервер
+			var _uploadFile = function (file){
+				// Подготавливаем опции для загрузки
+				var opts = FileAPI.extend(uploadOpts, {
+					files: {},
+
+					// событие "начало загрузки"
+					upload: function (){
+						form.className += ' '+uploadOpts.activeClassName;
+					},
+
+					// событие "конец загрузки"
+					complete: function (err, xhr){
+						form.className = (' '+form.className+' ').replace(' '+uploadOpts.activeClassName+' ', ' ');
+
+						if( err ){
+							alert('Увы, произошла ошибка сервера.');
+						} else {
+							// всё успешно загрузилось
+						}
+					}
+				});
+
+				// Добавляем файл, который будем загружать
+				opts.files[opts.name] = file;
+
+				// Загружаем на сервер
+				FileAPI.upload(opts);
+			};
+
+			// Подписываемся на событие "change", оно будет срабатывать при выборе файла
+			FileAPI.event.on(input, "change", _onSelectFile);
+		})();
+	</script>
+</body>
+</html>
