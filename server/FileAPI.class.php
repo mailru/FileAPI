@@ -64,6 +64,7 @@
 
 			if( empty($jsonp) ){
 				header("HTTP/1.1 $httpStatus $httpStatusText");
+				$httpHeaders['Content-Type'] = 'application/json';
 				foreach( $httpHeaders as $header => $value ){
 					header("$header: $value");
 				}
