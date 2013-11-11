@@ -4,22 +4,6 @@
 		const ERROR = 500;
 
 
-		private static $_files = null;
-
-		private static function init(){
-			if( is_null(self::$_files) ){
-				self::$_files = array();
-
-				// http://www.php.net/manual/ru/reserved.variables.files.php#106558
-				foreach( $_FILES as $firstNameKey => $arFileDescriptions ){
-					foreach( $arFileDescriptions as $fileDescriptionParam => $mixedValue ){
-						self::rRestructuringFilesArray(self::$_files, $firstNameKey, $_FILES[$firstNameKey][$fileDescriptionParam], $fileDescriptionParam);
-					}
-				}
-			}
-		}
-
-
 		private static function rRestructuringFilesArray(&$arrayForFill, $currentKey, $currentMixedValue, $fileDescriptionParam){
 			if( is_array($currentMixedValue) ){
 				foreach( $currentMixedValue as $nameKey => $mixedValue ){
@@ -34,6 +18,60 @@
 		}
 
 
+		private static function determineMimeType(&$file){
+			if( function_exists('mime_content_type') ){
+				if( isset($file['tmp_name']) && is_string($file['tmp_name']) ){
+					if( $file['type'] == 'application/octet-stream' ){
+						$mime = mime_content_type($file['tmp_name']);
+						if( !empty($mime) ){
+							$file['type'] = $mime;
+						}
+					}
+				}
+				else if( is_array($file) ){
+					foreach( $file as &$entry ){
+						self::determineMimeType($entry);
+					}
+				}
+			}
+		}
+
+
+		/**
+		 * Enable CORS -- http://enable-cors.org/
+		 * @param array [$options]
+		 */
+		public static function enableCORS($options = null){
+			if( is_null($options) ){
+				$options = array();
+			}
+
+			if( !isset($options['origin']) ){
+				$options['origin'] = $_SERVER['HTTP_ORIGIN'];
+			}
+
+			if( !isset($options['methods']) ){
+				$options['methods'] = 'POST, GET';
+			}
+
+			if( !isset($options['headers']) ){
+				$options['headers'] = array();
+			}
+
+			header('Access-Control-Allow-Origin: ' . $options['origin']);
+			header('Access-Control-Allow-Methods: ' . $options['methods']);
+			header('Access-Control-Allow-Headers: ' . implode(', ', array_values($options['headers'] + array('X-Requested-With', 'Content-Range', 'Content-Disposition'))));
+
+			if( !isset($options['cookie']) || $options['cookie'] ){
+				header('Access-Control-Allow-Credentials: true');
+			}
+		}
+
+
+		/**
+		 * Request header
+		 * @return array
+		 */
 		public static function getRequestHeaders(){
 			$headers = array();
 
@@ -48,12 +86,31 @@
 		}
 
 
+		/**
+		 * Retrieve File List
+		 * @return array
+		 */
 		public static function getFiles(){
-			self::init();
-			return	self::$_files;
+			$files = array();
+
+			// http://www.php.net/manual/ru/reserved.variables.files.php#106558
+			foreach( $_FILES as $firstNameKey => $arFileDescriptions ){
+				foreach( $arFileDescriptions as $fileDescriptionParam => $mixedValue ){
+					self::rRestructuringFilesArray($files, $firstNameKey, $_FILES[$firstNameKey][$fileDescriptionParam], $fileDescriptionParam);
+				}
+			}
+
+			self::determineMimeType($files);
+
+			return	$files;
 		}
 
 
+		/**
+		 * Make server response
+		 * @param array $res
+		 * @param string [$jsonp]
+		 */
 		public static function makeResponse(array $res, $jsonp = null){
 			$body = $res['body'];
 			$json = json_encode($body);
@@ -71,7 +128,7 @@
 				echo $json;
 			}
 			else {
-				echo "<script>"
+				echo  "<script>"
 					. "  (function (ctx, jsonp){"
 					. "     'use strict';"
 					. "     if( ctx && ctx[jsonp] ){"

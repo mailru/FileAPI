@@ -3,15 +3,12 @@
  * FileAPI upload controller (example)
  */
 
-
 include    './FileAPI.class.php';
 
 
 if( !empty($_SERVER['HTTP_ORIGIN']) ){
 	// Enable CORS
-	header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
-	header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-	header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type');
+	FileAPI::enableCORS();
 }
 
 
@@ -54,10 +51,10 @@ if( strtoupper($_SERVER['REQUEST_METHOD']) == 'POST' ){
 
 function fetchImages($files, &$images, $name = 'file'){
 	if( isset($files['tmp_name']) ){
+		$mime = $files['type'];
 		$filename = $files['tmp_name'];
-		list($mime)	= explode(';', @mime_content_type($filename));
 
-		if( strpos($mime, 'image') !== false ){
+		if( strpos($mime, 'image/') !== false ){
 			$size = getimagesize($filename);
 			$base64 = base64_encode(file_get_contents($filename));
 
