@@ -1500,10 +1500,11 @@ Button like link.
 ### 2.1.0
 <ul>
 	<li>+ `FileAPI.upload(url, files[, opts])`</li>
-	<li>#134: + `FileAPI.getMimeType`</li>
+	<li>#134: + `FileAPI.getMimeType(file)`</li>
 	<li>+ `serial: true` upload option</li>
 	<li>+ `postName: 'files'` uplaod option</li>
 </ul>
+
 
 ### 2.0.0
 <ul>
@@ -1520,6 +1521,7 @@ Button like link.
 	<li>[#116](https://github.com/mailru/FileAPI/issues/116): + `cache:false` option for FileAPI.upload</li>
 	<li>fix `isArray` for Safari 5</li>
 </ul>
+
 
 ### 1.2.6
 <ul>

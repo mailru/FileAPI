@@ -1804,6 +1804,7 @@
 	// @configuration
 	if( !api.flashUrl ){ api.flashUrl = api.staticPath + 'FileAPI.flash.swf'; }
 	if( !api.flashImageUrl ){ api.flashImageUrl = api.staticPath + 'FileAPI.flash.image.swf'; }
+	if( !api.flashWebcamUrl ){ api.flashWebcamUrl = api.staticPath + 'FileAPI.flash.camera.swf'; }
 })(window, void 0);
 
 /*global window, FileAPI, document */
@@ -2645,7 +2646,7 @@
 				}
 				xhr = _this.xhr = api.getXHR();
 
-				if( data.params ){
+				if (data.params) {
 				    url += (url.indexOf('?') < 0 ? "?" : "&") + data.params.join("&");
 				}
 
@@ -2664,11 +2665,11 @@
 				});
 
 				
-				if( options._chunked ){
+				if ( options._chunked ) {
 					// chunked upload
 					if( xhr.upload ){
-						xhr.upload.addEventListener('progress', api.throttle(function (/**Event*/evt){
-							if( !data.retry ){
+						xhr.upload.addEventListener('progress', function (/**Event*/evt){
+							if (!data.retry) {
 							    // show progress only for correct chunk uploads
 								options.progress({
 									  type:			evt.type
@@ -2677,7 +2678,7 @@
 									, totalSize:	data.size
 								}, _this, options);
 							}
-						}, 100), false);
+						}, false);
 					}
 
 					xhr.onreadystatechange = function (){
@@ -2693,7 +2694,7 @@
 							}
 							xhr.onreadystatechange = null;
                             
-							if( !xhr.status || xhr.status - 201 > 0 ){
+							if (!xhr.status || xhr.status - 201 > 0) {
 							    api.log("Error: " + xhr.status);
 								// some kind of error
 								// 0 - connection fail or timeout, if xhr.aborted is true, then it's not recoverable user action
@@ -2712,9 +2713,6 @@
 										data.end = lkb;
 									} else {
 										data.end = data.start - 1;
-                                        if (416 == xhr.status) {
-                                            data.end = data.end - options.chunkSize;
-                                        }
 									}
 
 									setTimeout(function () {
@@ -2746,12 +2744,7 @@
 									}, 0);
 								}
 							}
-
 							xhr = null;
-
-                            if( slice ){
-                                slice = null;
-                            }
 						}
 					};
 
@@ -2761,20 +2754,13 @@
 					var slice;
 					(slice = 'slice') in data.file || (slice = 'mozSlice') in data.file || (slice = 'webkitSlice') in data.file;
 
-                    slice = data.file[slice](data.start, data.end + 1);
-
-                    if( data.size && !slice.size ){
-                        setTimeout(function (){
-                            _this.end(-1);
-                        });
-                    } else {
-                        xhr.setRequestHeader("Content-Range", "bytes " + data.start + "-" + data.end + "/" + data.size);
-                        xhr.setRequestHeader("Content-Disposition", 'attachment; filename=' + encodeURIComponent(data.name));
-                        xhr.setRequestHeader("Content-Type", data.type || "application/octet-stream");
-
-                        xhr.send(slice);
-                    }
-
+					xhr.setRequestHeader("Content-Range", "bytes " + data.start + "-" + data.end + "/" + data.size);
+					xhr.setRequestHeader("Content-Disposition", 'attachment; filename=' + encodeURIComponent(data.name));
+					xhr.setRequestHeader("Content-Type", data.type || "application/octet-stream");
+                    
+					slice = data.file[slice](data.start, data.end + 1);
+                 
+					xhr.send(slice);
 					slice = null;
 				} else {
 					// single piece upload
@@ -2993,6 +2979,10 @@
 		};
 
 
+		el.style.width	= _px(options.width);
+		el.style.height	= _px(options.height);
+
+
 		if( api.html5 && html5 ){
 			// Create video element
 			var video = document.createElement('video');
@@ -3087,6 +3077,9 @@
 		  document = window.document
 		, location = window.location
 		, navigator = window.navigator
+
+		, _each = api.each
+		, _cameraQueue = []
 	;
 
 
@@ -3188,7 +3181,7 @@
 							+ '&storeKey='+ navigator.userAgent.match(/\d/ig).join('') +'_'+ api.version
 							+ (flash.isReady || (api.pingUrl ? '&ping='+api.pingUrl : ''))
 							+ '&timeout='+api.flashAbortTimeout
-							+ (opts.camera ? '&useCamera=1' : '')
+							+ (opts.camera ? '&useCamera=' + _getUrl(api.flashWebcamUrl) : '')
 //							+ '&debug=1'
 					}, opts);
 				},
@@ -3330,13 +3323,13 @@
 						// Set files filter
 						var accept = [], exts = {};
 
-						api.each((node.getAttribute('accept') || '').split(/,\s*/), function (mime){
-							api.accept[mime] && api.each(api.accept[mime].split(' '), function (ext){
+						_each((node.getAttribute('accept') || '').split(/,\s*/), function (mime){
+							api.accept[mime] && _each(api.accept[mime].split(' '), function (ext){
 								exts[ext] = 1;
 							});
 						});
 
-						api.each(exts, function (i, ext){
+						_each(exts, function (i, ext){
 							accept.push( ext );
 						});
 
@@ -3374,7 +3367,7 @@
 						, event
 					;
 
-					api.each(files, function (file){
+					_each(files, function (file){
 						file.type = api.getMimeType(file);
 					});
 
@@ -3606,6 +3599,12 @@
 						}));
 					};
 
+					// Run
+					_each(_cameraQueue, function (args){
+						api.Camera.fallback.apply(api.Camera, args);
+					});
+					_cameraQueue = [];
+
 
 					// FileAPI.Camera:proto
 					_inherit(api.Camera.prototype, {
@@ -3625,7 +3624,7 @@
 									}
 									else {
 										api.log('FlashAPI.camera.on.success: ' + _this._id());
-										_this.active = true;
+										_this._active = true;
 										callback(null, _this);
 									}
 								})
@@ -3633,7 +3632,7 @@
 						},
 
 						stop: function (){
-							this.active = false;
+							this._active = false;
 							flash.cmd(this._id(), 'camera.off');
 						},
 
@@ -3688,7 +3687,7 @@
 								, fileId
 							;
 
-							api.each(formData, function (item){
+							_each(formData, function (item){
 								if( item.file ){
 									files[item.name] = item = _getFileDescr(item.blob);
 									fileId  = item.id;
@@ -3753,7 +3752,7 @@
 
 
 							// #2174: FileReference.load() call while FileReference.upload() or vice versa
-							api.each(files, function (file){
+							_each(files, function (file){
 								queue.inc();
 								api.getInfo(file, queue.next);
 							});
@@ -3796,7 +3795,7 @@
 
 
 		function _inherit(obj, methods){
-			api.each(methods, function (fn, name){
+			_each(methods, function (fn, name){
 				var prev = obj[name];
 				obj[name] = function (){
 					this.parent = prev;
@@ -3920,6 +3919,11 @@
 				, height:	box.bottom - box.top
 			};
 		}
+
+
+		api.Camera.fallback = function (){
+			_cameraQueue.push(arguments);
+		};
 
 
 		// @export

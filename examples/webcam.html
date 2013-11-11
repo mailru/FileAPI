@@ -24,6 +24,7 @@
 		// Settings
 		var FileAPI = {
 			  debug: true // debug mode
+			, media: true // use webcam
 			, staticPath: '../dist/'
 		};
 	</script>
@@ -76,52 +77,56 @@
 	<script>
 		(function (){
 			FileAPI.Camera.publish(box, { width: 320, height: 240 }, function (err, cam){
-				readyBox.style.display = '';
+				if( err ){
+					alert('WebCam or Flash not supported :[');
+				} else {
+					readyBox.style.display = '';
 
-				FileAPI.event.on(startBtn, 'click', function (){
-					cam.start();
-				});
+					FileAPI.event.on(startBtn, 'click', function (){
+						cam.start();
+					});
 
-				FileAPI.event.on(stopBtn, 'click', function (){
-					cam.stop();
-				});
+					FileAPI.event.on(stopBtn, 'click', function (){
+						cam.stop();
+					});
 
-				FileAPI.event.on(shotBtn, 'click', function (){
-					if( cam.isActive() ){
-						var shot = cam.shot();
+					FileAPI.event.on(shotBtn, 'click', function (){
+						if( cam.isActive() ){
+							var shot = cam.shot();
 
-						shot
-							.clone()
-							.preview(100, 100)
-							.get(function (err, img){
-								img.style.marginRight = '5px';
-								shots.insertBefore(img, shots.firstChild);
-							})
-						;
+							shot
+								.clone()
+								.preview(100, 100)
+								.get(function (err, img){
+									img.style.marginRight = '5px';
+									shots.insertBefore(img, shots.firstChild);
+								})
+							;
 
-						var file = shot
-							.preview(200, 200)
-							.overlay({
-								  x: 5
-								, y: 5
-								, src: '../statics/watermark.png'
-								, rel: FileAPI.Image.RIGHT_TOP
-							})
-						;
+							var file = shot
+								.preview(200, 200)
+								.overlay({
+									  x: 5
+									, y: 5
+									, src: '../statics/watermark.png'
+									, rel: FileAPI.Image.RIGHT_TOP
+								})
+							;
 
-						FileAPI.upload({
-							  url: 'http://rubaxa.org/FileAPI/server/ctrl.php'
-							, files: { shot: file }
-							, complete: function (err, xhr){
-								var res = JSON.parse(xhr.responseText);
-								var img = new Image;
-								img.src = res.images.shot.dataURL;
-								img.style.marginRight = '5px';
-								server.insertBefore(img, server.firstChild);
-							}
-						});
-					}
-				});
+							FileAPI.upload({
+								  url: 'http://rubaxa.org/FileAPI/server/ctrl.php'
+								, files: { shot: file }
+								, complete: function (err, xhr){
+									var res = JSON.parse(xhr.responseText);
+									var img = new Image;
+									img.src = res.images.shot.dataURL;
+									img.style.marginRight = '5px';
+									server.insertBefore(img, server.firstChild);
+								}
+							});
+						}
+					});
+				}
 			});
 		})();
 	</script>
