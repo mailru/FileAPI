@@ -1082,6 +1082,7 @@
 					, complete: api.F
 					, pause: api.F
 					, serial: true
+					, parallel: false
 					, postName: 'files'
 					, chunkSize: api.chunkSize
 					, chunkUpoloadRetry: api.chunkUploadRetry
@@ -1114,12 +1115,14 @@
 					, _this = this
 					, _total = 0
 					, _loaded = 0
-					, _complete = false
+					, _active = 0 // Counter for holding the number of active queries
+
+					, _parallel = options.parallel
 					, _serial = options.serial
+
 					, _withoutFiles = !filesData.length
 					, _uploadFiles /* function, define below */
 				;
-
 
 				// calc total size
 				_each(filesData, function (data){
@@ -1162,8 +1165,8 @@
 					if( (proxyXHR.statusText != 'abort' || proxyXHR.current) && (data.length || _withoutFiles) ){
 						_withoutFiles = false;
 
-					    // Mark active job
-					    _complete = false;
+					    // Increase the number of active requests
+					    _active++;
 
 						// Set current upload file
 						proxyXHR.currentFile = _file;
@@ -1195,17 +1198,17 @@
 										_fileLoaded = evt.total == evt.loaded;
 
 										// emit "fileprogress" event
-										_serial && options.fileprogress({
+										(_serial || _parallel) && options.fileprogress({
 											  type:   'progress'
-											, total:  data.total = evt.total
-											, loaded: data.loaded = evt.loaded
+											, total:  data[0].total = evt.total
+											, loaded: data[0].loaded = Math.min(evt.loaded, evt.total)
 										}, _file, xhr, _fileOptions);
 
 										// emit "progress" event
 										defer.notify({
 											  type:   'progress'
 											, total:  _total
-											, loaded: proxyXHR.loaded = (_loaded + data.size * (evt.loaded/evt.total))|0
+											, loaded: proxyXHR.loaded = (_loaded + data[0].size * (evt.loaded/evt.total))|0
 										}, _file, xhr, _fileOptions);
 									}
 								} : noop,
@@ -1216,21 +1219,26 @@
 									});
 
 									if( _file ){
-										data.loaded	= data.total;
+										if( _serial ){
+											data[0].loaded = data[0].total;
 
-										// emulate 100% "progress"
-										this.progress(data);
+											// emulate 100% "progress"
+											this.progress(data[0]);
+										}
 
 										// fixed "prgoress" throttle
 										_fileLoaded = true;
 
 										// bytes loaded
-										_loaded += data.size; // data.size != data.total, it's desirable fix this
+										_loaded += data[0].size; // data.size != data.total, it's desirable fix this
 										proxyXHR.loaded = _loaded;
 
 										// emit "filecomplete" event
 										_serial && options.filecomplete(err, xhr, _file, _fileOptions);
 									}
+
+									//
+									_active--;
 
 									// upload next file
 									_uploadFiles();
@@ -1249,7 +1257,7 @@
 							xhr.send(form);
 						});
 					}
-					else {
+					else if( !_active ){
 						var err = proxyXHR.status == 200 || proxyXHR.status == 201 ? false : (proxyXHR.statusText || 'error');
 
 						if( err ){
@@ -1259,9 +1267,6 @@
 						}
 
 						options.complete(err, proxyXHR, options);
-
-						// Mark done state
-						_complete = true;
 					}
 				};
 
@@ -1287,7 +1292,7 @@
 
 					proxyXHR.statusText = "";
 
-					if( _complete ){
+					if( !_active ){
 						_uploadFiles.call(_this);
 					}
 				};

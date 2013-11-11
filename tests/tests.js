@@ -422,7 +422,7 @@ module('FileAPI');
 	});
 
 
-	test('multiupload (serial)', function (){
+	test('multiupload (serial: true)', function (){
 		stop();
 		var
 			  _start = 0
@@ -453,6 +453,7 @@ module('FileAPI');
 				start();
 
 				equal(_start, _complete, 'uploaded');
+				ok(_progress > 0, 'progress > 0');
 				equal(_progressFail, false, 'progress');
 
 				checkMultiuploadFiles(_files);
@@ -461,7 +462,7 @@ module('FileAPI');
 	});
 
 
-	test('multiupload (one piece)', function (){
+	test('multiupload (serial: false)', function (){
 		stop();
 		var bytesLoaded = -1;
 
@@ -477,10 +478,37 @@ module('FileAPI');
 				var files = FileAPI.parseJSON(xhr.responseText).data._FILES.files;
 				FileAPI.each(files, function (file){ files[file.name] = file; });
 				checkMultiuploadFiles(files);
-				equal(xhr.total, bytesLoaded);
+				equal(xhr.total, bytesLoaded, xhr.total+' == '+bytesLoaded);
 				start();
 			}
 		});
+	});
+
+
+	test('multiupload (parallel: true)', function (){
+		var cnt = 0, active = 0, progress = 0;
+
+		stop();
+		FileAPI.upload(serverUrl, uploadForm['multiple'], {
+//			parallel: 3,
+			fileupload: function (){
+				cnt++;
+			},
+			filecomplete: function (){
+				if( cnt == 3 ){
+					active = cnt;
+				}
+				cnt--;
+			},
+			progress: function (evt){
+				ok(progress < evt.loaded, 'progress '+progress+' < '+evt.loaded);
+				progress = evt.loaded;
+			},
+			complete: function (){
+				equal(active, this.parallel, 'active == parallel');
+				start();
+			}
+		})
 	});
 
 
