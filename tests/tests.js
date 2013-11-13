@@ -231,12 +231,15 @@ module('FileAPI');
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
 			data: { str: 'foo', num: 1, array: [1, 2, 3], object: { foo: 'bar' } },
+			headers: { 'x-foo': 'bar' },
 			complete: function (err, xhr){
 				var res = FileAPI.parseJSON(xhr.responseText).data._REQUEST;
+				var headers = FileAPI.parseJSON(xhr.responseText).data.HEADERS;
 
 				start();
 				equal(res.str, 'foo');
 				equal(res.num, '1');
+				equal(headers['X-Foo'], 'bar');
 
 				if( !FileAPI.html5 ){
 					deepEqual(res.array, { "0": '1', "1": '2', "2": '3' });
