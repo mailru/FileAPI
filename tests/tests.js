@@ -66,7 +66,7 @@ module('FileAPI');
 	}
 
 
-	function imageEqual(left, right, text, callback){
+	function imageEqual(left, right, text, callback, delta){
 		loadImage(left, function (left){
 			left.setAttribute('style', 'border: 2px solid red; padding: 2px;');
 			document.body.appendChild(left.cloneNode());
@@ -100,7 +100,7 @@ module('FileAPI');
 						}
 					}
 
-					ok(failPixels/pixels < .01, text + ' (fail pixels: '+ (failPixels/pixels) +')');
+					ok(failPixels/pixels < (delta || .01), text + ' (fail pixels: '+ (failPixels/pixels) +')');
 				}
 
 				callback();
@@ -437,6 +437,34 @@ module('FileAPI');
 			files: { image: FileAPI.Image(file).rotate('auto') },
 			complete: check.bind('FileAPI.Image.fn.rotate.auto')
 		});
+	});
+
+
+	FileAPI.html5 && test('upload + CamanJS', function (){
+		stop();
+		FileAPI.Image(FileAPI.getFiles(uploadForm['dino.png'])[0])
+			.preview(50, 30)
+			.filter('vintage')
+			.get(function (err, canvas){
+				equal(canvas.nodeName.toLowerCase(), 'canvas');
+
+				FileAPI.upload({
+					url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+					files: {
+						image: {
+							name: 'my-file',
+							blob: canvas
+						}
+					},
+					complete: function (err, xhr){
+						var res = FileAPI.parseJSON(xhr.responseText);
+						imageEqual(res.images['image'].dataURL, 'files/samples/'+browser+'-vintage.png', 'caman vintage', function (){
+							start();
+						}, .9);
+					}
+				})
+			})
+		;
 	});
 
 
