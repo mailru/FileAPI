@@ -340,9 +340,7 @@ module('FileAPI');
 				checkFile(_files['dino.png'], 'dino.png', 'image/png', 461003);
 				checkFile(_files['hello.txt'], 'hello.txt', 'text/plain', 15);
 				checkFile(_files['image.jpg'], 'image.jpg', 'image/jpeg', 108338);
-
-				// @todo: Сейчас через phantom "application/octet-stream"
-	//			checkFile(_files['lebowski.json'], 'lebowski.json', 'application/json', 5392);
+//				checkFile(_files['lebowski.json'], 'lebowski.json', 'application/json', 5392);
 			}
 		});
 	});
@@ -391,6 +389,38 @@ module('FileAPI');
 		});
 	});
 
+
+	test('upload + autoOrientation', function (){
+		var queue = FileAPI.queue(start);
+
+		stop();
+		queue.inc();
+		queue.inc();
+
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: FileAPI.getFiles(uploadForm['image.jpg'])[0] },
+			imageAutoOrientation: true,
+			complete: function (err, res){
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images.image.width, 448, 'imageAutoOrientation.width');
+				equal(res.images.image.height, 632, 'imageAutoOrientation.height');
+				queue.next();
+			}
+		});
+
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: FileAPI.getFiles(uploadForm['image.jpg'])[0] },
+			imageTransform: { rotate: 'auto' },
+			complete: function (err, res){
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images.image.width, 448, 'imageTransform.rotate.auto.width');
+				equal(res.images.image.height, 632, 'imageTransform.rotate.auto.height');
+				queue.next();
+			}
+		});
+	});
 
 
 	FileAPI.html5 && test('upload + multi imageTransform', function (){
