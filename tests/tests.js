@@ -237,18 +237,18 @@ module('FileAPI');
 				var headers = FileAPI.parseJSON(xhr.responseText).data.HEADERS;
 
 				start();
-				equal(res.str, 'foo');
-				equal(res.num, '1');
-				equal(headers['X-Foo'], 'bar');
+				equal(res.str, 'foo', 'string');
+				equal(res.num, '1', 'number');
+				equal(headers['X-Foo'], 'bar', 'headers.X-Foo');
 
-				if( !FileAPI.html5 ){
-					deepEqual(res.array, { "0": '1', "1": '2', "2": '3' });
+				if( !FileAPI.html5 || !FileAPI.support.html5 ){
+					deepEqual(res.array, { "0": '1', "1": '2', "2": '3' }, 'array');
 				}
 				else {
-					deepEqual(res.array, ['1', '2', '3']);
+					deepEqual(res.array, ['1', '2', '3'], 'array');
 				}
 
-				deepEqual(res.object, { foo: 'bar' });
+				deepEqual(res.object, { foo: 'bar' }, 'object');
 			}
 		})
 	});
