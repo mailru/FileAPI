@@ -1,6 +1,19 @@
 module('FileAPI');
 
 (function (){
+	if( !Function.prototype.bind ){
+		Function.prototype.bind = function (ctx){
+			if( !ctx ) {
+				return this;
+			}
+			var fn = this;
+			return function (){
+				return fn.apply(ctx, arguments);
+			};
+		};
+	}
+
+
 	var uploadForm = document.forms.upload;
 	var base64_1px_gif = 'R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 	var browser = (navigator.userAgent.match(/(phantomjs|safari|firefox|chrome)/i) || ['', 'chrome'])[1].toLowerCase();
@@ -391,34 +404,38 @@ module('FileAPI');
 
 
 	test('upload + autoOrientation', function (){
+		var file = FileAPI.getFiles(uploadForm['image.jpg'])[0];
 		var queue = FileAPI.queue(start);
+		var check = function (err, res){
+			var res = FileAPI.parseJSON(res.responseText);
+			equal(res.images.image.width, 448, this+'.width');
+			equal(res.images.image.height, 632, this+'.height');
+			queue.next();
+		};
 
 		stop();
-		queue.inc();
-		queue.inc();
 
+		queue.inc();
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
-			files: { image: FileAPI.getFiles(uploadForm['image.jpg'])[0] },
+			files: { image: file },
 			imageAutoOrientation: true,
-			complete: function (err, res){
-				var res = FileAPI.parseJSON(res.responseText);
-				equal(res.images.image.width, 448, 'imageAutoOrientation.width');
-				equal(res.images.image.height, 632, 'imageAutoOrientation.height');
-				queue.next();
-			}
+			complete: check.bind('imageAutoOrientation')
 		});
 
+		queue.inc();
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
-			files: { image: FileAPI.getFiles(uploadForm['image.jpg'])[0] },
+			files: { image: file },
 			imageTransform: { rotate: 'auto' },
-			complete: function (err, res){
-				var res = FileAPI.parseJSON(res.responseText);
-				equal(res.images.image.width, 448, 'imageTransform.rotate.auto.width');
-				equal(res.images.image.height, 632, 'imageTransform.rotate.auto.height');
-				queue.next();
-			}
+			complete: check.bind('imageTransform.rotate.auto')
+		});
+
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: FileAPI.Image(file).rotate('auto') },
+			complete: check.bind('FileAPI.Image.fn.rotate.auto')
 		});
 	});
 
