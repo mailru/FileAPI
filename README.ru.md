@@ -523,7 +523,7 @@ var xhr = FileAPI.upload({
 var xhr = FileAPI.upload({
 	url: '...',
 	files: { .. }
-	uploadfile: function (file/**Object*/, xhr/**Object*/, options/**Object*/){
+	fileupload: function (file/**Object*/, xhr/**Object*/, options/**Object*/){
 		// ...
 	}
 });
