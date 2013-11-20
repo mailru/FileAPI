@@ -765,12 +765,12 @@ FileAPI.Image(imageFile)
 ---
 
 <a name="FileAPI.Image.resize"></a>
-### resize(width`:Number`, height`:Number`[, type`:String`])`:FileAPI.Image`
+### resize(width`:Number`, height`:Number`[, strategy`:String`])`:FileAPI.Image`
 Resize image.
 
 * width — new image width
 * height — new image height
-* type — enum: `min`, `max`, `preview`. By default `undefined`.
+* strategy — enum: `min`, `max`, `preview`. By default `undefined`.
 
 ```js
 FileAPI.Image(imageFile)
@@ -1377,6 +1377,25 @@ Button like link.
 
 <a name="Changelog"></a>
 ## Changelog
+<ul>
+	<li>* resize: `imageTransform.type` rename to `imageTransform.strategy` (!!!)</li>
+</ul>
+
+### 2.0.2
+<ul>
+	<li>+ test: upload headers</li>
+	<li>+ test: upload + camanjs</li>
+	<li>+ test: upload + autoOrientation</li>
+	<li>FileAPI.class.php: + HTTP header Content-Type: application/json</li>
+	<li>#143: + `FileAPI.flashWebcamUrl` option</li>
+	<li>* merge v1.2.7</li>
+	<li>+ `FileAPI.formData: true` option</li>
+</il>
+
+### 2.0.1
+<ul>
+	<li>+ support 'filter' prop in imageTransform</li>
+</il>
 
 ### 2.0.0
 <ul>

@@ -382,24 +382,51 @@ module('FileAPI');
 
 
 
-	FileAPI.html5 && test('upload + imageTransform', function (){
+	FileAPI.html5 && test('upload + imageTransform (min, max, preview)', function (){
 		var file = FileAPI.getFiles(uploadForm['image.jpg'])[0];
+		var queue = FileAPI.queue(start);
 
 		stop();
+
+		// strategy: 'min'
+		queue.inc();
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
 			files: { image: file },
-			imageTransform: {
-				width: 100,
-				height: 100,
-				rotate: 'auto',
-				preview: true
-			},
+			imageTransform: { width: 100, height: 100, strategy: 'min' },
+			complete: function (err, res){
+				queue.next();
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images['image'].width, 141, 'min.width');
+				equal(res.images['image'].height, 100, 'min.height');
+			}
+		});
+
+		// strategy: 'max'
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: { width: 100, height: 100, strategy: 'max' },
+			complete: function (err, res){
+				queue.next();
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images['image'].width, 100, 'max.width');
+				equal(res.images['image'].height, 71, 'max.height');
+			}
+		});
+
+		// preview
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: { width: 100, height: 100, rotate: 'auto', preview: true },
 			complete: function (err, res){
 				var res = FileAPI.parseJSON(res.responseText);
 
 				imageEqual(res.images.image.dataURL, 'files/samples/'+browser+'-image-auto-100x100.jpeg', 'image auto 100x100.png', function (){
-					start();
+					queue.next();
 				});
 			}
 		});

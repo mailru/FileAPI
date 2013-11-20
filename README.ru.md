@@ -747,12 +747,12 @@ FileAPI.Image(imageFile)
 ---
 
 <a name="FileAPI.Image.resize"></a>
-### resize(width`:Number`, height`:Number`[, type`:String`])`:FileAPI.Image`
+### resize(width`:Number`, height`:Number`[, strategy`:String`])`:FileAPI.Image`
 Ресайз.
 
 * width — новая ширина
 * height — новая высота
-* type — enum: `min`, `max`, `preview`. По умолчанию `undefined`.
+* strategy — enum: `min`, `max`, `preview`. По умолчанию `undefined`.
 
 ```js
 FileAPI.Image(imageFile)
