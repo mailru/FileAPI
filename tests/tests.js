@@ -139,47 +139,60 @@ module('FileAPI');
 
 
 	test('1px.gif', function (){
-		var file	= FileAPI.getFiles(uploadForm['1px.gif'])[0];
+		var file = FileAPI.getFiles(uploadForm['1px.gif'])[0];
+		var queue = FileAPI.queue(start);
+
+		stop();
 
 		// File
 		checkFile(file, '1px.gif', 'image/gif', 34);
 
 		// File info
-		stop();
+		queue.inc();
 		FileAPI.getInfo(file, function (err, info){
-			start();
+			queue.next();
+
 			ok(!err);
 			equal(info.width, 1, 'getInfo.width');
 			equal(info.height, 1, 'getInfo.height');
 		});
 
 
+		// Read as data
+		queue.inc();
+		FileAPI.readAsDataURL(file, function (evt){
+			queue.next();
+
+			if( evt.type == 'load' ){
+				equal(evt.result, 'data:image/gif;base64,'+base64_1px_gif, 'readAsDataURL');
+			} else {
+				ok(false, 'readAsDataURL: '+evt.error)
+			}
+		});
+
+		// Read as binaryString
+		queue.inc();
+		FileAPI.readAsBinaryString(file, function (evt){
+			queue.next();
+
+			if( evt.type == 'load' ){
+				equal(evt.result, FileAPI.toBinaryString(base64_1px_gif), 'readAsBinaryString');
+			} else {
+				ok(false, 'readAsBinaryString: '+evt.error)
+			}
+		});
+
 		if( FileAPI.html5 ){
-			// Read as data
-			stop();
-			FileAPI.readAsDataURL(file, function (evt){
-				if( evt.type == 'load' ){
-					start();
-					equal(evt.result, 'data:image/gif;base64,'+base64_1px_gif, 'dataURL');
-				}
-			});
-
-			// Read as binaryString
-			stop();
-			FileAPI.readAsBinaryString(file, function (evt){
-				if( evt.type == 'load' ){
-					start();
-					equal(evt.result, FileAPI.toBinaryString(base64_1px_gif), 'dataURL');
-				}
-			});
-
 			// Read as image
-			stop();
+			queue.inc();
 			FileAPI.readAsImage(file, function (evt){
+				queue.next();
+
 				if( evt.type == 'load' ){
-					start();
 					equal(evt.result.width, 1, 'readAsImage.width');
 					equal(evt.result.height, 1, 'readAsImage.height');
+				} else {
+					ok(false, 'readAsImage')
 				}
 			});
 		}
@@ -189,17 +202,17 @@ module('FileAPI');
 	test('hello.txt', function (){
 		var file	= FileAPI.getFiles(uploadForm['hello.txt'])[0];
 
+		stop();
 		checkFile(file, 'hello.txt', 'text/plain', 15);
 
-		if( FileAPI.html5 ){
-			stop();
-			FileAPI.readAsText(file, function (evt){
-				if( evt.type == 'load' ){
-					start();
-					equal(evt.result, 'Hello FileAPI!\n');
-				}
-			});
-		}
+		FileAPI.readAsText(file, function (evt){
+			start();
+			if( evt.type == 'load' ){
+				equal(evt.result, 'Hello FileAPI!\n');
+			} else {
+				ok(false, 'readAsText: '+evt.error);
+			}
+		});
 	});
 
 

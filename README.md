@@ -1499,6 +1499,7 @@ Button like link.
 
 ### 2.1.0
 <ul>
+	<li>+ Flash-fallback for `readAsDataURL`, `readAsBinaryString` and `readAsText`</li>
 	<li>+ `FileAPI.upload(url, files[, opts])`</li>
 	<li>#134: + `FileAPI.getMimeType(file)`</li>
 	<li>+ `serial: true` upload option</li>
