@@ -551,6 +551,38 @@ package ru.mail.controller
 		}
 		
 		/**
+		 * Load file, return it as base64 independ of its type,
+		 * @param fileID
+		 * @param callback
+		 * 
+		 */		
+		public function readAsBase64(fileID:String, callback:String):void 
+		{
+			LoggerJS.log('readAsBase64, fileID: '+fileID+', callback: '+callback );
+			var file:BaseFileVO = _model.filesBuilder.getFileByID(fileID);
+			if (!file) {
+				LoggerJS.log("readAsBase64, file with id "+ fileID +" doen't exist" );
+				_jsCaller.callJS(callback, "File with id "+ fileID +" doen't exist" );
+				return;
+			}
+			
+			var imageFactory:IImageFactory = file.imageFactory;
+			(imageFactory as EventDispatcher).addEventListener(ImageTransformCompleteEvent.TYPE,function (event:ImageTransformCompleteEvent):void {
+				event.currentTarget.removeEventListener(event.type, arguments.callee);
+				LoggerJS.log("readAsBase64 complete, success = "+ event.isSuccess );
+				if (event.isSuccess) {
+					_jsCaller.callJS( callback, false, Base64.encode(event.data) );
+				}
+				else {
+					// report error
+					_jsCaller.callJS(callback, event.error.getError() );
+				}
+			});
+			
+			imageFactory.createImage(null, true);
+		}
+		
+		/**
 		 * Transform image, return base64 string with transformed image.
 		 * If needed, load file before transform (if it wasn't loaded yet) 
 		 * @param fileID

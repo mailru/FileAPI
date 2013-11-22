@@ -96,6 +96,10 @@ package ru.mail.communication
 					// cmd('getFileInfo', { id: '...', callback: '...' });
 					appController.getFileInfo(data.id, data.callback)
 					break;
+				case "readAsBase64":
+					// cmd('readAsBase64', { id: '...', callback: '...' });
+					appController.readAsBase64(data.id, data.callback)
+					break;
 				case "imageTransform":
 					// cmd('imageTransform', {
 					//	id: '...',

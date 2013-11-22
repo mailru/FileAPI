@@ -14,10 +14,11 @@ package ru.mail.data
 		 * if imageTransform is null, return original image.
 		 * If original image has not been loaded, first load it. 
 		 * The result image is returned async via completeEvent
-		 * @param imageTransform
+		 * @param imageTransform - if null, return fileData (ByteArray)
+		 * @param noImage - if true, do not create imageData, just load and return fileData.
 		 * 
 		 */		
-		function createImage(imageTransform:ImageTransformVO):void;
+		function createImage(imageTransform:ImageTransformVO, noImage:Boolean = false):void;
 		/**
 		 * try to read file's exif. return object with "Orientation" value  
 		 * @return 

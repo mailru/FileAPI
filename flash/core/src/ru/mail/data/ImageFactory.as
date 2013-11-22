@@ -51,7 +51,12 @@ package ru.mail.data
 			file = target;
 		}
 
-		public function createImage(imageTransform:ImageTransformVO):void {
+		/**
+		 * @param imageTransform - if null, return fileData (ByteArray)
+		 * @param noImage - if true, do not create imageData, just load and return fileData.
+		 * 
+		 */		
+		public function createImage(imageTransform:ImageTransformVO, noImage:Boolean = false):void {
 			isFileLoaded = false;
 			isOverlayLoaded = false;
 
@@ -66,7 +71,12 @@ package ru.mail.data
 						LoggerJS.log('ImageFactory loadFile complete, success '+ event.isSuccess);
 						loadCommand = null;
 						if(event.isSuccess) {
-							onLoadImageAndOverlay(true, imageTransform);
+							if (noImage) {
+								// job done
+								complete(true, file.fileData);
+							} else {
+								onLoadImageAndOverlay(true, imageTransform);								
+							}
 						}
 						else {
 							complete( false, event.data, event.error );
@@ -79,7 +89,12 @@ package ru.mail.data
 				}
 			}
 			else {
-				onLoadImageAndOverlay(true, imageTransform);
+				if (noImage) {
+					// job done
+					complete(true, file.fileData);
+				} else {
+					onLoadImageAndOverlay(true, imageTransform);								
+				}
 			}
 
 			// check overlay
