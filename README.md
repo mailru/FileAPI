@@ -1,5 +1,5 @@
 ﻿<a name="FileAPI"></a>
-## FileAPI
+## FileAPI <img src="https://api.travis-ci.org/mailru/FileAPI.png?branch=master"/>
 A set of javascript tools for working with files.
 
 <a name="started"></a>
