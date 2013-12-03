@@ -280,7 +280,7 @@ FileAPI.readAsBinaryString(file, function (evt/**Object*/){
 ---
 
 <a name="FileAPI.readAsArrayBuffer"></a>
-### readAsBinaryString(file`:Object`, callback`:Function`)`:void`
+### readAsArrayBuffer(file`:Object`, callback`:Function`)`:void`
 Reading the contents of the specified `File` as `ArrayBuffer`.
 
 * file — file object
