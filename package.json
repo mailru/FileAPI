@@ -8,6 +8,7 @@
 		"grunt-contrib-concat": "*",
 		"grunt-contrib-uglify": "*",
 		"grunt-contrib-watch": "*",
+		"grunt-contrib-connect": "*",
 
 		"eventemitter2": "~0.4.9",
 		"semver": "~1.0.14",
@@ -17,7 +18,7 @@
 	"description": "FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.",
 	"main": "dist/FileAPI.js",
 	"scripts": {
-		"test": "grunt test --verbose"
+		"test": "grunt tests --verbose"
 	},
 	"repository": {
 		"type": "git",

@@ -562,6 +562,50 @@ module('FileAPI');
 	});
 
 
+	test('iframe', function (){
+		var html5 = FileAPI.support.html5;
+		var queue = FileAPI.queue(function (){
+			start();
+			FileAPI.support.html5 = html5;
+		});
+
+		stop();
+		FileAPI.support.html5 = false;
+
+		// default callback
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			complete: function (err, xhr){
+				var json = FileAPI.parseJSON(xhr.responseText);
+				equal(json.jsonp, 'callback', 'default');
+				queue.next();
+			}
+		});
+
+		// callback in GET
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php?fn=?',
+			complete: function (err, xhr){
+				var json = FileAPI.parseJSON(xhr.responseText);
+				equal(json.jsonp, 'fn', 'custom');
+				queue.next();
+			}
+		});
+
+		// 302: redirect
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/redirect.php?page=json.html',
+			complete: function (err, xhr){
+				equal(xhr.responseText, 'done', '302');
+				queue.next();
+			}
+		});
+	});
+
+
 	FileAPI.html5 && test('WebCam', function (){
 		stop();
 		FileAPI.Camera.publish(document.getElementById('web-cam'), function (err, cam){

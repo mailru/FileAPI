@@ -1165,10 +1165,16 @@ Submit Query
 <script>
 (function (ctx, jsonp){
 	'use strict';
-	if( ctx && ctx[jsonp] ){
-		ctx[jsonp](200/*http.status*/, 'OK' /*http.statusText*/, "response body");
+	var status = {{httpStatus}}, statusText = "{{httpStatusText}}", response = "{{responseBody}}";
+	try {
+		ctx[jsonp](status, statusText, response);
+	} catch (e){
+		var data = "{\"id\":\""+jsonp+"\",\"status\":"+status+",\"statusText\":\""+statusText+"\",\"response\":\""+response.replace(/\"/g, '\\\\\"')+"\"}";
+		try {
+			ctx.postMessage(data, document.referrer);
+		} catch (e){}
 	}
-})(window, '{{$request_param_callback}}');
+})(window.parent, '{{request_param_callback}}');
 </script>
 
 <!-- or -->
@@ -1378,6 +1384,9 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 <ul>
+	<li>+ QUnit-tests for iframe-transport</li>
+	<li>+ `postMessage` for iframe-transport</li>
+	<li>+ `jsonp: "callback"` option</li>
 	<li>* resize: `imageTransform.type` rename to `imageTransform.strategy` (!!!)</li>
 </ul>
 

@@ -1007,7 +1007,8 @@
 
 			upload: function (options){
 				options = _extend({
-					  prepare: api.F
+					  jsonp: 'callback'
+					, prepare: api.F
 					, beforeupload: api.F
 					, upload: api.F
 					, fileupload: api.F
@@ -2711,31 +2712,27 @@
 			}
 
 			if( data.nodeName ){
+				var jsonp = options.jsonp;
+
+				// prepare callback in GET
+				url = url.replace(/([a-z]+)=(\?)/i, '$1='+uid);
+
 				// legacy
 				options.upload(options, _this);
 
 				xhr = document.createElement('div');
 				xhr.innerHTML = '<form target="'+ uid +'" action="'+ url +'" method="POST" enctype="multipart/form-data" style="position: absolute; top: -1000px; overflow: hidden; width: 1px; height: 1px;">'
 							+ '<iframe name="'+ uid +'" src="javascript:false;"></iframe>'
-							+ '<input value="'+ uid +'" name="callback" type="hidden"/>'
+							+ (jsonp && (options.url.indexOf('=?') == -1) ? '<input value="'+ uid +'" name="'+jsonp+'" type="hidden"/>' : '')
 							+ '</form>'
 				;
 
-				_this.xhr.abort = function (){
-					var transport = xhr.getElementsByTagName('iframe')[0];
-					if( transport ){
-						try {
-							if( transport.stop ){ transport.stop(); }
-							else if( transport.contentWindow.stop ){ transport.contentWindow.stop(); }
-							else { transport.contentWindow.document.execCommand('Stop'); }
-						}
-						catch (er) {}
-					}
-					xhr = null;
-				};
+				// get form-data & transport
+				var
+					  form = xhr.getElementsByTagName('form')[0]
+					, transport = xhr.getElementsByTagName('iframe')[0]
+				;
 
-				// append form-data
-				var form = xhr.getElementsByTagName('form')[0];
 				form.appendChild(data);
 
 				api.log(form.parentNode.innerHTML);
@@ -2746,12 +2743,52 @@
 				// keep a reference to node-transport
 				_this.xhr.node = xhr;
 
-				// jsonp-callack
-				window[uid] = function (status, statusText, response){
-					_this.readyState	= 4;
-					_this.responseText	= response;
-					_this.end(status, statusText);
-					xhr = null;
+				var
+					onPostMessage = function (evt){
+						if( url.indexOf(evt.origin) != -1 ){
+							try {
+								var result = api.parseJSON(evt.data);
+								if( result.id == uid ){
+									complete(result.status, result.statusText, result.response);
+								}
+							} catch( err ){
+								complete(0, err.message);
+							}
+						}
+					},
+
+					// jsonp-callack
+					complete = window[uid] = function (status, statusText, response){
+						_this.readyState	= 4;
+						_this.responseText	= response;
+						_this.end(status, statusText);
+
+						api.event.off(window, 'message', onPostMessage);
+						window[uid] = xhr = transport = transport.onload = null;
+					}
+				;
+
+				_this.xhr.abort = function (){
+					try {
+						if( transport.stop ){ transport.stop(); }
+						else if( transport.contentWindow.stop ){ transport.contentWindow.stop(); }
+						else { transport.contentWindow.document.execCommand('Stop'); }
+					}
+					catch (er) {}
+					complete(0, "abort");
+				};
+
+				api.event.on(window, 'message', onPostMessage);
+
+				transport.onload = function (){
+					try {
+						var
+							  win = transport.contentWindow
+							, doc = win.document
+							, result = win.result || api.parseJSON(doc.body.innerHTML)
+						;
+						complete(result.status, result.statusText, result.response);
+					} catch (e){}
 				};
 
 				// send
@@ -2760,6 +2797,9 @@
 				form = null;
 			}
 			else {
+				// Clean url
+				url = url.replace(/([a-z]+)=(\?)&?/i, '');
+
 				// html5
 				if (this.xhr && this.xhr.aborted) {
 					api.log("Error: already aborted");
