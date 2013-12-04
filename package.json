@@ -8,6 +8,7 @@
 		"grunt-contrib-concat": "*",
 		"grunt-contrib-uglify": "*",
 		"grunt-contrib-watch": "*",
+		"grunt-contrib-connect": "*",
 
 		"eventemitter2": "~0.4.9",
 		"semver": "~1.0.14",
