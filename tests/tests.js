@@ -572,6 +572,7 @@ module('FileAPI');
 		stop();
 		FileAPI.support.html5 = false;
 
+		// default callback
 		queue.inc();
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
@@ -582,12 +583,23 @@ module('FileAPI');
 			}
 		});
 
+		// callback in GET
 		queue.inc();
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php?fn=?',
 			complete: function (err, xhr){
 				var json = FileAPI.parseJSON(xhr.responseText);
 				equal(json.jsonp, 'fn', 'custom');
+				queue.next();
+			}
+		});
+
+		// 302: redirect
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/redirect.php?page=json.html',
+			complete: function (err, xhr){
+				equal(xhr.responseText, 'done', '302');
 				queue.next();
 			}
 		});
