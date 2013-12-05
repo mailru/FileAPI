@@ -256,12 +256,14 @@ module('FileAPI');
 
 
 	test('upload input', function (){
-		expect(13);
+		var rnd = Math.random();
+		expect(15);
 
 		stop();
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
 			data: { foo: 'bar' },
+			headers: { 'x-foo': 'bar', 'x-rnd': rnd },
 			files: uploadForm['1px.gif'],
 			upload: function (){
 				ok(true, 'upload event');
@@ -279,6 +281,8 @@ module('FileAPI');
 
 				equal(res.data._REQUEST.foo, 'bar');
 				equal(res.data._REQUEST.bar, 'qux');
+				equal(res.data.HEADERS['X-Foo'], 'bar', 'headers.X-Foo');
+				equal(res.data.HEADERS['X-Rnd'], rnd, 'headers.X-Rnd');
 
 				if( res.data._FILES['1px_gif'] ){
 					var type = res.data._FILES['1px_gif'].type;
@@ -369,10 +373,13 @@ module('FileAPI');
 		stop();
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			headers: { 'x-foo': 'bar' },
 			files: { image: image },
 			complete: function (err, res){
 				var res = FileAPI.parseJSON(res.responseText);
 
+				equal(res.data.HEADERS['X-Foo'], 'bar', 'X-Foo');
+				
 				imageEqual(res.images.image.dataURL, 'files/samples/'+browser+'-dino-90deg-100x100.png?1', 'dino 90deg 100x100', function (){
 					start();
 				});
