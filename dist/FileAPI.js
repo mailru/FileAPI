@@ -1640,6 +1640,18 @@
 			, postNameConcat = api.postNameConcat
 		;
 
+		// Append data
+		_each(options.data, function add(val, name){
+			if( typeof val == 'object' ){
+				_each(val, function (v, i){
+					add(v, postNameConcat(name, i));
+				});
+			}
+			else {
+				Form.append(name, val);
+			}
+		});
+
 		// Add files to `Form`
 		_each(filesData, function (data, idx){
 			var
@@ -1707,19 +1719,6 @@
 					Form.append(name, file, filename);
 				}
 			})(file);
-		});
-
-
-		// Append data
-		_each(options.data, function add(val, name){
-			if( typeof val == 'object' ){
-				_each(val, function (v, i){
-					add(v, postNameConcat(name, i));
-				});
-			}
-			else {
-				Form.append(name, val);
-			}
 		});
 
 		queue.check();
