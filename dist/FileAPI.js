@@ -282,6 +282,7 @@
 			html5: true,
 			media: false,
 			formData: true,
+			multiPassResize: true,
 
 			debug: false,
 			pingUrl: false,
@@ -399,7 +400,6 @@
 				, fix: _fixEvent
 			},
 
-
 			throttle: function(fn, delay) {
 				var id, args;
 
@@ -416,22 +416,36 @@
 				};
 			},
 
-
 			F: function (){},
 
-
+			/**
+			 * Takes a well-formed JSON string and returns the resulting JavaScript object.
+			 * @param {String} str
+			 * @returns {*}
+			 */
 			parseJSON: function (str){
 				var json;
-				if( window.JSON && JSON.parse ){
-					json = JSON.parse(str);
+
+				try {
+					if( window.JSON && JSON.parse ){
+						json = JSON.parse(str);
+					}
+					else {
+						json = (new Function('return ('+str.replace(/([\r\n])/g, '\\$1')+');'))();
+					}
 				}
-				else {
-					json = (new Function('return ('+str.replace(/([\r\n])/g, '\\$1')+');'))();
+				catch( err ){
+					api.log('[err] FileAPI.parseJSON: ' + err);
 				}
+
 				return json;
 			},
 
-
+			/**
+			 * Remove the whitespace from the beginning and end of a string.
+			 * @param {String} str
+			 * @returns {String}
+			 */
 			trim: function (str){
 				str = String(str);
 				return	str.trim ? str.trim() : str.replace(/^\s+|\s+$/g, '');
@@ -627,7 +641,6 @@
 				filter = typeof filter == 'string' ? filter : (filter.getAttribute && filter.getAttribute('accept') || '');
 				return	filter ? new RegExp('('+ filter.replace(/\./g, '\\.').replace(/,/g, '|') +')$', 'i') : /./;
 			},
-
 
 
 			/**
@@ -865,10 +878,10 @@
 			/**
 			 * Get file list
 			 *
-			 * @param	{HTMLInputElement|Event}	input
-			 * @param	{String|Function}	[filter]
-			 * @param	{Function}			[callback]
-			 * @return	{Array|Null}
+			 * @param   {HTMLInputElement|Event}   input
+			 * @param   {String|Function}          [filter]
+			 * @param   {Function}                 [callback]
+			 * @returns {Array|Null}
 			 */
 			getFiles: function (input, filter, callback){
 				var files = [];
@@ -936,9 +949,9 @@
 
 
 			/**
-			 * Get total file size
+			 * Get total files size
 			 * @param	{Array}	files
-			 * @return	{Number}
+			 * @returns	{Number}
 			 */
 			getTotalSize: function (files){
 				var size = 0, i = files && files.length;
@@ -1072,7 +1085,8 @@
 
 
 				options = _extend({
-					  prepare: api.F
+					  jsonp: 'callback'
+					, prepare: api.F
 					, beforeupload: api.F
 					, upload: api.F
 					, fileupload: api.F
@@ -1483,7 +1497,7 @@
 
 
 	function _isLikeFile(obj){
-		return	obj && (File && (obj instanceof File) || obj.image && obj.file || obj.flashId);
+		return	obj && (File && (obj instanceof File) || obj.blob || obj.image && obj.file || obj.flashId);
 	}
 
 
@@ -1966,13 +1980,13 @@
 			return	this.set({ sx: x, sy: y, sw: w, sh: h || w });
 		},
 
-		resize: function (w, h, type){
-			if( typeof h == 'string' ){
-				type = h;
+		resize: function (w, h, strategy){
+			if( /min|max/.test(h) ){
+				strategy = h;
 				h = w;
 			}
 
-			return	this.set({ dw: w, dh: h, resize: type });
+			return	this.set({ dw: w, dh: h || w, resize: strategy });
 		},
 
 		preview: function (w, h){
@@ -2031,22 +2045,24 @@
 			// For `renderImageToCanvas`
 			image._type = this.file.type;
 
-			while( min(w/dw, h/dh) > 2 ){
-				w = (w/2 + 0.5)|0;
-				h = (h/2 + 0.5)|0;
+			if( api.multiPassResize ){
+				while( min(w/dw, h/dh) > 2 ){
+					w = (w/2 + 0.5)|0;
+					h = (h/2 + 0.5)|0;
 
-				copy = getCanvas();
-				copy.width  = w;
-				copy.height = h;
+					copy = getCanvas();
+					copy.width  = w;
+					copy.height = h;
 
-				if( buffer !== image ){
-					renderImageToCanvas(copy, buffer, 0, 0, buffer.width, buffer.height, 0, 0, w, h);
-					buffer = copy;
-				}
-				else {
-					buffer = copy;
-					renderImageToCanvas(buffer, image, m.sx, m.sy, m.sw, m.sh, 0, 0, w, h);
-					m.sx = m.sy = m.sw = m.sh = 0;
+					if( buffer !== image ){
+						renderImageToCanvas(copy, buffer, 0, 0, buffer.width, buffer.height, 0, 0, w, h);
+						buffer = copy;
+					}
+					else {
+						buffer = copy;
+						renderImageToCanvas(buffer, image, m.sx, m.sy, m.sw, m.sh, 0, 0, w, h);
+						m.sx = m.sy = m.sw = m.sh = 0;
+					}
 				}
 			}
 
@@ -2124,10 +2140,10 @@
 				, dw = m.dw = m.dw || sw
 				, dh = m.dh = m.dh || sh
 				, sf = sw/sh, df = dw/dh
-				, type = m.resize
+				, strategy = m.resize
 			;
 
-			if( type == 'preview' ){
+			if( strategy == 'preview' ){
 				if( dw != sw || dh != sh ){
 					// Make preview
 					var w, h;
@@ -2148,12 +2164,12 @@
 					}
 				}
 			}
-			else if( type ){
+			else if( strategy ){
 				if( !(sw > dw || sh > dh) ){
 					dw = sw;
 					dh = sh;
 				}
-				else if( type == 'min' ){
+				else if( strategy == 'min' ){
 					dw = round(sf < df ? min(sw, dw) : dh*sf);
 					dh = round(sf < df ? dw/sf : min(sh, dh));
 				}
@@ -2233,7 +2249,7 @@
 							params(img, ImgTrans);
 						}
 						else if( params.width ){
-							ImgTrans[params.preview ? 'preview' : 'resize'](params.width, params.height, params.type);
+							ImgTrans[params.preview ? 'preview' : 'resize'](params.width, params.height, params.strategy);
 						}
 						else {
 							if( params.maxWidth && (img.width > params.maxWidth || img.height > params.maxHeight) ){
@@ -2856,31 +2872,27 @@
 			}
 
 			if( data.nodeName ){
+				var jsonp = options.jsonp;
+
+				// prepare callback in GET
+				url = url.replace(/([a-z]+)=(\?)/i, '$1='+uid);
+
 				// legacy
 				options.upload(options, _this);
 
 				xhr = document.createElement('div');
 				xhr.innerHTML = '<form target="'+ uid +'" action="'+ url +'" method="POST" enctype="multipart/form-data" style="position: absolute; top: -1000px; overflow: hidden; width: 1px; height: 1px;">'
 							+ '<iframe name="'+ uid +'" src="javascript:false;"></iframe>'
-							+ '<input value="'+ uid +'" name="callback" type="hidden"/>'
+							+ (jsonp && (options.url.indexOf('=?') == -1) ? '<input value="'+ uid +'" name="'+jsonp+'" type="hidden"/>' : '')
 							+ '</form>'
 				;
 
-				_this.xhr.abort = function (){
-					var transport = xhr.getElementsByTagName('iframe')[0];
-					if( transport ){
-						try {
-							if( transport.stop ){ transport.stop(); }
-							else if( transport.contentWindow.stop ){ transport.contentWindow.stop(); }
-							else { transport.contentWindow.document.execCommand('Stop'); }
-						}
-						catch (er) {}
-					}
-					xhr = null;
-				};
+				// get form-data & transport
+				var
+					  form = xhr.getElementsByTagName('form')[0]
+					, transport = xhr.getElementsByTagName('iframe')[0]
+				;
 
-				// append form-data
-				var form = xhr.getElementsByTagName('form')[0];
 				form.appendChild(data);
 
 				api.log(form.parentNode.innerHTML);
@@ -2891,12 +2903,52 @@
 				// keep a reference to node-transport
 				_this.xhr.node = xhr;
 
-				// jsonp-callack
-				window[uid] = function (status, statusText, response){
-					_this.readyState	= 4;
-					_this.responseText	= response;
-					_this.end(status, statusText);
-					xhr = null;
+				var
+					onPostMessage = function (evt){
+						if( url.indexOf(evt.origin) != -1 ){
+							try {
+								var result = api.parseJSON(evt.data);
+								if( result.id == uid ){
+									complete(result.status, result.statusText, result.response);
+								}
+							} catch( err ){
+								complete(0, err.message);
+							}
+						}
+					},
+
+					// jsonp-callack
+					complete = window[uid] = function (status, statusText, response){
+						_this.readyState	= 4;
+						_this.responseText	= response;
+						_this.end(status, statusText);
+
+						api.event.off(window, 'message', onPostMessage);
+						window[uid] = xhr = transport = transport.onload = null;
+					}
+				;
+
+				_this.xhr.abort = function (){
+					try {
+						if( transport.stop ){ transport.stop(); }
+						else if( transport.contentWindow.stop ){ transport.contentWindow.stop(); }
+						else { transport.contentWindow.document.execCommand('Stop'); }
+					}
+					catch (er) {}
+					complete(0, "abort");
+				};
+
+				api.event.on(window, 'message', onPostMessage);
+
+				transport.onload = function (){
+					try {
+						var
+							  win = transport.contentWindow
+							, doc = win.document
+							, result = win.result || api.parseJSON(doc.body.innerHTML)
+						;
+						complete(result.status, result.statusText, result.response);
+					} catch (e){}
 				};
 
 				// send
@@ -2905,6 +2957,9 @@
 				form = null;
 			}
 			else {
+				// Clean url
+				url = url.replace(/([a-z]+)=(\?)&?/i, '');
+
 				// html5
 				if( this.xhr && this.xhr.aborted ){
 					api.log("Error: already aborted");
@@ -3885,78 +3940,79 @@
 					});
 
 
+					if( api.Camera ){
+						// FileAPI.Camera:statics
+						api.Camera.fallback = function (el, options, callback){
+							var camId = api.uid();
+							api.log('FlashAPI.Camera.publish: ' + camId);
+							flash.publish(el, camId, api.extend(options, {
+								camera: true,
+								onEvent: _wrap(function _(evt){
+									if( evt.type == 'camera' ){
+										_unwrap(_);
 
-					// FileAPI.Camera:statics
-					api.Camera.fallback = function (el, options, callback){
-						var camId = api.uid();
-						api.log('FlashAPI.Camera.publish: ' + camId);
-						flash.publish(el, camId, api.extend(options, {
-							camera: true,
-							onEvent: _wrap(function _(evt){
-								if( evt.type == 'camera' ){
-									_unwrap(_);
-
-									if( evt.error ){
-										api.log('FlashAPI.Camera.publish.error: ' + evt.error);
-										callback(evt.error);
-									}
-									else {
-										api.log('FlashAPI.Camera.publish.success: ' + camId);
-										callback(null);
-									}
-								}
-							})
-						}));
-					};
-
-					// Run
-					_each(_cameraQueue, function (args){
-						api.Camera.fallback.apply(api.Camera, args);
-					});
-					_cameraQueue = [];
-
-
-					// FileAPI.Camera:proto
-					_inherit(api.Camera.prototype, {
-						_id: function (){
-							return	this.video.id;
-						},
-
-						start: function (callback){
-							var _this = this;
-							flash.cmd(this._id(), 'camera.on', {
-								callback: _wrap(function _(evt){
-									_unwrap(_);
-
-									if( evt.error ){
-										api.log('FlashAPI.camera.on.error: ' + evt.error);
-										callback(evt.error, _this);
-									}
-									else {
-										api.log('FlashAPI.camera.on.success: ' + _this._id());
-										_this._active = true;
-										callback(null, _this);
+										if( evt.error ){
+											api.log('FlashAPI.Camera.publish.error: ' + evt.error);
+											callback(evt.error);
+										}
+										else {
+											api.log('FlashAPI.Camera.publish.success: ' + camId);
+											callback(null);
+										}
 									}
 								})
-							});
-						},
+							}));
+						};
 
-						stop: function (){
-							this._active = false;
-							flash.cmd(this._id(), 'camera.off');
-						},
+						// Run
+						_each(_cameraQueue, function (args){
+							api.Camera.fallback.apply(api.Camera, args);
+						});
+						_cameraQueue = [];
 
-						shot: function (){
-							api.log('FlashAPI.Camera.shot:', this._id());
 
-							var shot = flash.cmd(this._id(), 'shot', {});
-							shot.type = 'image/png';
-							shot.flashId = this._id();
-							shot.isShot = true;
+						// FileAPI.Camera:proto
+						_inherit(api.Camera.prototype, {
+							_id: function (){
+								return	this.video.id;
+							},
 
-							return	new api.Camera.Shot(shot);
-						}
-					});
+							start: function (callback){
+								var _this = this;
+								flash.cmd(this._id(), 'camera.on', {
+									callback: _wrap(function _(evt){
+										_unwrap(_);
+
+										if( evt.error ){
+											api.log('FlashAPI.camera.on.error: ' + evt.error);
+											callback(evt.error, _this);
+										}
+										else {
+											api.log('FlashAPI.camera.on.success: ' + _this._id());
+											_this._active = true;
+											callback(null, _this);
+										}
+									})
+								});
+							},
+
+							stop: function (){
+								this._active = false;
+								flash.cmd(this._id(), 'camera.off');
+							},
+
+							shot: function (){
+								api.log('FlashAPI.Camera.shot:', this._id());
+
+								var shot = flash.cmd(this._id(), 'shot', {});
+								shot.type = 'image/png';
+								shot.flashId = this._id();
+								shot.isShot = true;
+
+								return	new api.Camera.Shot(shot);
+							}
+						});
+					} // Camera;
 
 
 					// FileAPI.Form
@@ -4231,9 +4287,11 @@
 		}
 
 
-		api.Camera.fallback = function (){
-			_cameraQueue.push(arguments);
-		};
+		if( api.Camera ){
+			api.Camera.fallback = function (){
+				api.Camera.push(arguments);
+			};
+		}
 
 
 		// @export
