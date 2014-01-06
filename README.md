@@ -1383,11 +1383,14 @@ Button like link.
 
 <a name="Changelog"></a>
 ## Changelog
+
+### 2.0.3
 <ul>
 	<li>+ QUnit-tests for iframe-transport</li>
 	<li>+ `postMessage` for iframe-transport</li>
 	<li>+ `jsonp: "callback"` option</li>
 	<li>* resize: `imageTransform.type` rename to `imageTransform.strategy` (!!!)</li>
+	<li>+ https://github.com/mailru/FileAPI/pull/165 (#140: fix)</li>
 </ul>
 
 ### 2.0.2
@@ -1404,7 +1407,7 @@ Button like link.
 ### 2.0.1
 <ul>
 	<li>+ support 'filter' prop in imageTransform</li>
-</il>
+</ul>
 
 ### 2.0.0
 <ul>
