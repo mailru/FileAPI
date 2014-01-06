@@ -507,7 +507,8 @@ module('FileAPI');
 				var files = FileAPI.parseJSON(xhr.responseText).data._FILES.files;
 				FileAPI.each(files, function (file){ files[file.name] = file; });
 				checkMultiuploadFiles(files);
-				equal(xhr.total, bytesLoaded);
+				equal(xhr.total, 574782, 'total');
+				equal(xhr.total, bytesLoaded, 'total === loaded');
 				start();
 			}
 		});
