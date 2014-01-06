@@ -50,6 +50,7 @@ module.exports = function (grunt){
 		qunit: {
 			all: {
 				options: {
+					timeout: 5 * 60 * 1000, // 5min
 					files: {
 						  '1px.gif':	['tests/files/1px.gif']
 						, 'hello.txt':	['tests/files/hello.txt']
