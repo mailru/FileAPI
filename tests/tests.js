@@ -460,22 +460,27 @@ module('FileAPI');
 			, _progress = 0
 			, _progressFail = false
 			, _files = {}
+			, _events = []
 		;
 
 		FileAPI.upload({
 			url: serverUrl,
 			files: uploadForm['multiple'],
+			upload: function (){ _events.push('upload'); },
 			fileupload: function (){
 				_start++;
+				_events.push('fileupload');
 			},
 			filecomplete: function (err, xhr){
 				var file = FileAPI.parseJSON(xhr.responseText).data._FILES.multiple;
 				_complete++;
 				_files[file.name] = file;
+				_events.push('fileucomplete');
 			},
 			progress: function (evt){
 				if( _progress > evt.loaded ){
 					_progressFail = true;
+					ok(false, 'progress: '+_progress + ' > '+evt.loaded+', total: '+evt.total);
 				}
 				_progress = evt.loaded;
 			},
@@ -483,7 +488,8 @@ module('FileAPI');
 				start();
 
 				equal(_start, _complete, 'uploaded');
-				equal(_progressFail, false, 'progress');
+				equal(_progressFail, false, 'progress > evt.total');
+				equal(_events.join('->'), 'upload->fileupload->fileucomplete->fileupload->fileucomplete->fileupload->fileucomplete->fileupload->fileucomplete->fileupload->fileucomplete');
 
 				checkMultiuploadFiles(_files);
 			}
@@ -493,12 +499,26 @@ module('FileAPI');
 
 	test('multiupload (serial: false)', function (){
 		stop();
-		var bytesLoaded = -1;
+		var
+			  bytesLoaded = -1
+			, _events = []
+			, _start = 0
+			, _complete = 0
+		;
 
 		FileAPI.upload({
 			url: serverUrl,
 			files: FileAPI.getFiles(uploadForm['multiple']),
 			serial: false,
+			upload: function (){ _events.push('upload'); },
+			fileupload: function (){
+				_start++;
+				_events.push('fileupload');
+			},
+			filecomplet: function (){
+				_complete++;
+				_events.push('fileucomplete');
+			},
 			progress: function (evt, files){
 				equal(files.length, 5);
 				bytesLoaded = evt.loaded > bytesLoaded ? evt.loaded : -1;
@@ -507,8 +527,14 @@ module('FileAPI');
 				var files = FileAPI.parseJSON(xhr.responseText).data._FILES.files;
 				FileAPI.each(files, function (file){ files[file.name] = file; });
 				checkMultiuploadFiles(files);
+
+				equal(_start, 0, 'start == 0');
+				equal(_start, _complete, 'uploaded');
+
 				equal(xhr.total, 574782, 'total');
 				equal(xhr.total, bytesLoaded, 'total === loaded');
+
+				equal(_events.join('->'), 'upload');
 				start();
 			}
 		});
