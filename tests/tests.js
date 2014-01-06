@@ -532,7 +532,7 @@ module('FileAPI');
 				equal(_start, _complete, 'uploaded');
 
 				equal(xhr.total, 574782, 'total');
-				equal(xhr.total, bytesLoaded, 'total === loaded');
+				equal(xhr.total, bytesLoaded, xhr.total+' total === '+bytesLoaded+' loaded');
 
 				equal(_events.join('->'), 'upload');
 				start();
@@ -542,26 +542,38 @@ module('FileAPI');
 
 
 	test('multiupload (parallel: true)', function (){
-		var cnt = 0, active = 0, progress = 0;
+		var
+			  max = 3
+			, cnt = 0
+			, active = 0
+			, progress = 0
+		;
 
 		stop();
 		FileAPI.upload(serverUrl, uploadForm['multiple'], {
-			parallel: 3,
+			parallel: max,
 			fileupload: function (){
 				cnt++;
+				(cnt > max) && ok(false, 'fileupload: '+cnt+' > '+max);
 			},
-			filecomplete: function (){
-				if( cnt == 3 ){
+			filecomplete: function (err, xhr){
+				(cnt > max) && ok(false, 'filecomplete: '+cnt+' > '+max);
+
+				if( cnt == max ){
 					active = cnt;
+					equal(xhr.activeFiles.length, max-1, 'activeFiles.length == max')
 				}
+
 				cnt--;
 			},
 			progress: function (evt){
-				ok(progress < evt.loaded, 'progress: '+progress+' < '+evt.loaded);
+				if( progress > evt.loaded ){
+					ok(false, 'progress: '+progress+' > '+evt.loaded+', total: '+evt.total);
+				}
 				progress = evt.loaded;
 			},
 			complete: function (){
-				equal(active, this.parallel, 'active == parallel');
+				equal(active, max, 'active: '+active+' == '+max);
 				start();
 			}
 		})

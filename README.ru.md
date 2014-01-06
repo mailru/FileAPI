@@ -425,13 +425,27 @@ var xhr = FileAPI.upload({
 Последовательная загрузка файлов. Default: 'true'.
 `false` — только HTML5, все файлы будет загружены один запросом.
 
+```js
+var xhr = FileAPI.upload(
+	  './ctrl.php'
+	, files
+	, {	serial: false } // false — только HTML5
+);
+```
+
+---
+
+<a name="options.parallel"></a>
+### parallel`:Number`
+Количество паралельно загружаемых файлов. Default: 0.
+Только HTML5.
 
 ```js
-var xhr = FileAPI.upload({
-	url: '...',
-	files: myFiles,
-	serial: false /* false — только HTML5 */
-});
+var xhr = FileAPI.upload(
+	  './ctrl.php'
+	, files
+	, { parallel: 3 } // только HTML5.
+);
 ```
 
 ---

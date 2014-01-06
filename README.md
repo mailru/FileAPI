@@ -428,13 +428,27 @@ var xhr = FileAPI.upload({
 Serially uploading files to the server. Default: 'true'.
 `false` — only HTML5, all files are uploading to the server a single request.
 
+```js
+var xhr = FileAPI.upload(
+	  './ctrl.php'
+	, files
+	, { serial: false } // false — only HTML5
+);
+```
+
+---
+
+<a name="options.parallel"></a>
+### parallel`:Number`
+Number of parallel file uploads. Default: 0.
+Only HTML5.
 
 ```js
-var xhr = FileAPI.upload({
-	url: '...',
-	files: myFiles,
-	serial: false /* false — only HTML5 */
-});
+var xhr = FileAPI.upload(
+	  './ctrl.php'
+	, files
+	, { parallel: 3 } // только HTML5.
+);
 ```
 
 ---
