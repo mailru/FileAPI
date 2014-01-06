@@ -282,6 +282,7 @@
 			html5: true,
 			media: false,
 			formData: true,
+			multiPassResize: true,
 
 			debug: false,
 			pingUrl: false,
@@ -399,7 +400,6 @@
 				, fix: _fixEvent
 			},
 
-
 			throttle: function(fn, delay) {
 				var id, args;
 
@@ -416,22 +416,36 @@
 				};
 			},
 
-
 			F: function (){},
 
-
+			/**
+			 * Takes a well-formed JSON string and returns the resulting JavaScript object.
+			 * @param {String} str
+			 * @returns {*}
+			 */
 			parseJSON: function (str){
 				var json;
-				if( window.JSON && JSON.parse ){
-					json = JSON.parse(str);
+
+				try {
+					if( window.JSON && JSON.parse ){
+						json = JSON.parse(str);
+					}
+					else {
+						json = (new Function('return ('+str.replace(/([\r\n])/g, '\\$1')+');'))();
+					}
 				}
-				else {
-					json = (new Function('return ('+str.replace(/([\r\n])/g, '\\$1')+');'))();
+				catch( err ){
+					api.log('[err] FileAPI.parseJSON: ' + err);
 				}
+
 				return json;
 			},
 
-
+			/**
+			 * Remove the whitespace from the beginning and end of a string.
+			 * @param {String} str
+			 * @returns {String}
+			 */
 			trim: function (str){
 				str = String(str);
 				return	str.trim ? str.trim() : str.replace(/^\s+|\s+$/g, '');
@@ -629,7 +643,6 @@
 			},
 
 
-
 			/**
 			 * Read as DataURL
 			 *
@@ -657,7 +670,7 @@
 					_readAs(file, fn, 'BinaryString');
 				} else {
 					// Hello IE10!
-					_readAs(file, function (evt){
+					api.readAsDataURL(file, function (evt){
 						if( evt.type == 'load' ){
 							try {
 								// dataURL -> binaryString
@@ -668,7 +681,7 @@
 							}
 						}
 						fn(evt);
-					}, 'DataURL');
+					});
 				}
 			},
 
@@ -865,10 +878,10 @@
 			/**
 			 * Get file list
 			 *
-			 * @param	{HTMLInputElement|Event}	input
-			 * @param	{String|Function}	[filter]
-			 * @param	{Function}			[callback]
-			 * @return	{Array|Null}
+			 * @param   {HTMLInputElement|Event}   input
+			 * @param   {String|Function}          [filter]
+			 * @param   {Function}                 [callback]
+			 * @returns {Array|Null}
 			 */
 			getFiles: function (input, filter, callback){
 				var files = [];
@@ -936,9 +949,9 @@
 
 
 			/**
-			 * Get total file size
+			 * Get total files size
 			 * @param	{Array}	files
-			 * @return	{Number}
+			 * @returns	{Number}
 			 */
 			getTotalSize: function (files){
 				var size = 0, i = files && files.length;
@@ -1072,7 +1085,8 @@
 
 
 				options = _extend({
-					  prepare: api.F
+					  jsonp: 'callback'
+					, prepare: api.F
 					, beforeupload: api.F
 					, upload: api.F
 					, fileupload: api.F
@@ -1153,6 +1167,7 @@
 					var
 						  data  = filesData.splice(0, _serial ? 1 : 1e5)
 						, _file = _serial ? data[0] && data[0].file : proxyXHR.files
+						, _dataSize = api.getTotalSize(data)
 						, _fileLoaded = false
 						, _fileOptions = _simpleClone(options)
 					;
@@ -1176,11 +1191,6 @@
 
 						_getFormData(_fileOptions, data, function (form){
 							if( !_loaded ){
-								if( !_serial ){
-									// Dirty hack :[
-									data.size = _total;
-								}
-
 								// emit "upload" event
 								options.upload(proxyXHR, options);
 							}
@@ -1200,15 +1210,15 @@
 										// emit "fileprogress" event
 										(_serial || _parallel) && options.fileprogress({
 											  type:   'progress'
-											, total:  data[0].total = evt.total
-											, loaded: data[0].loaded = Math.min(evt.loaded, evt.total)
+											, total:  data.total = evt.total
+											, loaded: data.loaded = Math.min(evt.loaded, evt.total)
 										}, _file, xhr, _fileOptions);
 
 										// emit "progress" event
 										defer.notify({
 											  type:   'progress'
 											, total:  _total
-											, loaded: proxyXHR.loaded = (_loaded + data[0].size * (evt.loaded/evt.total))|0
+											, loaded: proxyXHR.loaded = (_loaded + _dataSize * (evt.loaded/evt.total))|0
 										}, _file, xhr, _fileOptions);
 									}
 								} : noop,
@@ -1219,18 +1229,17 @@
 									});
 
 									if( _file ){
-										if( _serial ){
-											data[0].loaded = data[0].total;
+										// "loaded" and "total" set in "progress".
+										data.loaded	= data.total = (data.total || _dataSize);
 
-											// emulate 100% "progress"
-											this.progress(data[0]);
-										}
+										// emulate 100% "progress"
+										this.progress(data);
 
 										// fixed "prgoress" throttle
 										_fileLoaded = true;
 
 										// bytes loaded
-										_loaded += data[0].size; // data.size != data.total, it's desirable fix this
+										_loaded += _dataSize;
 										proxyXHR.loaded = _loaded;
 
 										// emit "filecomplete" event
@@ -1488,7 +1497,7 @@
 
 
 	function _isLikeFile(obj){
-		return	obj && (File && (obj instanceof File) || obj.image && obj.file || obj.flashId);
+		return	obj && (File && (obj instanceof File) || obj.blob || obj.image && obj.file || obj.flashId);
 	}
 
 
@@ -1971,13 +1980,13 @@
 			return	this.set({ sx: x, sy: y, sw: w, sh: h || w });
 		},
 
-		resize: function (w, h, type){
-			if( typeof h == 'string' ){
-				type = h;
+		resize: function (w, h, strategy){
+			if( /min|max/.test(h) ){
+				strategy = h;
 				h = w;
 			}
 
-			return	this.set({ dw: w, dh: h, resize: type });
+			return	this.set({ dw: w, dh: h || w, resize: strategy });
 		},
 
 		preview: function (w, h){
@@ -2036,22 +2045,24 @@
 			// For `renderImageToCanvas`
 			image._type = this.file.type;
 
-			while( min(w/dw, h/dh) > 2 ){
-				w = (w/2 + 0.5)|0;
-				h = (h/2 + 0.5)|0;
+			if( api.multiPassResize ){
+				while( min(w/dw, h/dh) > 2 ){
+					w = (w/2 + 0.5)|0;
+					h = (h/2 + 0.5)|0;
 
-				copy = getCanvas();
-				copy.width  = w;
-				copy.height = h;
+					copy = getCanvas();
+					copy.width  = w;
+					copy.height = h;
 
-				if( buffer !== image ){
-					renderImageToCanvas(copy, buffer, 0, 0, buffer.width, buffer.height, 0, 0, w, h);
-					buffer = copy;
-				}
-				else {
-					buffer = copy;
-					renderImageToCanvas(buffer, image, m.sx, m.sy, m.sw, m.sh, 0, 0, w, h);
-					m.sx = m.sy = m.sw = m.sh = 0;
+					if( buffer !== image ){
+						renderImageToCanvas(copy, buffer, 0, 0, buffer.width, buffer.height, 0, 0, w, h);
+						buffer = copy;
+					}
+					else {
+						buffer = copy;
+						renderImageToCanvas(buffer, image, m.sx, m.sy, m.sw, m.sh, 0, 0, w, h);
+						m.sx = m.sy = m.sw = m.sh = 0;
+					}
 				}
 			}
 
@@ -2129,10 +2140,10 @@
 				, dw = m.dw = m.dw || sw
 				, dh = m.dh = m.dh || sh
 				, sf = sw/sh, df = dw/dh
-				, type = m.resize
+				, strategy = m.resize
 			;
 
-			if( type == 'preview' ){
+			if( strategy == 'preview' ){
 				if( dw != sw || dh != sh ){
 					// Make preview
 					var w, h;
@@ -2153,12 +2164,12 @@
 					}
 				}
 			}
-			else if( type ){
+			else if( strategy ){
 				if( !(sw > dw || sh > dh) ){
 					dw = sw;
 					dh = sh;
 				}
-				else if( type == 'min' ){
+				else if( strategy == 'min' ){
 					dw = round(sf < df ? min(sw, dw) : dh*sf);
 					dh = round(sf < df ? dw/sf : min(sh, dh));
 				}
@@ -2238,7 +2249,7 @@
 							params(img, ImgTrans);
 						}
 						else if( params.width ){
-							ImgTrans[params.preview ? 'preview' : 'resize'](params.width, params.height, params.type);
+							ImgTrans[params.preview ? 'preview' : 'resize'](params.width, params.height, params.strategy);
 						}
 						else {
 							if( params.maxWidth && (img.width > params.maxWidth || img.height > params.maxHeight) ){
@@ -2861,31 +2872,27 @@
 			}
 
 			if( data.nodeName ){
+				var jsonp = options.jsonp;
+
+				// prepare callback in GET
+				url = url.replace(/([a-z]+)=(\?)/i, '$1='+uid);
+
 				// legacy
 				options.upload(options, _this);
 
 				xhr = document.createElement('div');
 				xhr.innerHTML = '<form target="'+ uid +'" action="'+ url +'" method="POST" enctype="multipart/form-data" style="position: absolute; top: -1000px; overflow: hidden; width: 1px; height: 1px;">'
 							+ '<iframe name="'+ uid +'" src="javascript:false;"></iframe>'
-							+ '<input value="'+ uid +'" name="callback" type="hidden"/>'
+							+ (jsonp && (options.url.indexOf('=?') == -1) ? '<input value="'+ uid +'" name="'+jsonp+'" type="hidden"/>' : '')
 							+ '</form>'
 				;
 
-				_this.xhr.abort = function (){
-					var transport = xhr.getElementsByTagName('iframe')[0];
-					if( transport ){
-						try {
-							if( transport.stop ){ transport.stop(); }
-							else if( transport.contentWindow.stop ){ transport.contentWindow.stop(); }
-							else { transport.contentWindow.document.execCommand('Stop'); }
-						}
-						catch (er) {}
-					}
-					xhr = null;
-				};
+				// get form-data & transport
+				var
+					  form = xhr.getElementsByTagName('form')[0]
+					, transport = xhr.getElementsByTagName('iframe')[0]
+				;
 
-				// append form-data
-				var form = xhr.getElementsByTagName('form')[0];
 				form.appendChild(data);
 
 				api.log(form.parentNode.innerHTML);
@@ -2896,12 +2903,52 @@
 				// keep a reference to node-transport
 				_this.xhr.node = xhr;
 
-				// jsonp-callack
-				window[uid] = function (status, statusText, response){
-					_this.readyState	= 4;
-					_this.responseText	= response;
-					_this.end(status, statusText);
-					xhr = null;
+				var
+					onPostMessage = function (evt){
+						if( url.indexOf(evt.origin) != -1 ){
+							try {
+								var result = api.parseJSON(evt.data);
+								if( result.id == uid ){
+									complete(result.status, result.statusText, result.response);
+								}
+							} catch( err ){
+								complete(0, err.message);
+							}
+						}
+					},
+
+					// jsonp-callack
+					complete = window[uid] = function (status, statusText, response){
+						_this.readyState	= 4;
+						_this.responseText	= response;
+						_this.end(status, statusText);
+
+						api.event.off(window, 'message', onPostMessage);
+						window[uid] = xhr = transport = transport.onload = null;
+					}
+				;
+
+				_this.xhr.abort = function (){
+					try {
+						if( transport.stop ){ transport.stop(); }
+						else if( transport.contentWindow.stop ){ transport.contentWindow.stop(); }
+						else { transport.contentWindow.document.execCommand('Stop'); }
+					}
+					catch (er) {}
+					complete(0, "abort");
+				};
+
+				api.event.on(window, 'message', onPostMessage);
+
+				transport.onload = function (){
+					try {
+						var
+							  win = transport.contentWindow
+							, doc = win.document
+							, result = win.result || api.parseJSON(doc.body.innerHTML)
+						;
+						complete(result.status, result.statusText, result.response);
+					} catch (e){}
 				};
 
 				// send
@@ -2910,6 +2957,9 @@
 				form = null;
 			}
 			else {
+				// Clean url
+				url = url.replace(/([a-z]+)=(\?)&?/i, '');
+
 				// html5
 				if( this.xhr && this.xhr.aborted ){
 					api.log("Error: already aborted");

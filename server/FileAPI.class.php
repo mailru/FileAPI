@@ -60,7 +60,7 @@
 
 			header('Access-Control-Allow-Origin: ' . $options['origin']);
 			header('Access-Control-Allow-Methods: ' . $options['methods']);
-			header('Access-Control-Allow-Headers: ' . implode(', ', array_values($options['headers'] + array('X-Requested-With', 'Content-Range', 'Content-Disposition'))));
+			header('Access-Control-Allow-Headers: ' . implode(', ', array_merge($options['headers'], array('X-Requested-With', 'Content-Range', 'Content-Disposition'))));
 
 			if( !isset($options['cookie']) || $options['cookie'] ){
 				header('Access-Control-Allow-Credentials: true');
@@ -113,10 +113,10 @@
 		 */
 		public static function makeResponse(array $res, $jsonp = null){
 			$body = $res['body'];
-			$json = json_encode($body);
+			$json = is_array($body) ? json_encode($body) : $body;
 
 			$httpStatus = isset($res['status']) ? $res['status'] : self::OK;
-			$httpStatusText  = isset($res['statusText']) ? $res['statusText'] : 'OK';
+			$httpStatusText  = addslashes(isset($res['statusText']) ? $res['statusText'] : 'OK');
 			$httpHeaders = isset($res['headers']) ? $res['headers'] : array();
 
 			if( empty($jsonp) ){
@@ -128,14 +128,22 @@
 				echo $json;
 			}
 			else {
-				echo  "<script>"
-					. "  (function (ctx, jsonp){"
-					. "     'use strict';"
-					. "     if( ctx && ctx[jsonp] ){"
-					. "        ctx[jsonp]($httpStatus, '$httpStatus', ".addslashes($json).");"
-					. "     }"
-					. "  })(window.parent, '$jsonp');"
-					. "</script>";
+				echo  <<<END
+					<script>
+					(function (ctx, jsonp){
+						'use strict';
+						var status = $httpStatus, statusText = "$httpStatusText", response = "$json";
+						try {
+							ctx[jsonp](status, statusText, response);
+						} catch (e){
+							var data = "{\"id\":\"$jsonp\",\"status\":"+status+",\"statusText\":\""+statusText+"\",\"response\":\""+response.replace(/\"/g, '\\\\\"')+"\"}";
+							try {
+								ctx.postMessage(data, document.referrer);
+							} catch (e){}
+						}
+					})(window.parent, '$jsonp');
+					</script>
+END;
 			}
 		}
 

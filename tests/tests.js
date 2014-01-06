@@ -1,14 +1,26 @@
 module('FileAPI');
 
 (function (){
+	if( !Function.prototype.bind ){
+		Function.prototype.bind = function (ctx){
+			if( !ctx ) {
+				return this;
+			}
+			var fn = this;
+			return function (){
+				return fn.apply(ctx, arguments);
+			};
+		};
+	}
+
+
 	var serverUrl = 'http://rubaxa.org/FileAPI/server/ctrl.php';
 	var uploadForm = document.forms.upload;
 	var base64_1px_gif = 'R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 	var browser = (navigator.userAgent.match(/(phantomjs|safari|firefox|chrome)/i) || ['', 'chrome'])[1].toLowerCase();
 
+
 	QUnit.config.autostart = browser == 'phantomjs';
-
-
 
 
 	FileAPI.event.on(startBtn, 'click', function (){
@@ -54,7 +66,7 @@ module('FileAPI');
 	}
 
 
-	function imageEqual(left, right, text, callback){
+	function imageEqual(left, right, text, callback, delta){
 		loadImage(left, function (left){
 			left.setAttribute('style', 'border: 2px solid red; padding: 2px;');
 			document.body.appendChild(left.cloneNode());
@@ -88,7 +100,7 @@ module('FileAPI');
 						}
 					}
 
-					ok(failPixels/pixels < .01, text + ' (fail pixels: '+ (failPixels/pixels) +')');
+					ok(failPixels/pixels < (delta || .01), text + ' (fail pixels: '+ (failPixels/pixels) +')');
 				}
 
 				callback();
@@ -139,47 +151,60 @@ module('FileAPI');
 
 
 	test('1px.gif', function (){
-		var file	= FileAPI.getFiles(uploadForm['1px.gif'])[0];
+		var file = FileAPI.getFiles(uploadForm['1px.gif'])[0];
+		var queue = FileAPI.queue(start);
+
+		stop();
 
 		// File
 		checkFile(file, '1px.gif', 'image/gif', 34);
 
 		// File info
-		stop();
+		queue.inc();
 		FileAPI.getInfo(file, function (err, info){
-			start();
+			queue.next();
+
 			ok(!err);
 			equal(info.width, 1, 'getInfo.width');
 			equal(info.height, 1, 'getInfo.height');
 		});
 
 
+		// Read as data
+		queue.inc();
+		FileAPI.readAsDataURL(file, function (evt){
+			queue.next();
+
+			if( evt.type == 'load' ){
+				equal(evt.result, 'data:image/gif;base64,'+base64_1px_gif, 'readAsDataURL');
+			} else {
+				ok(false, 'readAsDataURL: '+evt.error)
+			}
+		});
+
+		// Read as binaryString
+		queue.inc();
+		FileAPI.readAsBinaryString(file, function (evt){
+			queue.next();
+
+			if( evt.type == 'load' ){
+				equal(evt.result, FileAPI.toBinaryString(base64_1px_gif), 'readAsBinaryString');
+			} else {
+				ok(false, 'readAsBinaryString: '+evt.error)
+			}
+		});
+
 		if( FileAPI.html5 ){
-			// Read as data
-			stop();
-			FileAPI.readAsDataURL(file, function (evt){
-				if( evt.type == 'load' ){
-					start();
-					equal(evt.result, 'data:image/gif;base64,'+base64_1px_gif, 'dataURL');
-				}
-			});
-
-			// Read as binaryString
-			stop();
-			FileAPI.readAsBinaryString(file, function (evt){
-				if( evt.type == 'load' ){
-					start();
-					equal(evt.result, FileAPI.toBinaryString(base64_1px_gif), 'dataURL');
-				}
-			});
-
 			// Read as image
-			stop();
+			queue.inc();
 			FileAPI.readAsImage(file, function (evt){
+				queue.next();
+
 				if( evt.type == 'load' ){
-					start();
 					equal(evt.result.width, 1, 'readAsImage.width');
 					equal(evt.result.height, 1, 'readAsImage.height');
+				} else {
+					ok(false, 'readAsImage')
 				}
 			});
 		}
@@ -189,17 +214,17 @@ module('FileAPI');
 	test('hello.txt', function (){
 		var file	= FileAPI.getFiles(uploadForm['hello.txt'])[0];
 
+		stop();
 		checkFile(file, 'hello.txt', 'text/plain', 15);
 
-		if( FileAPI.html5 ){
-			stop();
-			FileAPI.readAsText(file, function (evt){
-				if( evt.type == 'load' ){
-					start();
-					equal(evt.result, 'Hello FileAPI!\n');
-				}
-			});
-		}
+		FileAPI.readAsText(file, function (evt){
+			start();
+			if( evt.type == 'load' ){
+				equal(evt.result, 'Hello FileAPI!\n');
+			} else {
+				ok(false, 'readAsText: '+evt.error);
+			}
+		});
 	});
 
 
@@ -250,21 +275,24 @@ module('FileAPI');
 		FileAPI.upload({
 			url: serverUrl,
 			data: { str: 'foo', num: 1, array: [1, 2, 3], object: { foo: 'bar' } },
+			headers: { 'x-foo': 'bar' },
 			complete: function (err, xhr){
 				var res = FileAPI.parseJSON(xhr.responseText).data._REQUEST;
+				var headers = FileAPI.parseJSON(xhr.responseText).data.HEADERS;
 
 				start();
-				equal(res.str, 'foo');
-				equal(res.num, '1');
+				equal(res.str, 'foo', 'string');
+				equal(res.num, '1', 'number');
+				equal(headers['X-Foo'], 'bar', 'headers.X-Foo');
 
-				if( !FileAPI.html5 ){
-					deepEqual(res.array, { "0": '1', "1": '2', "2": '3' });
+				if( !FileAPI.html5 || !FileAPI.support.html5 ){
+					deepEqual(res.array, { "0": '1', "1": '2', "2": '3' }, 'array');
 				}
 				else {
-					deepEqual(res.array, ['1', '2', '3']);
+					deepEqual(res.array, ['1', '2', '3'], 'array');
 				}
 
-				deepEqual(res.object, { foo: 'bar' });
+				deepEqual(res.object, { foo: 'bar' }, 'object');
 			}
 		});
 	});
@@ -340,14 +368,14 @@ module('FileAPI');
 
 
 	test('upload input', function (){
+		var rnd = Math.random(), events = [];
+		expect(14);
 		stop();
-
-		var events = [];
-		expect(12);
 
 		var xhr = FileAPI.upload({
 			url: serverUrl,
 			data: { foo: 'bar' },
+			headers: { 'x-foo': 'bar', 'x-rnd': rnd },
 			files: uploadForm['1px.gif'],
 			prepare: function (file, options){
 				options.data.bar = 'qux';
@@ -373,6 +401,8 @@ module('FileAPI');
 				events.push('filecomplete');
 				equal(res.data._REQUEST.foo, 'bar');
 				equal(res.data._REQUEST.bar, 'qux');
+				equal(res.data.HEADERS['X-Foo'], 'bar', 'headers.X-Foo');
+				equal(res.data.HEADERS['X-Rnd'], rnd, 'headers.X-Rnd');
 
 				if( res.data._FILES['1px_gif'] ){
 					var type = res.data._FILES['1px_gif'].type;
@@ -430,22 +460,27 @@ module('FileAPI');
 			, _progress = 0
 			, _progressFail = false
 			, _files = {}
+			, _events = []
 		;
 
 		FileAPI.upload({
 			url: serverUrl,
 			files: uploadForm['multiple'],
+			upload: function (){ _events.push('upload'); },
 			fileupload: function (){
 				_start++;
+				_events.push('fileupload');
 			},
 			filecomplete: function (err, xhr){
 				var file = FileAPI.parseJSON(xhr.responseText).data._FILES.multiple;
 				_complete++;
 				_files[file.name] = file;
+				_events.push('fileucomplete');
 			},
 			progress: function (evt){
 				if( _progress > evt.loaded ){
 					_progressFail = true;
+					ok(false, 'progress: '+_progress + ' > '+evt.loaded+', total: '+evt.total);
 				}
 				_progress = evt.loaded;
 			},
@@ -453,8 +488,8 @@ module('FileAPI');
 				start();
 
 				equal(_start, _complete, 'uploaded');
-				ok(_progress > 0, 'progress > 0');
-				equal(_progressFail, false, 'progress');
+				equal(_progressFail, false, 'progress > evt.total');
+				equal(_events.join('->'), 'upload->fileupload->fileucomplete->fileupload->fileucomplete->fileupload->fileucomplete->fileupload->fileucomplete->fileupload->fileucomplete');
 
 				checkMultiuploadFiles(_files);
 			}
@@ -464,12 +499,26 @@ module('FileAPI');
 
 	test('multiupload (serial: false)', function (){
 		stop();
-		var bytesLoaded = -1;
+		var
+			  bytesLoaded = -1
+			, _events = []
+			, _start = 0
+			, _complete = 0
+		;
 
 		FileAPI.upload({
 			url: serverUrl,
 			files: FileAPI.getFiles(uploadForm['multiple']),
 			serial: false,
+			upload: function (){ _events.push('upload'); },
+			fileupload: function (){
+				_start++;
+				_events.push('fileupload');
+			},
+			filecomplet: function (){
+				_complete++;
+				_events.push('fileucomplete');
+			},
 			progress: function (evt, files){
 				equal(files.length, 5);
 				bytesLoaded = evt.loaded > bytesLoaded ? evt.loaded : -1;
@@ -478,7 +527,14 @@ module('FileAPI');
 				var files = FileAPI.parseJSON(xhr.responseText).data._FILES.files;
 				FileAPI.each(files, function (file){ files[file.name] = file; });
 				checkMultiuploadFiles(files);
-				equal(xhr.total, bytesLoaded, xhr.total+' == '+bytesLoaded);
+
+				equal(_start, 0, 'start == 0');
+				equal(_start, _complete, 'uploaded');
+
+				equal(xhr.total, 574782, 'total');
+				equal(xhr.total, bytesLoaded, 'total === loaded');
+
+				equal(_events.join('->'), 'upload');
 				start();
 			}
 		});
@@ -490,7 +546,7 @@ module('FileAPI');
 
 		stop();
 		FileAPI.upload(serverUrl, uploadForm['multiple'], {
-//			parallel: 3,
+			parallel: 3,
 			fileupload: function (){
 				cnt++;
 			},
@@ -501,7 +557,7 @@ module('FileAPI');
 				cnt--;
 			},
 			progress: function (evt){
-				ok(progress < evt.loaded, 'progress '+progress+' < '+evt.loaded);
+				ok(progress < evt.loaded, 'progress: '+progress+' < '+evt.loaded);
 				progress = evt.loaded;
 			},
 			complete: function (){
@@ -519,10 +575,13 @@ module('FileAPI');
 		stop();
 		FileAPI.upload({
 			url: serverUrl,
+			headers: { 'x-foo': 'bar' },
 			files: { image: image },
 			complete: function (err, res){
 				var res = FileAPI.parseJSON(res.responseText);
 
+				equal(res.data.HEADERS['X-Foo'], 'bar', 'X-Foo');
+				
 				imageEqual(res.images.image.dataURL, 'files/samples/'+browser+'-dino-90deg-100x100.png?1', 'dino 90deg 100x100', function (){
 					start();
 				});
@@ -531,27 +590,126 @@ module('FileAPI');
 	});
 
 
-	FileAPI.html5 && test('upload + imageTransform', function (){
+	FileAPI.html5 && test('upload + imageTransform (min, max, preview)', function (){
 		var file = FileAPI.getFiles(uploadForm['image.jpg'])[0];
+		var queue = FileAPI.queue(start);
 
 		stop();
+
+		// strategy: 'min'
+		queue.inc();
 		FileAPI.upload({
 			url: serverUrl,
 			files: { image: file },
-			imageTransform: {
-				width: 100,
-				height: 100,
-				rotate: 'auto',
-				preview: true
-			},
+			imageTransform: { width: 100, height: 100, strategy: 'min' },
+			complete: function (err, res){
+				queue.next();
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images['image'].width, 141, 'min.width');
+				equal(res.images['image'].height, 100, 'min.height');
+			}
+		});
+
+		// strategy: 'max'
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: { width: 100, height: 100, strategy: 'max' },
+			complete: function (err, res){
+				queue.next();
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images['image'].width, 100, 'max.width');
+				equal(res.images['image'].height, 71, 'max.height');
+			}
+		});
+
+		// preview
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: { width: 100, height: 100, rotate: 'auto', preview: true },
 			complete: function (err, res){
 				var res = FileAPI.parseJSON(res.responseText);
 
 				imageEqual(res.images.image.dataURL, 'files/samples/'+browser+'-image-auto-100x100.jpeg', 'image auto 100x100.png', function (){
-					start();
+					queue.next();
 				});
 			}
 		});
+	});
+
+
+	test('upload + autoOrientation', function (){
+		var file = FileAPI.getFiles(uploadForm['image.jpg'])[0];
+		var queue = FileAPI.queue(start);
+		var check = function (err, res){
+			var res = FileAPI.parseJSON(res.responseText);
+			equal(res.images.image.width, 448, this+'.width');
+			equal(res.images.image.height, 632, this+'.height');
+			queue.next();
+		};
+
+		stop();
+
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageAutoOrientation: true,
+			complete: check.bind('imageAutoOrientation')
+		});
+
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: { rotate: 'auto' },
+			complete: check.bind('imageTransform.rotate.auto')
+		});
+
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: FileAPI.Image(file).rotate('auto') },
+			complete: check.bind('FileAPI.Image.fn.rotate.auto')
+		});
+	});
+
+
+	FileAPI.html5 && test('upload + CamanJS', function (){
+		stop();
+
+		FileAPI.Image(FileAPI.getFiles(uploadForm['dino.png'])[0])
+			.preview(50, 30)
+			.filter('vintage')
+			.get(function (err, canvas){
+				equal(canvas.nodeName.toLowerCase(), 'canvas', 'upload canvas');
+
+				FileAPI.upload({
+					url: serverUrl,
+					files: {
+						image: {
+							name: 'my-file',
+							blob: canvas
+						}
+					},
+					complete: function (err, xhr){
+						var res = FileAPI.parseJSON(xhr.responseText);
+						if( res.images['image'] ){
+							imageEqual(res.images['image'].dataURL, 'files/samples/'+browser+'-vintage.png', 'caman vintage', function (){
+								start();
+							}, .9);
+						}
+						else {
+							ok(false, 'upload failed');
+							start();
+						}
+					}
+				})
+			})
+		;
 	});
 
 
@@ -614,6 +772,50 @@ module('FileAPI');
 				equal(res.data._FILES['image'].name, 'dino.png');
 				equal(res.data._FILES['180deg'].name, 'dino.png');
 				start();
+			}
+		});
+	});
+
+
+	test('iframe', function (){
+		var html5 = FileAPI.support.html5;
+		var queue = FileAPI.queue(function (){
+			start();
+			FileAPI.support.html5 = html5;
+		});
+
+		stop();
+		FileAPI.support.html5 = false;
+
+		// default callback
+		queue.inc();
+		FileAPI.upload({
+			url: serverUrl,
+			complete: function (err, xhr){
+				var json = FileAPI.parseJSON(xhr.responseText);
+				equal(json.jsonp, 'callback', 'default');
+				queue.next();
+			}
+		});
+
+		// callback in GET
+		queue.inc();
+		FileAPI.upload({
+			url: serverUrl + '?fn=?',
+			complete: function (err, xhr){
+				var json = FileAPI.parseJSON(xhr.responseText);
+				equal(json.jsonp, 'fn', 'custom');
+				queue.next();
+			}
+		});
+
+		// 302: redirect
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/redirect.php?page=json.html',
+			complete: function (err, xhr){
+				equal(xhr.responseText, 'done', '302');
+				queue.next();
 			}
 		});
 	});
