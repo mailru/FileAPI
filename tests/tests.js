@@ -452,7 +452,7 @@ module('FileAPI');
 	});
 
 
-	test('multiupload (serial)', function (){
+	test('multiupload (serial: true)', function (){
 		stop();
 		var
 			  _start = 0
@@ -491,7 +491,7 @@ module('FileAPI');
 	});
 
 
-	test('multiupload (one piece)', function (){
+	test('multiupload (serial: false)', function (){
 		stop();
 		var bytesLoaded = -1;
 
