@@ -104,6 +104,7 @@
 
 		document = window.document,
 		doctype = document.doctype || {},
+		navigator = window.navigator,
 		userAgent = window.navigator.userAgent,
 
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
@@ -151,6 +152,10 @@
 
 		currentTarget = 'currentTarget', // for minimize
 		preventDefault = 'preventDefault', // and this too
+
+		_createElement = function (name){
+			return	document.createElement(name);
+		},
 
 		_isArray = function (ar) {
 			return	ar && ('length' in ar);
@@ -280,10 +285,11 @@
 
 
 		_supportInputAttr = function (attr){
-			var input = document.createElement('input');
+			var input = _createElement('input');
 			input.setAttribute('type', "file");
 			return attr in input;
 		},
+
 
 
 		/**
@@ -311,6 +317,18 @@
 
 			postNameConcat: function (name, idx){
 				return	name + (idx != null ? '['+ idx +']' : '');
+			},
+
+			support: {
+				dnd:      cors && ('ondrop' in _createElement('div')),
+				cors:     cors,
+				html5:    html5,
+				chunked:  chunked,
+				dataURI:  true,
+				accept:   _supportInputAttr('accept'),
+				multiple: _supportInputAttr('multiple'),
+				saveAs:   !!navigator.msSaveBlob,
+				download: ('download' in _createElement('a'))
 			},
 
 			ext2mime: {
@@ -363,7 +381,7 @@
 			 * @returns {HTMLElement}
 			 */
 			newImage: function (src, fn){
-				var img = document.createElement('img');
+				var img = _createElement('img');
 				if( fn ){
 					api.event.one(img, 'error load', function (evt){
 						fn(evt.type == 'error', img);
@@ -395,17 +413,25 @@
 				return  xhr;
 			},
 
-			isArray: _isArray,
-
-			support: {
-				dnd:     cors && ('ondrop' in document.createElement('div')),
-				cors:    cors,
-				html5:   html5,
-				chunked: chunked,
-				dataURI: true,
-				accept:   _supportInputAttr('accept'),
-				multiple: _supportInputAttr('multiple')
+			/**
+			 * Creates a URL representing the object given in parameter.
+			 * @param {Blob|File} blob
+			 * @returns {String|Null}
+			 */
+			createURL: function (blob){
+				return	apiURL ? apiURL.createObjectURL(blob) : null;
 			},
+
+			/**
+			 * Releases an existing object URL which was previously
+			 * created by calling FileAPI.createURL()
+			 * @param {String} url
+			 */
+			revokeURL: function (url){
+				return	apiURL && apiURL.revokeObjectURL(url);
+			},
+
+			isArray: _isArray,
 
 			event: {
 				  on: _on
@@ -430,7 +456,7 @@
 				};
 			},
 
-			F: function (){},
+			F: noop,
 
 			/**
 			 * Takes a well-formed JSON string and returns the resulting JavaScript object.
@@ -476,7 +502,7 @@
 					, progressList = []
 
 					, _push = function (x, fn){
-						(x ? doneList : failList).push(fn);
+						fn && (x ? doneList : failList).push(fn);
 						return	this;
 					}
 
@@ -493,8 +519,9 @@
 						_complete = noop;
 
 						doneList =
-						failList =
-						progressList = null;
+						failList = null;
+						
+						progressList = [];
 
 						for( ; i < n; i++ ){
 							list[i] && list[i].apply(this, args);
@@ -530,7 +557,7 @@
 						},
 
 						progress: function (fn){
-							progressList.push(fn);
+							fn && progressList.push(fn);
 							return	this;
 						},
 
@@ -646,7 +673,7 @@
 			 * @return {Boolean}
 			 */
 			isFile: function (file){
-				return	html5 && file && (file instanceof File);
+				return	html5 && file && (file instanceof File || file instanceof Blob);
 			},
 
 
@@ -776,13 +803,12 @@
 			readAsImage: function (file, fn, progress){
 				if( api.isFile(file) ){
 					if( apiURL ){
-						/** @namespace apiURL.createObjectURL */
-						var data = apiURL.createObjectURL(file);
-						if( data === undef ){
-							_emit(file, fn, 'error');
+						var src = api.createURL(file);
+						if( src ){
+							api.readAsImage(src, fn, progress);
 						}
 						else {
-							api.readAsImage(data, fn, progress);
+							_emit(file, fn, 'error');
 						}
 					}
 					else {
@@ -796,9 +822,11 @@
 						});
 					}
 				}
+				// Is canvas?
 				else if( api.isCanvas(file) ){
 					_emit(file, fn, 'load', file);
 				}
+				// Is image tag?
 				else if( _rimg.test(file.nodeName) ){
 					if( file.complete ){
 						_emit(file, fn, 'load', file);
@@ -807,8 +835,7 @@
 						var events = 'error abort load';
 						_one(file, events, function _fn(evt){
 							if( evt.type == 'load' && apiURL ){
-								/** @namespace apiURL.revokeObjectURL */
-								apiURL.revokeObjectURL(file.src);
+								api.revokeURL(file.src);
 							}
 
 							_off(file, events, _fn);
@@ -817,7 +844,7 @@
 					}
 				}
 				else if( file.iframe ){
-					_emit(file, fn, { type: 'error' });
+					_emit(file, fn, { type: 'error', message: 'is iframe' });
 				}
 				else {
 					// Created image
@@ -1110,15 +1137,15 @@
 
 				options = _extend({
 					  jsonp: 'callback'
-					, prepare: api.F
-					, beforeupload: api.F
-					, upload: api.F
-					, fileupload: api.F
-					, fileprogress: api.F
-					, filecomplete: api.F
-					, progress: api.F
-					, complete: api.F
-					, pause: api.F
+					, prepare: noop
+					, beforeupload: noop
+					, upload: noop
+					, fileupload: noop
+					, fileprogress: noop
+					, filecomplete: noop
+					, progress: noop
+					, complete: noop
+					, pause: noop
 					, serial: true
 					, parallel: 0
 					, postName: 'files'
@@ -1425,85 +1452,76 @@
 
 
 			/**
-			 * Load remote file
+			 * Load a remote file
 			 *
-			 * @param   {String}    url
-			 * @param   {Function}  fn
-			 * @return  {XMLHttpRequest}
+			 * @param   {String}  url
+			 * @param   {Object}  [options]
+			 * @return  {FileAPI.XHR}
 			 */
-			load: function (url, fn){
-				var xhr = api.getXHR();
-				if( xhr ){
-					xhr.open('GET', url, true);
+			load: function (url, options){
+				var
+					xhr = new api.XHR(options = _extend(options || {}, {
+						  url: url
+						, type: 'GET'
+						, cache: true
+						, responseType: 'blob'
+					}))
+					, resolve = xhr.defer.resolve
+				;
 
-					if( xhr.overrideMimeType ){
-				        xhr.overrideMimeType('text/plain; charset=x-user-defined');
-					}
+				xhr.defer.resolve = function (xhr, opts){
+					var blob = xhr.response;
+					return (blob && Blob) && (blob instanceof Blob)
+						? resolve(blob, xhr, opts)
+						: xhr.defer.reject('load_not_supported', xhr, opts)
+					;
+				};
 
-					_on(xhr, 'progress', function (/**Event*/evt){
-						/** @namespace evt.lengthComputable */
-						if( evt.lengthComputable ){
-							fn({ type: evt.type, loaded: evt.loaded, total: evt.total }, xhr);
-						}
-					});
-
-					xhr.onreadystatechange = function(){
-						if( xhr.readyState == 4 ){
-							xhr.onreadystatechange = null;
-							if( xhr.status == 200 ){
-								url = url.split('/');
-								/** @namespace xhr.responseBody */
-								var file = {
-								      name: url[url.length-1]
-									, size: xhr.getResponseHeader('Content-Length')
-									, type: xhr.getResponseHeader('Content-Type')
-								};
-								file.dataURL = 'data:'+file.type+';base64,' + api.encode64(xhr.responseBody || xhr.responseText);
-								fn({ type: 'load', result: file }, xhr);
-							}
-							else {
-								fn({ type: 'error' }, xhr);
-							}
-					    }
-					};
-				    xhr.send(null);
-				} else {
-					fn({ type: 'error' });
-				}
+				_getFormData(options, [], function (formData){
+					xhr.send(formData);
+				});
 
 				return  xhr;
 			},
 
-			encode64: function (str){
-				var b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=', outStr = '', i = 0;
 
-				if( typeof str !== 'string' ){
-					str	= String(str);
-				}
+			/**
+			 * Save file on disk
+			 * @param    {String|File|Blob}  blob
+			 * @param    {String}            [name]
+			 * @returns  {FileAPI.defer}
+			 */
+			saveAs: function (blob, name){
+				var defer = api.defer();
 
-				while( i < str.length ){
-					//all three "& 0xff" added below are there to fix a known bug
-					//with bytes returned by xhr.responseText
-					var
-						  byte1 = str.charCodeAt(i++) & 0xff
-						, byte2 = str.charCodeAt(i++) & 0xff
-						, byte3 = str.charCodeAt(i++) & 0xff
-						, enc1 = byte1 >> 2
-						, enc2 = ((byte1 & 3) << 4) | (byte2 >> 4)
-						, enc3, enc4
-					;
-
-					if( isNaN(byte2) ){
-						enc3 = enc4 = 64;
-					} else {
-						enc3 = ((byte2 & 15) << 2) | (byte3 >> 6);
-						enc4 = isNaN(byte3) ? 64 : byte3 & 63;
+				if( typeof blob === 'string' ){
+					if( name === undef ){
+						name = blob.split('/').pop();
 					}
 
-					outStr += b64.charAt(enc1) + b64.charAt(enc2) + b64.charAt(enc3) + b64.charAt(enc4);
+					api.load(blob)
+						.progress(defer.notify)
+						.done(function (blob){
+							api.saveAs(blob, name).then(defer.resolve, defer.reject);
+						})
+						.fail(defer.reject)
+					;
+				}
+				else {
+					try {
+						if( _saveAs(blob, name) ){
+							defer.resolve();
+						}
+						else {
+							defer.reject('saveAs_not_support');
+						}
+					} catch (err){
+						api.log('[err] FileAPI.saveAs: '+err.toString());
+						defer.reject(err);
+					}
 				}
 
-				return  outStr;
+				return	defer;
 			}
 
 		} // api
@@ -1844,6 +1862,38 @@
 	}
 
 
+	function _saveAs(blob, name){
+		var ret = false;
+
+		if( navigator.msSaveBlob ){
+			ret = navigator.msSaveBlob(blob, name);
+		}
+		else if( api.support.download ){
+			var
+				  url = api.createURL(blob)
+				, body = document.body
+				, transport = _createElement('a')
+			;
+
+			if( url ){
+				transport.href = url;
+				transport.download = name || blob.name;
+				transport.style.top = '-10000px';
+				transport.style.position = 'absolute';
+
+				body.appendChild(transport);
+				transport.click();
+				body.removeChild(transport);
+
+				ret = true;
+				setTimeout(function (){ api.revokeURL(url); }, 1);
+			}
+		}
+
+		return	ret;
+	}
+
+
 	// Add default image info reader
 	api.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
 		if( !file.__dimensions ){
@@ -1875,7 +1925,7 @@
 
 		if( !onDrop ){
 			onDrop = onHover;
-			onHover = api.F;
+			onHover = noop;
 		}
 
 		if( FileReader ){
@@ -2857,17 +2907,31 @@
 	"use strict";
 
 	var
-		  noop = function (){}
+		  noop = api.F
 		, document = window.document
 
 		, XHR = function (options){
+			var defer = api.defer().progress(options.progress);
+
 			this.uid = api.uid();
+
 			this.xhr = {
 				  abort: noop
 				, getResponseHeader: noop
 				, getAllResponseHeaders: noop
 			};
-			this.options = options;
+
+			this.defer = defer;
+			this.options = api.extend({
+				  upload: noop
+				, complete: noop
+				, withCredentials: api.withCredentials
+			}, options);
+
+			this.done = this.success = defer.done;
+			this.fail = this.error = defer.fail;
+			this.notify = defer.notify;
+			this.progress = defer.progress;
 		},
 
 		_xhrResponsePostfix = { '': 1, XML: 1, Text: 1, Body: 1 }
@@ -2888,7 +2952,12 @@
 		},
 
 		end: function (status, statusText){
-			var _this = this, options = _this.options;
+			var
+				  _this = this
+				, defer = _this.defer
+				, options = _this.options
+				, err = (status == 200 || status == 201 ? false : statusText || 'unknown')
+			;
 
 			_this.end		=
 			_this.abort		= noop;
@@ -2899,7 +2968,14 @@
 			}
 
 			api.log('xhr.end:', status, statusText);
-			options.complete(status == 200 || status == 201 ? false : _this.statusText || 'unknown', _this);
+
+			if( err ){
+				defer.reject(err, _this, options);
+			} else {
+				defer.resolve(_this, options);
+			}
+
+			options.complete(err, _this);
 
 			if( _this.xhr && _this.xhr.node ){
 				setTimeout(function (){
@@ -3034,15 +3110,20 @@
 					api.log("Error: already aborted");
 					return;
 				}
-				xhr = _this.xhr = api.getXHR();
 
 				if (data.params) {
 				    url += (url.indexOf('?') < 0 ? "?" : "&") + data.params.join("&");
 				}
 
-				xhr.open('POST', url, true);
+				xhr = _this.xhr = api.getXHR();
 
-				if( api.withCredentials ){
+				xhr.open(options.type || 'POST', url, true);
+
+				if( options.responseType ){
+					xhr.responseType = options.responseType;
+				}
+
+				if( options.withCredentials ){
 					xhr.withCredentials = "true";
 				}
 
@@ -3061,7 +3142,7 @@
 						xhr.upload.addEventListener('progress', function (/**Event*/evt){
 							if (!data.retry) {
 							    // show progress only for correct chunk uploads
-								options.progress({
+								_this.notify({
 									  type:			evt.type
 									, total:		data.size
 									, loaded:		data.start + evt.loaded
@@ -3079,9 +3160,12 @@
 						_this.readyState = xhr.readyState;
 
 						if( xhr.readyState == 4 ){
-							for( var k in _xhrResponsePostfix ){
-								_this['response'+k]  = xhr['response'+k];
-							}
+							try {
+								for( var k in _xhrResponsePostfix ){
+									_this['response'+k]  = xhr['response'+k];
+								}
+							} catch (_){}
+
 							xhr.onreadystatechange = null;
                             
 							if (!xhr.status || xhr.status - 201 > 0) {
@@ -3157,19 +3241,25 @@
 					if( xhr.upload ){
 						// https://github.com/blueimp/jQuery-File-Upload/wiki/Fixing-Safari-hanging-on-very-high-speed-connections-%281Gbps%29
 						xhr.upload.addEventListener('progress', api.throttle(function (/**Event*/evt){
-							options.progress(evt, _this, options);
+							_this.notify(evt, _this, options);
 						}, 100), false);
+
+						api.event.on(xhr, 'progress', function (/**Event*/evt){
+							_this.notify(evt, _this, options);
+						});
 					}
-				    
+
 					xhr.onreadystatechange = function (){
 						_this.status     = xhr.status;
 						_this.statusText = xhr.statusText;
 						_this.readyState = xhr.readyState;
 
 						if( xhr.readyState == 4 ){
-							for( var k in _xhrResponsePostfix ){
-								_this['response'+k]  = xhr['response'+k];
-							}
+							try {
+								for( var k in _xhrResponsePostfix ){
+									_this['response'+k]  = xhr['response'+k];
+								}
+							} catch (_){}
 							xhr.onreadystatechange = null;
 							_this.end(xhr.status);
 							xhr = null;
