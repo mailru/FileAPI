@@ -17,6 +17,7 @@ module('FileAPI');
 	var serverUrl = 'http://rubaxa.org/FileAPI/server/ctrl.php';
 	var uploadForm = document.forms.upload;
 	var base64_1px_gif = 'R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+	var dataURL_1px_gif = 'data:image/gif;base64,'+base64_1px_gif;
 	var browser = (navigator.userAgent.match(/(phantomjs|safari|firefox|chrome)/i) || ['', 'chrome'])[1].toLowerCase();
 
 
@@ -176,8 +177,8 @@ module('FileAPI');
 			queue.next();
 
 			if( evt.type == 'load' ){
-				equal(evt.result, 'data:image/gif;base64,'+base64_1px_gif, 'readAsDataURL');
-			} else {
+				equal(evt.result, dataURL_1px_gif, 'readAsDataURL');
+			} else if( evt.type != 'progress' ){
 				ok(false, 'readAsDataURL: '+evt.error)
 			}
 		});
@@ -189,7 +190,7 @@ module('FileAPI');
 
 			if( evt.type == 'load' ){
 				equal(evt.result, FileAPI.toBinaryString(base64_1px_gif), 'readAsBinaryString');
-			} else {
+			} else if( evt.type != 'progress' ){
 				ok(false, 'readAsBinaryString: '+evt.error)
 			}
 		});
@@ -218,11 +219,14 @@ module('FileAPI');
 		checkFile(file, 'hello.txt', 'text/plain', 15);
 
 		FileAPI.readAsText(file, function (evt){
-			start();
-			if( evt.type == 'load' ){
-				equal(evt.result, 'Hello FileAPI!\n');
-			} else {
-				ok(false, 'readAsText: '+evt.error);
+			if( evt.type != 'progress' ){
+				start();
+
+				if( evt.type == 'load' ){
+					equal(evt.result, 'Hello FileAPI!\n');
+				} else {
+					ok(false, 'readAsText: '+evt.error);
+				}
 			}
 		});
 	});
@@ -414,7 +418,7 @@ module('FileAPI');
 				}
 
 				if( res.images['1px_gif'] ){
-					equal(res.images['1px_gif'].dataURL, 'data:image/gif;base64,' + base64_1px_gif, 'dataURL');
+					equal(res.images['1px_gif'].dataURL, dataURL_1px_gif, 'dataURL');
 					equal(res.images['1px_gif'].mime, 'image/gif', 'mime');
 					equal(res.images['1px_gif'].width, 1, 'width');
 					equal(res.images['1px_gif'].height, 1, 'height');
@@ -856,6 +860,74 @@ module('FileAPI');
 				});
 			}
 		});
+	});
+
+
+	!isPhantomJS && FileAPI.html5 && test('load remote file', function (){
+		var queue = FileAPI.queue(function (){ start(); });
+		var progress = {};
+
+		stop();
+		queue.inc();
+		queue.inc();
+		queue.inc();
+
+		// Success
+		FileAPI.load('./files/1px.gif')
+			.progress(function (evt){
+				progress = evt;
+			})
+			.done(function (blob){
+				equal(progress.loaded, 34, 'loaded == 34');
+				equal(progress.loaded, progress.total, 'loaded === total');
+
+				equal(blob.type, 'image/gif');
+				equal(blob.size, progress.total, 'size === total');
+
+				FileAPI.readAsDataURL(blob, function (evt){
+					if( evt.type !== 'progress' ){
+						equal(evt.result, dataURL_1px_gif, 'dataURL');
+						queue.next();
+					}
+				});
+			})
+			.fail(function (){
+				ok(false, '1px.gif — response not Blob');
+				start();
+			})
+		;
+
+		// Fail
+		FileAPI.load('./fail.txt').fail(function (statusText, xhr){
+			equal(xhr.status, 404, '404 status');
+			queue.next();
+		});
+
+		// Abort
+		var xhr = FileAPI.load('./files/dino.png').fail(function (statusText){
+			equal(statusText, 'abort');
+			queue.next();
+		});
+
+		xhr.abort();
+	});
+
+
+	!isPhantomJS && test('saveAs', function (){
+		var progress = {};
+		stop();
+
+		FileAPI.saveAs('./files/dino.png', 'test.png')
+			.progress(function (evt){
+				progress = evt;
+			})
+			.then(function (){
+				equal(progress.loaded, 461003, 'loaded');
+				start();
+			}, function (err){
+				equal(err, null);
+			})
+		;
 	});
 
 
