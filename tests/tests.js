@@ -398,7 +398,7 @@ module('FileAPI');
 	FileAPI.html5 && test('upload FileAPI.Image', function (){
 		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
 		var image = FileAPI.Image(file).rotate(90).preview(100);
-		var _progressFail = false;
+		var _progressFail = false, _progress = false;
 
 		stop();
 		FileAPI.upload({
@@ -406,13 +406,15 @@ module('FileAPI');
 			headers: { 'x-foo': 'bar' },
 			files: { image: image },
 			progress: function (evt){
+				_progress = true;
 				_progressFail = _progressFail || _checkProgressEvent(evt);
 			},
 			complete: function (err, res){
 				var res = FileAPI.parseJSON(res.responseText);
 
+				ok(_progress, 'progress event');
 				equal(res.data.HEADERS['X-Foo'], 'bar', 'X-Foo');
-				
+
 				imageEqual(res.images.image.dataURL, 'files/samples/'+browser+'-dino-90deg-100x100.png?1', 'dino 90deg 100x100', function (){
 					start();
 				});
