@@ -1402,7 +1402,7 @@ Button like link.
 	<li>#143: + `FileAPI.flashWebcamUrl` option</li>
 	<li>* merge v1.2.7</li>
 	<li>+ `FileAPI.formData: true` option</li>
-</il>
+</ul>
 
 ### 2.0.1
 <ul>
