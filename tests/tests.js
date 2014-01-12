@@ -150,6 +150,28 @@ module('FileAPI');
 	});
 
 
+	function _checkProgressEvent(evt){
+		var fail = false;
+
+		if( isNaN(evt.loaded / evt.total) ){
+			fail = true;
+			ok(false, "progress: evt.loaded/evt.total - is NaN");
+		}
+
+		if( isNaN(evt.loaded) ){
+			fail = true;
+			ok(false, "progress: evt.loaded - is NaN");
+		}
+
+		if( isNaN(evt.total) ){
+			fail = true;
+			ok(false, "progress: evt.total - is NaN");
+		}
+
+		return fail;
+	}
+
+
 	test('1px.gif', function (){
 		var file = FileAPI.getFiles(uploadForm['1px.gif'])[0];
 		var queue = FileAPI.queue(start);
@@ -437,10 +459,15 @@ module('FileAPI');
 
 
 	test('upload file', function (){
+		var _progressFail = false;
 		stop();
+
 		FileAPI.upload({
 			url: serverUrl,
 			files: { text: FileAPI.getFiles(uploadForm['hello.txt']) },
+			progress: function (evt){
+				_progressFail = _progressFail || _checkProgressEvent(evt);
+			},
 			complete: function (err, res){
 				start();
 				var res = FileAPI.parseJSON(res.responseText).data._FILES['text'];
@@ -482,7 +509,9 @@ module('FileAPI');
 					_progressFail = true;
 					ok(false, 'progress: '+_progress + ' > '+evt.loaded+', total: '+evt.total);
 				}
+
 				_progress = evt.loaded;
+				_progressFail = _progressFail || _checkProgressEvent(evt);
 			},
 			complete: function (err, xhr){
 				start();
@@ -583,12 +612,16 @@ module('FileAPI');
 	FileAPI.html5 && test('upload FileAPI.Image', function (){
 		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
 		var image = FileAPI.Image(file).rotate(90).preview(100);
+		var _progressFail = false;
 
 		stop();
 		FileAPI.upload({
 			url: serverUrl,
 			headers: { 'x-foo': 'bar' },
 			files: { image: image },
+			progress: function (evt){
+				_progressFail = _progressFail || _checkProgressEvent(evt);
+			},
 			complete: function (err, res){
 				var res = FileAPI.parseJSON(res.responseText);
 

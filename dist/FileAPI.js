@@ -2262,7 +2262,12 @@
 					fn(err);
 				}
 				else {
-					this._apply(image, fn);
+					try {
+						this._apply(image, fn);
+					} catch (err){
+						api.log('[err] FileAPI.Image.fn._apply:', err);
+						fn(err);
+					}
 				}
 			});
 		},
@@ -3058,7 +3063,7 @@
 				if ( options._chunked ) {
 					// chunked upload
 					if( xhr.upload ){
-						xhr.upload.addEventListener('progress', function (/**Event*/evt){
+						xhr.upload.addEventListener('progress', api.throttle(function (/**Event*/evt){
 							if (!data.retry) {
 							    // show progress only for correct chunk uploads
 								options.progress({
@@ -3068,7 +3073,7 @@
 									, totalSize:	data.size
 								}, _this, options);
 							}
-						}, false);
+						}, 100), false);
 					}
 
 					xhr.onreadystatechange = function (){
@@ -3103,6 +3108,9 @@
 										data.end = lkb;
 									} else {
 										data.end = data.start - 1;
+										if (416 == xhr.status) {
+											data.end = data.end - options.chunkSize;
+										}
 									}
 
 									setTimeout(function () {
@@ -3134,24 +3142,34 @@
 									}, 0);
 								}
 							}
+
 							xhr = null;
 						}
 					};
 
 					data.start = data.end + 1;
-					data.end = Math.max(Math.min(data.start + options.chunkSize, data.size ) - 1, data.start);
+					data.end = Math.max(Math.min(data.start + options.chunkSize, data.size) - 1, data.start);
                     
-					var slice;
-					(slice = 'slice') in data.file || (slice = 'mozSlice') in data.file || (slice = 'webkitSlice') in data.file;
+					// Retrieve a slice of file
+					var
+						  file = data.file
+						, slice = (file.slice || file.mozSlice || file.webkitSlice)(data.start, data.end + 1)
+					;
 
-					xhr.setRequestHeader("Content-Range", "bytes " + data.start + "-" + data.end + "/" + data.size);
-					xhr.setRequestHeader("Content-Disposition", 'attachment; filename=' + encodeURIComponent(data.name));
-					xhr.setRequestHeader("Content-Type", data.type || "application/octet-stream");
-                    
-					slice = data.file[slice](data.start, data.end + 1);
-                 
+					if( data.size && !slice.size ){
+						setTimeout(function (){
+							_this.end(-1);
+						});
+					} else {
+						xhr.setRequestHeader("Content-Range", "bytes " + data.start + "-" + data.end + "/" + data.size);
+						xhr.setRequestHeader("Content-Disposition", 'attachment; filename=' + encodeURIComponent(data.name));
+						xhr.setRequestHeader("Content-Type", data.type || "application/octet-stream");
+
+						xhr.send(slice);
+					}
+
 					xhr.send(slice);
-					slice = null;
+					file = slice = null;
 				} else {
 					// single piece upload
 					if( xhr.upload ){
