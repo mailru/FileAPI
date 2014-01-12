@@ -307,10 +307,30 @@ module('FileAPI');
 
 
 	test('upload file', function (){
+		var _progressFail = false;
 		stop();
+
 		FileAPI.upload({
 			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
 			files: { text: FileAPI.getFiles(uploadForm['hello.txt']) },
+			progress: function (evt){
+				if( !_progressFail ){
+					if( isNaN(evt.loaded / evt.total) ){
+						_progressFail = true;
+						ok(false, "progress: evt.loaded/evt.total - is NaN");
+					}
+
+					if( isNaN(evt.loaded) ){
+						_progressFail = true;
+						ok(false, "progress: evt.loaded - is NaN");
+					}
+
+					if( isNaN(evt.total) ){
+						_progressFail = true;
+						ok(false, "progress: evt.total - is NaN");
+					}
+				}
+			},
 			complete: function (err, res){
 				start();
 				var res = FileAPI.parseJSON(res.responseText).data._FILES['text'];
@@ -348,6 +368,24 @@ module('FileAPI');
 				if( _progress > evt.loaded ){
 					_progressFail = true;
 				}
+
+				if( !_progressFail ){
+					if( isNaN(evt.loaded/evt.total) ){
+						_progressFail = true;
+						ok(false, "progress: evt.loaded/evt.total - is NaN");
+					}
+
+					if( isNaN(evt.loaded) ){
+						_progressFail = true;
+						ok(false, "progress: evt.loaded - is NaN");
+					}
+
+					if( isNaN(evt.total) ){
+						_progressFail = true;
+						ok(false, "progress: evt.total - is NaN");
+					}
+				}
+
 				_progress = evt.loaded;
 			},
 			complete: function (err, xhr){
