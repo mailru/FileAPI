@@ -1051,7 +1051,7 @@
 				});
 
 				// Set upload status props
-				proxyXHR.total	= _total = (_total || 1);
+				proxyXHR.total	= _total;
 				proxyXHR.loaded	= 0;
 				proxyXHR.filesLeft = dataArray.length;
 
@@ -1086,7 +1086,6 @@
 
 						_this._getFormData(_fileOptions, data, function (form){
 							if( !_loaded ){
-								data.size = data.size || 1;
 								// emit "upload" event
 								options.upload(proxyXHR, options);
 							}
@@ -1100,6 +1099,9 @@
 
 								progress: _file ? function (evt){
 									if( !_fileLoaded ){
+										// For ignore the double calls.
+										_fileLoaded = (evt.loaded === evt.total);
+
 										// emit "fileprogress" event
 										options.fileprogress({
 											  type:   'progress'
@@ -1800,6 +1802,8 @@
 		}
 
 		this.file   = file;
+		this.size   = file.size || 100;
+
 		this.matrix	= {
 			sx: 0,
 			sy: 0,
@@ -2075,11 +2079,13 @@
 			else {
 				fn('not_support_transform');
 			}
+
+			return this;
 		},
 
 
 		toData: function (fn){
-			this.get(fn);
+			return this.get(fn);
 		}
 
 	};

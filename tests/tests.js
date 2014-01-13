@@ -329,7 +329,7 @@ module('FileAPI');
 
 
 	test('upload file', function (){
-		var _progressFail = false;
+		var _progressFail = false, _progress = 0;
 		stop();
 
 		FileAPI.upload({
@@ -337,6 +337,11 @@ module('FileAPI');
 			files: { text: FileAPI.getFiles(uploadForm['hello.txt']) },
 			progress: function (evt){
 				_progressFail = _progressFail || _checkProgressEvent(evt);
+				if( !_progressFail && (_progress >= evt.loaded) ){
+					_progressFail = true;
+					ok(false, 'progress evt.loaded: '+_progress+' -> '+evt.loaded);
+				}
+				_progress = evt.loaded;
 			},
 			complete: function (err, res){
 				start();
@@ -372,18 +377,17 @@ module('FileAPI');
 				_files[file.name] = file;
 			},
 			progress: function (evt){
-				if( _progress > evt.loaded ){
-					_progressFail = true;
-				}
-
-				_progress = evt.loaded;
 				_progressFail = _progressFail || _checkProgressEvent(evt);
+				if( !_progressFail && (_progress >= evt.loaded) ){
+					_progressFail = true;
+					ok(false, 'progress evt.loaded: '+_progress+' -> '+evt.loaded);
+				}
+				_progress = evt.loaded;
 			},
 			complete: function (err, xhr){
 				start();
 
 				equal(_start, _complete, 'uploaded');
-				equal(_progressFail, false, 'progress');
 
 				checkFile(_files['1px.gif'], '1px.gif', 'image/gif', 34);
 				checkFile(_files['dino.png'], 'dino.png', 'image/png', 461003);
@@ -398,7 +402,7 @@ module('FileAPI');
 	FileAPI.html5 && test('upload FileAPI.Image', function (){
 		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
 		var image = FileAPI.Image(file).rotate(90).preview(100);
-		var _progressFail = false, _progress = false;
+		var _progressFail = false, _progress = 0;
 
 		stop();
 		FileAPI.upload({
@@ -406,13 +410,18 @@ module('FileAPI');
 			headers: { 'x-foo': 'bar' },
 			files: { image: image },
 			progress: function (evt){
-				_progress = true;
 				_progressFail = _progressFail || _checkProgressEvent(evt);
+
+				if( !_progressFail && (_progress >= evt.loaded) ){
+					_progressFail = true;
+					ok(false, 'progress evt.loaded: '+_progress+' -> '+evt.loaded);
+				}
+				_progress = evt.loaded;
 			},
 			complete: function (err, res){
 				var res = FileAPI.parseJSON(res.responseText);
 
-				ok(_progress, 'progress event');
+				ok(_progress > 0, 'progress event');
 				equal(res.data.HEADERS['X-Foo'], 'bar', 'X-Foo');
 
 				imageEqual(res.images.image.dataURL, 'files/samples/'+browser+'-dino-90deg-100x100.png?1', 'dino 90deg 100x100', function (){
