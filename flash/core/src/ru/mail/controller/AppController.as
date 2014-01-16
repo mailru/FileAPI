@@ -523,6 +523,10 @@ package ru.mail.controller
 				return;
 			}
 			
+			if ( !isImage((file as IFileVO).fileType) ) {
+				_jsCaller.callJS(callback, 'file is not image' );
+			}
+			
 			var imageFactory:IImageFactory = file.imageFactory;
 			(imageFactory as EventDispatcher).addEventListener(ImageTransformCompleteEvent.TYPE,function (event:ImageTransformCompleteEvent):void {
 				event.currentTarget.removeEventListener(event.type, arguments.callee);
@@ -548,6 +552,12 @@ package ru.mail.controller
 			});
 				
 			imageFactory.createImage(null);
+			
+			function isImage(ext:String):Boolean {
+				ext = ext.toLowerCase()
+				return ext == 'image' || ext == 'png' || ext == 'jpg' 
+					|| ext == 'jpeg' || ext == 'gif' || ext == 'bmp';
+			}
 		}
 		
 		/**
