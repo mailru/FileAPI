@@ -401,7 +401,7 @@ module('FileAPI');
 
 	FileAPI.html5 && test('upload FileAPI.Image', function (){
 		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
-		var image = FileAPI.Image(file).rotate(90).preview(100);
+		var image = FileAPI.Image(file).rotate(90+360).preview(100);
 		var _progressFail = false, _progress = 0;
 
 		stop();
