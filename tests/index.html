@@ -8,8 +8,8 @@
 
 	<script>
 		var FileAPI = {
-			  html5: true
-			, debug: false
+			  html5: false
+			, debug: !/phantomjs/i.test(navigator.userAgent)
 			, staticPath: '../dist/'
 			, formData: !/phantomjs/i.test(navigator.userAgent)
 		};
