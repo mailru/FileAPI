@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function (grunt){
+module.exports = function (grunt) {
 	// Project configuration.
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
@@ -98,6 +98,7 @@ module.exports = function (grunt){
 					, 'lib/FileAPI.XHR.js'
 					, 'lib/FileAPI.Camera.js'
 					, 'lib/FileAPI.Flash.js'
+					, 'lib/FileAPI.Flash.Camera.js'
 				],
 				dest: 'dist/<%= pkg.exportName %>.js'
 			},
@@ -111,37 +112,9 @@ module.exports = function (grunt){
 					, 'lib/FileAPI.Form.js'
 					, 'lib/FileAPI.XHR.js'
 					, 'lib/FileAPI.Camera.js'
+					, 'lib/FileAPI.Flash.Camera.js'
 				],
 				dest: 'dist/<%= pkg.exportName %>.html5.js'
-			},
-
-			ok: {
-				src: [
-					  'lib/FileAPI.header.js'
-					, 'lib/canvas-to-blob.js'
-					, 'lib/FileAPI.core.js'
-					, 'lib/FileAPI.Image.js'
-					, 'lib/load-image-ios.js'
-					, 'lib/FileAPI.Form.js'
-					, 'lib/FileAPI.XHR.js'
-					, 'plugins/FileAPI.exif.js'
-					, 'lib/FileAPI.Flash.js'
-				],
-				dest: 'dist/<%= pkg.exportName %>.ok.js'
-			},
-
-			html5ok: {
-				src: [
-					  'lib/FileAPI.header.js'
-					, 'lib/canvas-to-blob.js'
-					, 'lib/FileAPI.core.js'
-					, 'lib/FileAPI.Image.js'
-					, 'lib/load-image-ios.js'
-					, 'lib/FileAPI.Form.js'
-					, 'lib/FileAPI.XHR.js'
-					, 'plugins/FileAPI.exif.js'
-				],
-				dest: 'dist/<%= pkg.exportName %>.html5ok.js'
 			}
 		},
 
@@ -151,8 +124,6 @@ module.exports = function (grunt){
 				files: {
 					  'dist/<%= pkg.exportName %>.min.js': ['<%= concat.all.dest %>']
 					, 'dist/<%= pkg.exportName %>.html5.min.js': ['<%= concat.html5.dest %>']
-					, 'dist/<%= pkg.exportName %>.ok.min.js': ['<%= concat.ok.dest %>']
-					, 'dist/<%= pkg.exportName %>.html5ok.min.js': ['<%= concat.html5ok.dest %>']
 				}
 			}
 		},
@@ -206,6 +177,7 @@ module.exports = function (grunt){
 	grunt.loadNpmTasks('grunt-curl');
 	// Load custom QUnit task, based on grunt-contrib-qunit, but support "files" option.
 	grunt.loadTasks('./tests/grunt-task/');
+	grunt.loadTasks('./custom-tasks/');
 
 	// "npm build" runs these tasks
 	grunt.registerTask('prepare', function (){
