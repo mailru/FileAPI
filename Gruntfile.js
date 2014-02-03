@@ -173,6 +173,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-connect');
+	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-mxmlc');
 	grunt.loadNpmTasks('grunt-curl');
 	// Load custom QUnit task, based on grunt-contrib-qunit, but support "files" option.

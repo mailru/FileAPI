@@ -36,4 +36,16 @@ module.exports = function (grunt) {
 		}
 	});
 
+	grunt.config.set('compress.main', {
+		options: {
+			archive: '<%= pkg.name %>-<%= pkg.version.replace(/\\./g,"-") %>.zip'
+		},
+		files: [
+			{cwd: 'dist/', expand: true, src: ['*'], dest: '<%= pkg.version.replace(/\\./g,"-") %>/'}
+		]
+	});
+
+
+	grunt.registerTask('build-zip', ['build', 'compress']);
+
 };

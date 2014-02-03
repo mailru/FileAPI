@@ -1,4 +1,4 @@
-/*! FileAPI 2.0.3 - BSD | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.0.3b - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -201,7 +201,7 @@
 					_elEvents[uid] = {};
 				}
 
-				var isFileReader = FileReader !=null && el instanceof FileReader;
+				var isFileReader = (FileReader && el) && (el instanceof FileReader);
 				_each(type.split(/\s+/), function (type){
 					if( jQuery && !isFileReader){
 						jQuery.event.add(el, type, fn);
@@ -228,7 +228,7 @@
 			if( el ){
 				var uid = api.uid(el), events = _elEvents[uid] || {};
 
-				var isFileReader = FileReader != null && el instanceof FileReader;
+				var isFileReader = (FileReader && el) && (el instanceof FileReader);
 				_each(type.split(/\s+/), function (type){
 					if( jQuery && !isFileReader){
 						jQuery.event.remove(el, type, fn);
@@ -278,7 +278,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.3',
+			version: '2.0.3b',
 
 			cors: false,
 			html5: true,
@@ -2968,7 +2968,7 @@
 						xhr.send(slice);
 					}
 
-					xhr.send(slice);
+//					xhr.send(slice);
 					file = slice = null;
 				} else {
 					// single piece upload
@@ -3859,7 +3859,7 @@
 								return this.parent.apply(this, arguments);
 							}
 							else {
-								api.log('FlashAPI.XHR._send: '+ flashId +' -> '+ fileId, JSON.stringify(files));
+								api.log('FlashAPI.XHR._send: '+ flashId +' -> '+ fileId);
 							}
 
 							_this.xhr = {
@@ -3878,7 +3878,7 @@
 									, callback: _wrap(function upload(evt){
 										var type = evt.type, result = evt.result;
 
-										api.log('FlashAPI.upload.'+type+':' + JSON.stringify(evt));
+										api.log('FlashAPI.upload.'+type);
 
 										if( type == 'progress' ){
 											evt.loaded = Math.min(evt.loaded, evt.total); // @todo fixme

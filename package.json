@@ -14,7 +14,9 @@
     "semver": "~1.0.14",
     "temporary": "~0.0.4",
     "phantomjs": "~1.9.2-4",
-    "grunt-mxmlc": "~0.2.0"
+	"grunt-curl": "~1.4.0",
+    "grunt-mxmlc": "~0.2.0",
+    "grunt-contrib-compress": "~0.6.0"
   },
   "description": "FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.",
   "main": "dist/FileAPI.js",
@@ -35,7 +37,8 @@
   "author": "Konstantin Lebedev <ibnRubaXa@gmail.com>",
   "contributors": [
     "Vladimir Demidov <v.demidov@corp.mail.ru>",
-    "Ilya Lebedev <ilya@lebedev.net>"
+    "Ilya Lebedev <ilya@lebedev.net>",
+	"Mikhail Bezoyan <mbezoyan@gmail.com>"
   ],
   "license": "BSD"
 }
