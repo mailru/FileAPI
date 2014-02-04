@@ -21,9 +21,10 @@ package ru.mail.data.vo
 		public var type:String = 'image/png'; // encoded image type. If type value is unknown, png is used
 		public var quality:Number = 1; // encode quality (jpeg only)
 		public var overlay:Array = []; // array of OverlayVO instances
+        public var multiPassResize: Boolean = true;
 
 		public function ImageTransformVO(sx:Number = 0, sy:Number = 0, sw:Number = 0, sh:Number = 0, dw:Number = 0, dh:Number = 0, deg:Number = 0
-										 , type:String = null, quality:Number = 1, overlay:Array = null)
+										 , type:String = null, quality:Number = 1, overlay:Array = null, multiPassResize:Boolean = true)
 		{
 			super();
 
@@ -45,6 +46,9 @@ package ru.mail.data.vo
 				this.type = type;
 			if ( !isNaN(quality) )
 				this.quality = quality;
+
+            this.multiPassResize = multiPassResize;
+
 			if ( overlay )
 				setOverlay( overlay );
 		}

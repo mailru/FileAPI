@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function (grunt){
+module.exports = function (grunt) {
 	// Project configuration.
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
@@ -44,6 +44,21 @@ module.exports = function (grunt){
 					port: 9001,
 					base: '.'
 				}
+			},
+			standalone: {
+				options: {
+					hostname: '*',
+					keepalive: true,
+					port: 9001,
+					base: '.'
+				}
+			}
+		},
+
+		curl: {
+			jpg: {
+				src: 'https://dl.dropboxusercontent.com/u/49592745/BigJPG.jpg',
+				dest: 'tests/files/big.jpg'
 			}
 		},
 
@@ -53,6 +68,7 @@ module.exports = function (grunt){
 					timeout: 5 * 60 * 1000, // 5min
 					files: {
 						  '1px.gif':	['tests/files/1px.gif']
+						, 'big.jpg':	['tests/files/big.jpg']
 						, 'hello.txt':	['tests/files/hello.txt']
 						, 'image.jpg':	['tests/files/image.jpg']
 						, 'dino.png':	['tests/files/dino.png']
@@ -65,7 +81,7 @@ module.exports = function (grunt){
 
 		concat: {
 			options: {
-				banner: '/*! <%= pkg.name %> <%= pkg.version %> - <%= pkg.license %> | <%= pkg.repository.url %>\n' +
+				banner: '/*! <%= pkg.exportName %> <%= pkg.version %> - <%= pkg.license %> | <%= pkg.repository.url %>\n' +
 					' * <%= pkg.description %>\n' +
 					' */\n\n',
 
@@ -82,8 +98,9 @@ module.exports = function (grunt){
 					, 'lib/FileAPI.XHR.js'
 					, 'lib/FileAPI.Camera.js'
 					, 'lib/FileAPI.Flash.js'
+					, 'lib/FileAPI.Flash.Camera.js'
 				],
-				dest: 'dist/<%= pkg.name %>.js'
+				dest: 'dist/<%= pkg.exportName %>.js'
 			},
 
 			html5: {
@@ -95,17 +112,47 @@ module.exports = function (grunt){
 					, 'lib/FileAPI.Form.js'
 					, 'lib/FileAPI.XHR.js'
 					, 'lib/FileAPI.Camera.js'
+					, 'lib/FileAPI.Flash.Camera.js'
 				],
-				dest: 'dist/<%= pkg.name %>.html5.js'
+				dest: 'dist/<%= pkg.exportName %>.html5.js'
 			}
 		},
 
 		uglify: {
-			options: { banner: '/*! <%= pkg.name %> <%= pkg.version %> - <%= pkg.license %> | <%= pkg.repository.url %> */\n' },
+			options: { banner: '/*! <%= pkg.exportName %> <%= pkg.version %> - <%= pkg.license %> | <%= pkg.repository.url %> */\n' },
 			dist: {
 				files: {
-					  'dist/<%= pkg.name %>.min.js': ['<%= concat.all.dest %>']
-					, 'dist/<%= pkg.name %>.html5.min.js': ['<%= concat.html5.dest %>']
+					  'dist/<%= pkg.exportName %>.min.js': ['<%= concat.all.dest %>']
+					, 'dist/<%= pkg.exportName %>.html5.min.js': ['<%= concat.html5.dest %>']
+				}
+			}
+		},
+
+		mxmlc: {
+			core: {
+				options: {
+					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=true' +
+						' -library-path+=flash/core/lib/blooddy_crypto.swc -library-path+=flash/core/lib/EnginesLibrary.swc'
+				},
+				files: {
+					'dist/<%= pkg.exportName %>.flash.swf': ['flash/core/src/FileAPI_flash.as']
+				}
+			},
+			image: {
+				options: {
+					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=true' +
+						' -library-path+=flash/image/lib/blooddy_crypto.swc'
+				},
+				files: {
+					'dist/<%= pkg.exportName %>.flash.image.swf': ['flash/image/src/FileAPI_flash_image.as']
+				}
+			},
+			camera: {
+				options: {
+					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=true'
+				},
+				files: {
+					'dist/<%= pkg.exportName %>.flash.camera.swf': ['flash/camera/src/FileAPI_flash_camera.as']
 				}
 			}
 		},
@@ -119,7 +166,6 @@ module.exports = function (grunt){
 		}
 	});
 
-
 	// These plugins provide necessary tasks.
 	grunt.loadNpmTasks('grunt-version');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -127,12 +173,20 @@ module.exports = function (grunt){
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-connect');
-
+	grunt.loadNpmTasks('grunt-contrib-compress');
+	grunt.loadNpmTasks('grunt-mxmlc');
+	grunt.loadNpmTasks('grunt-curl');
 	// Load custom QUnit task, based on grunt-contrib-qunit, but support "files" option.
 	grunt.loadTasks('./tests/grunt-task/');
+	grunt.loadTasks('./custom-tasks/');
 
 	// "npm build" runs these tasks
-	grunt.registerTask('tests', ['jshint', 'concat', 'connect', 'qunit']);
-	grunt.registerTask('build', ['version', 'concat', 'uglify']);
+	grunt.registerTask('prepare-test-files', function (){
+		if (!grunt.file.exists('tests/files/big.jpg')) {
+			grunt.task.run('curl');
+		}
+	});
+	grunt.registerTask('tests', ['jshint', 'concat', 'connect:server','prepare-test-files',  'qunit']);
+	grunt.registerTask('build', ['version', 'concat', 'uglify', 'mxmlc']);
 	grunt.registerTask('default', ['tests', 'build']);
 };

@@ -184,7 +184,43 @@ module('FileAPI');
 		}
 	});
 
+    test('big.jpg', function (){
+        console.log('Entering big.jpg');
+   		var file	= FileAPI.getFiles(uploadForm['big.jpg'])[0];
 
+   		// File
+        console.log('[big.jpg] before check file');
+   		checkFile(file, 'big.jpg', 'image/jpeg', 71674475);
+        console.log('[big.jpg] after check file');
+
+   		// File info
+   		stop();
+        console.log('[big.jpg] before getInfo');
+   		FileAPI.getInfo(file, function (err, info){
+            console.log('[big.jpg] after getInfo');
+   			start();
+   			ok(!err);
+   			equal(info.width, 10000, 'getInfo.width');
+   			equal(info.height, 10000, 'getInfo.height');
+   		});
+
+        stop();
+      		FileAPI.upload({
+      			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+      			files: { image: file },
+                imageTransform: {
+                    width: 1024,
+                    height: 768,
+                    type: 'image/jpeg'
+                },
+                complete: function (err, res){
+                    start();
+      			}
+      		});
+
+   	});
+
+//    if (false) {
 
 	test('hello.txt', function (){
 		var file	= FileAPI.getFiles(uploadForm['hello.txt'])[0];
@@ -201,7 +237,6 @@ module('FileAPI');
 			});
 		}
 	});
-
 
 
 	test('image.jpg', function (){
@@ -681,4 +716,5 @@ module('FileAPI');
 			}
 		});
 	});
+//    }
 })();
