@@ -181,12 +181,12 @@ module.exports = function (grunt) {
 	grunt.loadTasks('./custom-tasks/');
 
 	// "npm build" runs these tasks
-	grunt.registerTask('prepare', function (){
+	grunt.registerTask('prepare-test-files', function (){
 		if (!grunt.file.exists('tests/files/big.jpg')) {
 			grunt.task.run('curl');
 		}
 	});
-	grunt.registerTask('tests', ['jshint', 'concat', 'connect:server', 'qunit']);
+	grunt.registerTask('tests', ['jshint', 'concat', 'connect:server','prepare-test-files',  'qunit']);
 	grunt.registerTask('build', ['version', 'concat', 'uglify', 'mxmlc']);
-	grunt.registerTask('default', ['prepare', 'tests', 'build']);
+	grunt.registerTask('default', ['tests', 'build']);
 };
