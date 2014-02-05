@@ -1,4 +1,4 @@
-/*! FileAPI 2.0.3 - BSD | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.0.4 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -278,7 +278,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.3b',
+			version: '2.0.4',
 
 			cors: false,
 			html5: true,
@@ -1174,7 +1174,8 @@
 						});
 					}
 					else {
-						options.complete(proxyXHR.status == 200 || proxyXHR.status == 201 ? false : (proxyXHR.statusText || 'error'), proxyXHR, options);
+						var successful = proxyXHR.status == 200 || proxyXHR.status == 201 || proxyXHR.status == 204;
+						options.complete(successful ? false : (proxyXHR.statusText || 'error'), proxyXHR, options);
 						// Mark done state
 						_complete = true;
 					}
@@ -1279,6 +1280,18 @@
 					, postNameConcat = api.postNameConcat
 				;
 
+				// Append data
+				_each(options.data, function add(val, name){
+					if( typeof val == 'object' ){
+						_each(val, function (v, i){
+							add(v, postNameConcat(name, i));
+						});
+					}
+					else {
+						Form.append(name, val);
+					}
+				});
+
 				(function _addFile(file/**Object*/){
 					if( file.image ){ // This is a FileAPI.Image
 						queue.inc();
@@ -1337,19 +1350,6 @@
 						Form.append(name, file, filename);
 					}
 				})(file);
-
-
-				// Append data
-				_each(options.data, function add(val, name){
-					if( typeof val == 'object' ){
-						_each(val, function (v, i){
-							add(v, postNameConcat(name, i));
-						});
-					}
-					else {
-						Form.append(name, val);
-					}
-				});
 
 				queue.check();
 			},
@@ -1916,6 +1916,9 @@
 				, queue = api.queue(function (){ image.src = api.EMPTY_PNG; fn(false, canvas); })
 				, renderImageToCanvas = api.renderImageToCanvas
 			;
+
+			// Normalize angle
+			deg = deg - Math.floor(deg/360)*360;
 
 			// For `renderImageToCanvas`
 			image._type = this.file.type;

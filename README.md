@@ -1384,6 +1384,13 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.4
+<ul>
+	<li>+ #176: Add params to the beginning of form</li>
+	<li>+ #190: Add 204 as a successful response</li>
+	<li>+ #192: many bugfixes; + `retry` & `multipass` options; + QUnit-tests for BigSizeImage</li>
+</ul>
+
 ### 2.0.3
 <ul>
 	<li>+ QUnit-tests for iframe-transport</li>
