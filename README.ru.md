@@ -210,10 +210,61 @@ FileAPI.event.on(el, 'change', function (evt/**Event*/){
 
 
 ```js
-FileAPI.upload('./ctpl.php', files).done(function (xhr){
-	var result = FileAPI.parseJSON(xhr.responseText);
-	// ...
-});
+FileAPI.upload('./ctpl.php', files)
+	.progress(function (evt){
+		var p = (evt.loaded / evt.total)
+	})
+	.done(function (xhr){
+		var result = FileAPI.parseJSON(xhr.responseText);
+		// ...
+	})
+;
+```
+
+---
+
+<a name="FileAPI.load"></a>
+### load(url`:String`[, opts`:Object`])`:XmlHttpRequestPromise`
+Загрузить файл, по умолчанию как `Blob`.
+
+* url — строка содержащая путь к файлу
+* opts — опции запроса: { headers, data, withCredentials, responseType: "blob" }
+
+```js
+var xhr = FileAPI.load('./files/dino.png')
+	.progress(function (evt/**Event*/, xhr/**XmlHttpRequest*/){
+		var p = (evt.loaded / evt.total);
+	})
+	.done(function (blob/**Blob*/, xhr/**XmlHttpRequest*/){
+		// Success
+	})
+	.fail(function (statusText, xhr/**XmlHttpRequest*/){
+		alert('Error: '+statusText);
+	})
+;
+```
+
+---
+
+<a name="FileAPI.saveAs"></a>
+### saveAs(file`:String|File|Blob`[, name`:String`])`:Promise`
+Сохранить файл на диск.
+
+* file — путь к файлу или File/Blob объект
+* name — имя файла
+
+```js
+FileAPI.saveAs("./files/dino.png")
+	.progress(function (evt){
+		var p = (evt.loaded / evt.total);
+	})
+	.done(function (){
+		// Success
+	})
+	.fail(function (err){
+		alert('Error: '+err);
+	})
+;
 ```
 
 ---
@@ -1205,6 +1256,23 @@ FileAPI.Camera.publish(el, function (err, cam/**FileAPI.Camera*/){
 <a name="FileAPI.support.chunked"></a>
 ### FileAPI.support.chunked`:Boolean`
 Возможность загрузки по частям.
+
+<a name="FileAPI.support.saveAs"></a>
+### FileAPI.support.saveAs`:Boolean`
+Поддержка `navigator.msSaveBlob`.
+
+<a name="FileAPI.support.download"></a>
+### FileAPI.support.download`:Boolean`
+Поддержка аттрибута `download` у `a[href]`.
+
+<a name="FileAPI.support.accept"></a>
+### FileAPI.support.accept`:Boolean`
+Поддержка аттрибута `accept` у `input[type="file"]`.
+
+<a name="FileAPI.support.multiple"></a>
+### FileAPI.support.multiple`:Boolean`
+Поддержка аттрибута `multiple` у `input[type="file"]`.
+
 
 ---
 
