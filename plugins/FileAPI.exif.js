@@ -40,10 +40,20 @@ FileAPI.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
 	if( !file.__exif ){
 		var defer = file.__exif = FileAPI.defer();
 
-		FileAPI.readAsBinaryString(file, function (evt){
+        var blob = file;
+        if (blob instanceof Blob && blob.size > 128*1024) {
+            try {
+                var size = Math.min(blob.size, 128 * 1024);
+                blob = (blob.slice || blob.mozSlice || blob.webkitSlice).call(blob, 0, size);
+            } catch (e) {
+                FileAPI.log("exception "+ e);
+            }
+        }
+
+		FileAPI.readAsBinaryString(blob, function (evt){
 			if( evt.type == 'load' ){
 				var binaryString = evt.result;
-				var oFile = new BinaryFile(binaryString, 0, file.size);
+				var oFile = new BinaryFile(binaryString, 0, blob.size);
 				var exif  = EXIF.readFromBinaryFile(oFile);
 
 				defer.resolve(false, { 'exif': exif || {} });

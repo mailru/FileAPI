@@ -130,7 +130,8 @@ package ru.mail.commands
 				}
 				else 
 				{
-					currentImageMap = fullImageMap.clone();
+//					currentImageMap = fullImageMap.clone();
+                    currentImageMap = fullImageMap;
 				}
 				
 				// ==============
@@ -140,7 +141,7 @@ package ru.mail.commands
 				var angle:Number = imageTransform.deg*Math.PI/180;
 				var maxScale:Number = Math.max(scaleX, scaleY);
 				
-				if (maxScale < 0.5) {
+				if (imageTransform.multiPassResize && maxScale < 0.5) {
 					
 					trace ("multi-step ");
 					

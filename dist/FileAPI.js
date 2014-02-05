@@ -1,4 +1,4 @@
-/*! fileapi 2.1.0 - BSD | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.1.0 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -104,6 +104,7 @@
 
 		document = window.document,
 		doctype = document.doctype || {},
+		navigator = window.navigator,
 		userAgent = window.navigator.userAgent,
 
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
@@ -121,7 +122,7 @@
 				&& !(/safari\//i.test(userAgent) && !/chrome\//i.test(userAgent) && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
 
 		cors = html5 && ('withCredentials' in (new XMLHttpRequest)),
-		
+
 		chunked = html5 && !!Blob && !!(Blob.prototype.webkitSlice || Blob.prototype.mozSlice || Blob.prototype.slice),
 
 		// https://github.com/blueimp/JavaScript-Canvas-to-Blob
@@ -151,6 +152,10 @@
 
 		currentTarget = 'currentTarget', // for minimize
 		preventDefault = 'preventDefault', // and this too
+
+		_createElement = function (name){
+			return	document.createElement(name);
+		},
 
 		_isArray = function (ar) {
 			return	ar && ('length' in ar);
@@ -214,11 +219,11 @@
 					_elEvents[uid] = {};
 				}
 
+				var isFileReader = (FileReader && el) && (el instanceof FileReader);
 				_each(type.split(/\s+/), function (type){
-					if( jQuery ){
+					if( jQuery && !isFileReader){
 						jQuery.event.add(el, type, fn);
-					}
-					else {
+					} else {
 						if( !_elEvents[uid][type] ){
 							_elEvents[uid][type] = [];
 						}
@@ -241,8 +246,9 @@
 			if( el ){
 				var uid = api.uid(el), events = _elEvents[uid] || {};
 
+				var isFileReader = (FileReader && el) && (el instanceof FileReader);
 				_each(type.split(/\s+/), function (type){
-					if( jQuery ){
+					if( jQuery && !isFileReader){
 						jQuery.event.remove(el, type, fn);
 					}
 					else {
@@ -280,10 +286,11 @@
 
 
 		_supportInputAttr = function (attr){
-			var input = document.createElement('input');
+			var input = _createElement('input');
 			input.setAttribute('type', "file");
 			return attr in input;
 		},
+
 
 
 		/**
@@ -313,6 +320,18 @@
 				return	name + (idx != null ? '['+ idx +']' : '');
 			},
 
+			support: {
+				dnd:      cors && ('ondrop' in _createElement('div')),
+				cors:     cors,
+				html5:    html5,
+				chunked:  chunked,
+				dataURI:  true,
+				accept:   _supportInputAttr('accept'),
+				multiple: _supportInputAttr('multiple'),
+				saveAs:   !!navigator.msSaveBlob,
+				download: ('download' in _createElement('a'))
+			},
+
 			ext2mime: {
 				  jpg:	'image/jpeg'
 				, tif:	'image/tiff'
@@ -326,6 +345,9 @@
 				, 'video/*': 'm4v 3gp nsv ts ty strm rm rmvb m3u ifo mov qt divx xvid bivx vob nrg img iso pva wmv asf asx ogm m2v avi bin dat dvr-ms mpg mpeg mp4 mkv avc vp3 svq3 nuv viv dv fli flv wpl'
 			},
 
+			uploadRetry : 0,
+			networkDownRetryTimeout : 5000, // milliseconds, don't flood when network is down
+
 			chunkSize : 0,
 			chunkUploadRetry : 0,
 			chunkNetworkDownRetryTimeout : 2000, // milliseconds, don't flood when network is down
@@ -334,6 +356,8 @@
 			MB: _SIZE_CONST(2),
 			GB: _SIZE_CONST(3),
 			TB: _SIZE_CONST(4),
+
+			EMPTY_PNG: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQIW2NkAAIAAAoAAggA9GkAAAAASUVORK5CYII=',
 
 			expando: 'fileapi' + (new Date).getTime(),
 
@@ -363,7 +387,7 @@
 			 * @returns {HTMLElement}
 			 */
 			newImage: function (src, fn){
-				var img = document.createElement('img');
+				var img = _createElement('img');
 				if( fn ){
 					api.event.one(img, 'error load', function (evt){
 						fn(evt.type == 'error', img);
@@ -395,17 +419,25 @@
 				return  xhr;
 			},
 
-			isArray: _isArray,
-
-			support: {
-				dnd:     cors && ('ondrop' in document.createElement('div')),
-				cors:    cors,
-				html5:   html5,
-				chunked: chunked,
-				dataURI: true,
-				accept:   _supportInputAttr('accept'),
-				multiple: _supportInputAttr('multiple')
+			/**
+			 * Creates a URL representing the object given in parameter.
+			 * @param {Blob|File} blob
+			 * @returns {String|Null}
+			 */
+			createURL: function (blob){
+				return	apiURL ? apiURL.createObjectURL(blob) : null;
 			},
+
+			/**
+			 * Releases an existing object URL which was previously
+			 * created by calling FileAPI.createURL()
+			 * @param {String} url
+			 */
+			revokeURL: function (url){
+				return	apiURL && apiURL.revokeObjectURL(url);
+			},
+
+			isArray: _isArray,
 
 			event: {
 				  on: _on
@@ -430,7 +462,7 @@
 				};
 			},
 
-			F: function (){},
+			F: noop,
 
 			/**
 			 * Takes a well-formed JSON string and returns the resulting JavaScript object.
@@ -476,7 +508,7 @@
 					, progressList = []
 
 					, _push = function (x, fn){
-						(x ? doneList : failList).push(fn);
+						fn && (x ? doneList : failList).push(fn);
 						return	this;
 					}
 
@@ -493,8 +525,9 @@
 						_complete = noop;
 
 						doneList =
-						failList =
-						progressList = null;
+						failList = null;
+						
+						progressList = [];
 
 						for( ; i < n; i++ ){
 							list[i] && list[i].apply(this, args);
@@ -530,7 +563,7 @@
 						},
 
 						progress: function (fn){
-							progressList.push(fn);
+							fn && progressList.push(fn);
 							return	this;
 						},
 
@@ -646,9 +679,12 @@
 			 * @return {Boolean}
 			 */
 			isFile: function (file){
-				return	html5 && file && (file instanceof File);
+				return	html5 && file && (file instanceof File || file instanceof Blob);
 			},
 
+			isBlob: function (blob) {
+				return    html5 && blob && (blob instanceof Blob);
+			},
 
 			/**
 			 * Is canvas element
@@ -776,13 +812,12 @@
 			readAsImage: function (file, fn, progress){
 				if( api.isFile(file) ){
 					if( apiURL ){
-						/** @namespace apiURL.createObjectURL */
-						var data = apiURL.createObjectURL(file);
-						if( data === undef ){
-							_emit(file, fn, 'error');
+						var src = api.createURL(file);
+						if( src ){
+							api.readAsImage(src, fn, progress);
 						}
 						else {
-							api.readAsImage(data, fn, progress);
+							_emit(file, fn, 'error');
 						}
 					}
 					else {
@@ -796,9 +831,11 @@
 						});
 					}
 				}
+				// Is canvas?
 				else if( api.isCanvas(file) ){
 					_emit(file, fn, 'load', file);
 				}
+				// Is image tag?
 				else if( _rimg.test(file.nodeName) ){
 					if( file.complete ){
 						_emit(file, fn, 'load', file);
@@ -807,8 +844,7 @@
 						var events = 'error abort load';
 						_one(file, events, function _fn(evt){
 							if( evt.type == 'load' && apiURL ){
-								/** @namespace apiURL.revokeObjectURL */
-								apiURL.revokeObjectURL(file.src);
+								api.revokeURL(file.src);
 							}
 
 							_off(file, events, _fn);
@@ -817,7 +853,7 @@
 					}
 				}
 				else if( file.iframe ){
-					_emit(file, fn, { type: 'error' });
+					_emit(file, fn, { type: 'error', message: 'is iframe' });
 				}
 				else {
 					// Created image
@@ -1110,21 +1146,22 @@
 
 				options = _extend({
 					  jsonp: 'callback'
-					, prepare: api.F
-					, beforeupload: api.F
-					, upload: api.F
-					, fileupload: api.F
-					, fileprogress: api.F
-					, filecomplete: api.F
-					, progress: api.F
-					, complete: api.F
-					, pause: api.F
+					, prepare: noop
+					, beforeupload: noop
+					, upload: noop
+					, fileupload: noop
+					, fileprogress: noop
+					, filecomplete: noop
+					, progress: noop
+					, complete: noop
+					, pause: noop
 					, serial: true
 					, parallel: 0
 					, postName: 'files'
 					, chunkSize: api.chunkSize
-					, chunkUpoloadRetry: api.chunkUploadRetry
 					, imageOriginal: true
+					, chunkUploadRetry: api.chunkUploadRetry
+					, uploadRetry: api.uploadRetry
 				}, options);
 
 
@@ -1242,7 +1279,11 @@
 						proxyXHR.currentFile = _file;
 
 						// Prepare file options
-						_file && options.prepare(_file, _fileOptions);
+						if (_file && options.prepare(_file, _fileOptions) === false) {
+							_uploadFiles();
+							return;
+						}
+						_fileOptions.file = _file;
 
 						_getFormData(_fileOptions, data, function (form){
 							if( !_loaded ){
@@ -1293,6 +1334,7 @@
 
 									if( _file ){
 										// "loaded" and "total" set in "progress".
+										data.total = (data.total || data.size);
 										data.loaded	= data.total;
 
 										// emulate 100% "progress"
@@ -1315,7 +1357,7 @@
 									_active--;
 
 									// upload next file
-									_uploadFiles();
+									setTimeout(function (){ _uploadFiles(); }, 0);
 								}
 							})); // xhr
 
@@ -1332,7 +1374,9 @@
 						});
 					}
 					else if( !_active ){
-						var err = proxyXHR.status == 200 || proxyXHR.status == 201 ? false : (proxyXHR.statusText || 'error');
+						var err = (proxyXHR.status == 200 || proxyXHR.status == 201 || proxyXHR.status == 204)
+									? false
+									: (proxyXHR.statusText || 'error');
 
 						if( err ){
 							defer.reject(err, proxyXHR, options);
@@ -1425,90 +1469,81 @@
 
 
 			/**
-			 * Load remote file
+			 * Load a remote file
 			 *
-			 * @param   {String}    url
-			 * @param   {Function}  fn
-			 * @return  {XMLHttpRequest}
+			 * @param   {String}  url
+			 * @param   {Object}  [options]
+			 * @return  {FileAPI.XHR}
 			 */
-			load: function (url, fn){
-				var xhr = api.getXHR();
-				if( xhr ){
-					xhr.open('GET', url, true);
+			load: function (url, options){
+				var
+					xhr = new api.XHR(options = _extend(options || {}, {
+						  url: url
+						, type: 'GET'
+						, cache: true
+						, responseType: 'blob'
+					}))
+					, resolve = xhr.defer.resolve
+				;
 
-					if( xhr.overrideMimeType ){
-				        xhr.overrideMimeType('text/plain; charset=x-user-defined');
-					}
+				xhr.defer.resolve = function (xhr, opts){
+					var blob = xhr.response;
+					return (blob && Blob) && (blob instanceof Blob)
+						? resolve(blob, xhr, opts)
+						: xhr.defer.reject('load_not_supported', xhr, opts)
+					;
+				};
 
-					_on(xhr, 'progress', function (/**Event*/evt){
-						/** @namespace evt.lengthComputable */
-						if( evt.lengthComputable ){
-							fn({ type: evt.type, loaded: evt.loaded, total: evt.total }, xhr);
-						}
-					});
-
-					xhr.onreadystatechange = function(){
-						if( xhr.readyState == 4 ){
-							xhr.onreadystatechange = null;
-							if( xhr.status == 200 ){
-								url = url.split('/');
-								/** @namespace xhr.responseBody */
-								var file = {
-								      name: url[url.length-1]
-									, size: xhr.getResponseHeader('Content-Length')
-									, type: xhr.getResponseHeader('Content-Type')
-								};
-								file.dataURL = 'data:'+file.type+';base64,' + api.encode64(xhr.responseBody || xhr.responseText);
-								fn({ type: 'load', result: file }, xhr);
-							}
-							else {
-								fn({ type: 'error' }, xhr);
-							}
-					    }
-					};
-				    xhr.send(null);
-				} else {
-					fn({ type: 'error' });
-				}
+				_getFormData(options, [], function (formData){
+					xhr.send(formData);
+				});
 
 				return  xhr;
 			},
 
-			encode64: function (str){
-				var b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=', outStr = '', i = 0;
 
-				if( typeof str !== 'string' ){
-					str	= String(str);
-				}
+			/**
+			 * Save file on disk
+			 * @param    {String|File|Blob}  blob
+			 * @param    {String}            [name]
+			 * @returns  {FileAPI.defer}
+			 */
+			saveAs: function (blob, name){
+				var defer = api.defer();
 
-				while( i < str.length ){
-					//all three "& 0xff" added below are there to fix a known bug
-					//with bytes returned by xhr.responseText
-					var
-						  byte1 = str.charCodeAt(i++) & 0xff
-						, byte2 = str.charCodeAt(i++) & 0xff
-						, byte3 = str.charCodeAt(i++) & 0xff
-						, enc1 = byte1 >> 2
-						, enc2 = ((byte1 & 3) << 4) | (byte2 >> 4)
-						, enc3, enc4
-					;
-
-					if( isNaN(byte2) ){
-						enc3 = enc4 = 64;
-					} else {
-						enc3 = ((byte2 & 15) << 2) | (byte3 >> 6);
-						enc4 = isNaN(byte3) ? 64 : byte3 & 63;
+				if( typeof blob === 'string' ){
+					if( name === undef ){
+						name = blob.split('/').pop();
 					}
 
-					outStr += b64.charAt(enc1) + b64.charAt(enc2) + b64.charAt(enc3) + b64.charAt(enc4);
+					api.load(blob)
+						.progress(defer.notify)
+						.done(function (blob){
+							api.saveAs(blob, name).then(defer.resolve, defer.reject);
+						})
+						.fail(defer.reject)
+					;
+				}
+				else {
+					try {
+						if( _saveAs(blob, name) ){
+							defer.resolve();
+						}
+						else {
+							defer.reject('saveAs_not_support');
+						}
+					} catch (err){
+						api.log('[err] FileAPI.saveAs: '+err.toString());
+						defer.reject(err);
+					}
 				}
 
-				return  outStr;
+				return	defer;
 			}
 
 		} // api
 	;
-	
+
 
 	function _emit(target, fn, name, res, ext){
 		var evt = {
@@ -1527,7 +1562,7 @@
 
 
 	function _readAs(file, fn, as, encoding){
-		if( api.isFile(file) && _hasSupportReadAs(as) ){
+		if( api.isBlob(file) && _hasSupportReadAs(as) ){
 			var Reader = new FileReader;
 
 			// Add event listener
@@ -1844,6 +1879,38 @@
 	}
 
 
+	function _saveAs(blob, name){
+		var ret = false;
+
+		if( navigator.msSaveBlob ){
+			ret = navigator.msSaveBlob(blob, name);
+		}
+		else if( api.support.download ){
+			var
+				  url = api.createURL(blob)
+				, body = document.body
+				, transport = _createElement('a')
+			;
+
+			if( url ){
+				transport.href = url;
+				transport.download = name || blob.name;
+				transport.style.top = '-10000px';
+				transport.style.position = 'absolute';
+
+				body.appendChild(transport);
+				transport.click();
+				body.removeChild(transport);
+
+				ret = true;
+				setTimeout(function (){ api.revokeURL(url); }, 1);
+			}
+		}
+
+		return	ret;
+	}
+
+
 	// Add default image info reader
 	api.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
 		if( !file.__dimensions ){
@@ -1855,6 +1922,7 @@
 					  width:  img.width
 					, height: img.height
 				});
+                img.src = api.EMPTY_PNG;
 				img = null;
 			});
 		}
@@ -1875,7 +1943,7 @@
 
 		if( !onDrop ){
 			onDrop = onHover;
-			onHover = api.F;
+			onHover = noop;
 		}
 
 		if( FileReader ){
@@ -1982,13 +2050,13 @@
 
 /*global window, FileAPI, document */
 
-(function (api, document, undef){
+(function (api, document, undef) {
 	'use strict';
 
 	var
 		min = Math.min,
 		round = Math.round,
-		getCanvas = function (){ return document.createElement('canvas'); },
+		getCanvas = function () { return document.createElement('canvas'); },
 		support = false,
 		exifOrientation = {
 			  8:	270
@@ -2014,6 +2082,8 @@
 		}
 
 		this.file   = file;
+		this.size   = file.size || 100;
+
 		this.matrix	= {
 			sx: 0,
 			sy: 0,
@@ -2026,7 +2096,8 @@
 			resize: 0, // min, max OR preview
 			deg: 0,
 			quality: 1, // jpeg quality
-			filter: 0
+			filter: 0,
+			multipass: api.multiPassResize
 		};
 	}
 
@@ -2107,14 +2178,18 @@
 				, copy // canvas copy
 				, buffer = image
 				, overlay = m.overlay
-				, queue = api.queue(function (){ fn(false, canvas); })
+				, queue = api.queue(function (){ image.src = api.EMPTY_PNG; fn(false, canvas); })
 				, renderImageToCanvas = api.renderImageToCanvas
 			;
+
+			// Normalize angle
+			deg = deg - Math.floor(deg/360)*360;
 
 			// For `renderImageToCanvas`
 			image._type = this.file.type;
 
-			if( api.multiPassResize ){
+
+			if( m.multipass ){
 				while( min(w/dw, h/dh) > 2 ){
 					w = (w/2 + 0.5)|0;
 					h = (h/2 + 0.5)|0;
@@ -2143,7 +2218,7 @@
 			canvas.quality = m.quality;
 
 			ctx.rotate(deg * Math.PI / 180);
-			renderImageToCanvas(canvas, buffer
+			renderImageToCanvas(ctx.canvas, buffer
 				, m.sx, m.sy
 				, m.sw || buffer.width
 				, m.sh || buffer.height
@@ -2151,7 +2226,6 @@
 				, (deg == 90 || deg == 180 ? -dh : 0)
 				, dw, dh
 			);
-
 			dw = canvas.width;
 			dh = canvas.height;
 
@@ -2252,7 +2326,7 @@
 			m.sh = sh;
 			m.dw = dw;
 			m.dh = dh;
-
+			m.multipass = api.multiPassResize;
 			return	m;
 		},
 
@@ -2291,11 +2365,13 @@
 			else {
 				fn('not_support_transform');
 			}
+
+			return this;
 		},
 
 
 		toData: function (fn){
-			this.get(fn);
+			return this.get(fn);
 		}
 
 	};
@@ -2445,8 +2521,12 @@
 	 * @Override in load-image-ios.js
 	 */
 	api.renderImageToCanvas = function (canvas, img, sx, sy, sw, sh, dx, dy, dw, dh){
-		canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-		return canvas;
+		try {
+			return canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+		} catch (err) {
+			api.log('renderImageToCanvas failed:', err);
+			throw err;
+		}
 	};
 
 
@@ -2862,17 +2942,31 @@
 	"use strict";
 
 	var
-		  noop = function (){}
+		  noop = api.F
 		, document = window.document
 
 		, XHR = function (options){
+			var defer = api.defer().progress(options.progress);
+
 			this.uid = api.uid();
+
 			this.xhr = {
 				  abort: noop
 				, getResponseHeader: noop
 				, getAllResponseHeaders: noop
 			};
-			this.options = options;
+
+			this.defer = defer;
+			this.options = api.extend({
+				  upload: noop
+				, complete: noop
+				, withCredentials: api.withCredentials
+			}, options);
+
+			this.done = this.success = defer.done;
+			this.fail = this.error = defer.fail;
+			this.notify = defer.notify;
+			this.progress = defer.progress;
 		},
 
 		_xhrResponsePostfix = { '': 1, XML: 1, Text: 1, Body: 1 }
@@ -2893,7 +2987,12 @@
 		},
 
 		end: function (status, statusText){
-			var _this = this, options = _this.options;
+			var
+				  _this = this
+				, defer = _this.defer
+				, options = _this.options
+				, err = (status == 200 || status == 201 ? false : statusText || 'unknown')
+			;
 
 			_this.end		=
 			_this.abort		= noop;
@@ -2904,7 +3003,14 @@
 			}
 
 			api.log('xhr.end:', status, statusText);
-			options.complete(status == 200 || status == 201 ? false : _this.statusText || 'unknown', _this);
+
+			if( err ){
+				defer.reject(err, _this, options);
+			} else {
+				defer.resolve(_this, options);
+			}
+
+			options.complete(err, _this);
 
 			if( _this.xhr && _this.xhr.node ){
 				setTimeout(function (){
@@ -2920,7 +3026,7 @@
 			this.end(0, 'abort');
 
 			if( this.xhr ){
-			    this.xhr.aborted = true;
+				this.xhr.aborted = true;
 				this.xhr.abort();
 			}
 		},
@@ -2957,7 +3063,7 @@
 				xhr = document.createElement('div');
 				xhr.innerHTML = '<form target="'+ uid +'" action="'+ url +'" method="POST" enctype="multipart/form-data" style="position: absolute; top: -1000px; overflow: hidden; width: 1px; height: 1px;">'
 							+ '<iframe name="'+ uid +'" src="javascript:false;"></iframe>'
-							+ (jsonp && (options.url.indexOf('=?') == -1) ? '<input value="'+ uid +'" name="'+jsonp+'" type="hidden"/>' : '')
+							+ (jsonp && (options.url.indexOf('=?') < 0) ? '<input value="'+ uid +'" name="'+jsonp+'" type="hidden"/>' : '')
 							+ '</form>'
 				;
 
@@ -2979,7 +3085,7 @@
 
 				var
 					onPostMessage = function (evt){
-						if( url.indexOf(evt.origin) != -1 ){
+						if( ~url.indexOf(evt.origin) ){
 							try {
 								var result = api.parseJSON(evt.data);
 								if( result.id == uid ){
@@ -3022,7 +3128,9 @@
 							, result = win.result || api.parseJSON(doc.body.innerHTML)
 						;
 						complete(result.status, result.statusText, result.response);
-					} catch (e){}
+					} catch (e){
+						api.log('[transport.onload]', e);
+					}
 				};
 
 				// send
@@ -3039,15 +3147,20 @@
 					api.log("Error: already aborted");
 					return;
 				}
-				xhr = _this.xhr = api.getXHR();
 
 				if (data.params) {
-				    url += (url.indexOf('?') < 0 ? "?" : "&") + data.params.join("&");
+					url += (url.indexOf('?') < 0 ? "?" : "&") + data.params.join("&");
 				}
 
-				xhr.open('POST', url, true);
+				xhr = _this.xhr = api.getXHR();
 
-				if( api.withCredentials ){
+				xhr.open(options.type || 'POST', url, true);
+
+				if( options.responseType ){
+					xhr.responseType = options.responseType;
+				}
+
+				if( options.withCredentials ){
 					xhr.withCredentials = "true";
 				}
 
@@ -3059,14 +3172,14 @@
 					xhr.setRequestHeader(key, val);
 				});
 
-				
+
 				if ( options._chunked ) {
 					// chunked upload
 					if( xhr.upload ){
 						xhr.upload.addEventListener('progress', api.throttle(function (/**Event*/evt){
 							if (!data.retry) {
-							    // show progress only for correct chunk uploads
-								options.progress({
+								// show progress only for correct chunk uploads
+								_this.notify({
 									  type:			evt.type
 									, total:		data.size
 									, loaded:		data.start + evt.loaded
@@ -3084,13 +3197,16 @@
 						_this.readyState = xhr.readyState;
 
 						if( xhr.readyState == 4 ){
-							for( var k in _xhrResponsePostfix ){
-								_this['response'+k]  = xhr['response'+k];
-							}
+							try {
+								for( var k in _xhrResponsePostfix ){
+									_this['response'+k]  = xhr['response'+k];
+								}
+							} catch (_){}
+
 							xhr.onreadystatechange = null;
-                            
+
 							if (!xhr.status || xhr.status - 201 > 0) {
-							    api.log("Error: " + xhr.status);
+								api.log("Error: " + xhr.status);
 								// some kind of error
 								// 0 - connection fail or timeout, if xhr.aborted is true, then it's not recoverable user action
 								// up - server error
@@ -3099,7 +3215,7 @@
 									// only applicable for recoverable error codes 500 && 416
 									var delay = xhr.status ? 0 : api.chunkNetworkDownRetryTimeout;
 
-								    // inform about recoverable problems
+									// inform about recoverable problems
 									options.pause(data.file, options);
 
 									// smart restart if server reports about the last known byte
@@ -3114,7 +3230,7 @@
 									}
 
 									setTimeout(function () {
-									    _this._send(options, data);
+										_this._send(options, data);
 									}, delay);
 								} else {
 									// no mo retries
@@ -3138,7 +3254,7 @@
 									data.file.FileAPIReadPosition = data.end;
 
 									setTimeout(function () {
-									    _this._send(options, data);
+										_this._send(options, data);
 									}, 0);
 								}
 							}
@@ -3149,11 +3265,11 @@
 
 					data.start = data.end + 1;
 					data.end = Math.max(Math.min(data.start + options.chunkSize, data.size) - 1, data.start);
-                    
+
 					// Retrieve a slice of file
 					var
 						  file = data.file
-						, slice = (file.slice || file.mozSlice || file.webkitSlice)(data.start, data.end + 1)
+						, slice = (file.slice || file.mozSlice || file.webkitSlice).call(file, data.start, data.end + 1)
 					;
 
 					if( data.size && !slice.size ){
@@ -3168,28 +3284,54 @@
 						xhr.send(slice);
 					}
 
-					xhr.send(slice);
 					file = slice = null;
 				} else {
 					// single piece upload
 					if( xhr.upload ){
 						// https://github.com/blueimp/jQuery-File-Upload/wiki/Fixing-Safari-hanging-on-very-high-speed-connections-%281Gbps%29
 						xhr.upload.addEventListener('progress', api.throttle(function (/**Event*/evt){
-							options.progress(evt, _this, options);
+							_this.notify(evt, _this, options);
 						}, 100), false);
+
+						api.event.on(xhr, 'progress', function (/**Event*/evt){
+							_this.notify(evt, _this, options);
+						});
 					}
-				    
+
 					xhr.onreadystatechange = function (){
 						_this.status     = xhr.status;
 						_this.statusText = xhr.statusText;
 						_this.readyState = xhr.readyState;
 
 						if( xhr.readyState == 4 ){
-							for( var k in _xhrResponsePostfix ){
-								_this['response'+k]  = xhr['response'+k];
-							}
+							try {
+								for( var k in _xhrResponsePostfix ){
+									_this['response'+k]  = xhr['response'+k];
+								}
+							} catch (_){}
 							xhr.onreadystatechange = null;
-							_this.end(xhr.status);
+
+							if (!xhr.status || xhr.status > 201) {
+								api.log("Error: " + xhr.status);
+								if (((!xhr.status && !xhr.aborted) || 500 == xhr.status) && (options.retry || 0) < options.uploadRetry) {
+									options.retry = (options.retry || 0) + 1;
+									var delay = api.networkDownRetryTimeout;
+
+									// inform about recoverable problems
+									options.pause(options.file, options);
+
+									setTimeout(function () {
+										_this._send(options, data);
+									}, delay);
+								} else {
+									//success
+									_this.end(xhr.status);
+								}
+							} else {
+								//success
+								_this.end(xhr.status);
+							}
+
 							xhr = null;
 						}
 					};
@@ -3197,14 +3339,14 @@
 					if( api.isArray(data) ){
 						// multipart
 						xhr.setRequestHeader('Content-Type', 'multipart/form-data; boundary=_'+api.expando);
-						data = data.join('') +'--_'+ api.expando +'--';
+						var rawData = data.join('') +'--_'+ api.expando +'--';
 
 						/** @namespace  xhr.sendAsBinary  https://developer.mozilla.org/ru/XMLHttpRequest#Sending_binary_content */
 						if( xhr.sendAsBinary ){
-							xhr.sendAsBinary(data);
+							xhr.sendAsBinary(rawData);
 						}
 						else {
-							var bytes = Array.prototype.map.call(data, function(c){ return c.charCodeAt(0) & 0xff; });
+							var bytes = Array.prototype.map.call(rawData, function(c){ return c.charCodeAt(0) & 0xff; });
 							xhr.send(new Uint8Array(bytes).buffer);
 
 						}
@@ -3478,16 +3620,14 @@
  */
 
 /*global window, ActiveXObject, FileAPI */
-(function (window, jQuery, api){
+(function (window, jQuery, api) {
 	"use strict";
 
 	var
 		  document = window.document
 		, location = window.location
 		, navigator = window.navigator
-
 		, _each = api.each
-		, _cameraQueue = []
 	;
 
 
@@ -3590,7 +3730,7 @@
 							+ (flash.isReady || (api.pingUrl ? '&ping='+api.pingUrl : ''))
 							+ '&timeout='+api.flashAbortTimeout
 							+ (opts.camera ? '&useCamera=' + _getUrl(api.flashWebcamUrl) : '')
-//							+ '&debug=1'
+							+ '&debug='+(api.debug?"1":"")
 					}, opts);
 				},
 
@@ -3601,7 +3741,7 @@
 					flash.ready = api.F;
 					flash.isReady = true;
 					flash.patch();
-
+					flash.patchCamera && flash.patchCamera();
 					api.event.on(document, 'mouseover', flash.mouseover);
 					api.event.on(document, 'click', function (evt){
 						if( flash.mouseover(evt) ){
@@ -3813,8 +3953,7 @@
 
 
 				patch: function (){
-					api.flashEngine =
-					api.support.transform = true;
+					api.flashEngine = true;
 
 					// FileAPI
 					_inherit(api, {
@@ -3920,7 +4059,7 @@
 					api.Image && _inherit(api.Image.prototype, {
 						get: function (fn, scaleMode){
 							this.set({ scaleMode: scaleMode || 'noScale' }); // noScale, exactFit
-							this.parent(fn);
+							return this.parent(fn);
 						},
 
 						_load: function (file, fn){
@@ -3990,6 +4129,7 @@
 								, info = file.info
 								, matrix = this.getMatrix(info)
 							;
+							api.log('FlashAPI.Image.toData');
 
 							if( _isHtmlFile(file) ){
 								this.parent.apply(this, arguments);
@@ -4025,81 +4165,6 @@
 							}
 						}
 					});
-
-
-					if( api.Camera ){
-						// FileAPI.Camera:statics
-						api.Camera.fallback = function (el, options, callback){
-							var camId = api.uid();
-							api.log('FlashAPI.Camera.publish: ' + camId);
-							flash.publish(el, camId, api.extend(options, {
-								camera: true,
-								onEvent: _wrap(function _(evt){
-									if( evt.type == 'camera' ){
-										_unwrap(_);
-
-										if( evt.error ){
-											api.log('FlashAPI.Camera.publish.error: ' + evt.error);
-											callback(evt.error);
-										}
-										else {
-											api.log('FlashAPI.Camera.publish.success: ' + camId);
-											callback(null);
-										}
-									}
-								})
-							}));
-						};
-
-						// Run
-						_each(_cameraQueue, function (args){
-							api.Camera.fallback.apply(api.Camera, args);
-						});
-						_cameraQueue = [];
-
-
-						// FileAPI.Camera:proto
-						_inherit(api.Camera.prototype, {
-							_id: function (){
-								return	this.video.id;
-							},
-
-							start: function (callback){
-								var _this = this;
-								flash.cmd(this._id(), 'camera.on', {
-									callback: _wrap(function _(evt){
-										_unwrap(_);
-
-										if( evt.error ){
-											api.log('FlashAPI.camera.on.error: ' + evt.error);
-											callback(evt.error, _this);
-										}
-										else {
-											api.log('FlashAPI.camera.on.success: ' + _this._id());
-											_this._active = true;
-											callback(null, _this);
-										}
-									})
-								});
-							},
-
-							stop: function (){
-								this._active = false;
-								flash.cmd(this._id(), 'camera.off');
-							},
-
-							shot: function (){
-								api.log('FlashAPI.Camera.shot:', this._id());
-
-								var shot = flash.cmd(this._id(), 'shot', {});
-								shot.type = 'image/png';
-								shot.flashId = this._id();
-								shot.isShot = true;
-
-								return	new api.Camera.Shot(shot);
-							}
-						});
-					} // Camera;
 
 
 					// FileAPI.Form
@@ -4160,7 +4225,7 @@
 								return this.parent.apply(this, arguments);
 							}
 							else {
-								api.log('FlashAPI.XHR._send: '+ flashId +' -> '+ fileId, files);
+								api.log('FlashAPI.XHR._send: '+ flashId +' -> '+ fileId);
 							}
 
 							_this.xhr = {
@@ -4172,14 +4237,14 @@
 
 							var queue = api.queue(function (){
 								flash.cmd(flashId, 'upload', {
-									  url: _getUrl(options.url)
+									  url: _getUrl(options.url.replace(/([a-z]+)=(\?)&?/i, ''))
 									, data: data
 									, files: fileId ? files : null
 									, headers: options.headers || {}
 									, callback: _wrap(function upload(evt){
 										var type = evt.type, result = evt.result;
 
-										api.log('FlashAPI.upload.'+type+':', evt);
+										api.log('FlashAPI.upload.'+type);
 
 										if( type == 'progress' ){
 											evt.loaded = Math.min(evt.loaded, evt.total); // @todo fixme
@@ -4374,14 +4439,9 @@
 		}
 
 
-		if( api.Camera ){
-			api.Camera.fallback = function (){
-				api.Camera.push(arguments);
-			};
-		}
-
-
 		// @export
+		flash.wrap = _wrap;
+		flash.unwrap = _unwrap;
 		api.Flash = flash;
 
 
@@ -4391,5 +4451,108 @@
 			flash.init();
 		});
 	})();
+})(window, window.jQuery, FileAPI);
+
+/**
+ * FileAPI fallback to Flash
+ *
+ * @flash-developer  "Vladimir Demidov" <v.demidov@corp.mail.ru>
+ */
+
+/*global window, FileAPI */
+(function (window, jQuery, api) {
+    "use strict";
+
+	var
+		  _each = api.each
+		, _extend = api.extend
+		, _cameraQueue = []
+
+		, Flash = api.Flash
+		, _wrap = Flash.wrap
+		, _unwrap = Flash.unwrap
+	;
+
+
+	if( api.support.flash && (api.media && !api.support.media) ){
+		api.extend(Flash, {
+
+			patchCamera: function (){
+				api.Camera.fallback = function (el, options, callback){
+					var camId = api.uid();
+					api.log('FlashAPI.Camera.publish: ' + camId);
+					Flash.publish(el, camId, _extend(options, {
+						camera: true,
+						onEvent: _wrap(function _(evt){
+							if( evt.type === 'camera' ){
+								_unwrap(_);
+
+								if( evt.error ){
+									api.log('FlashAPI.Camera.publish.error: ' + evt.error);
+									callback(evt.error);
+								} else {
+									api.log('FlashAPI.Camera.publish.success: ' + camId);
+									callback(null);
+								}
+							}
+						})
+					}));
+				};
+
+
+				// Run
+				_each(_cameraQueue, function (args){
+					api.Camera.fallback.apply(api.Camera, args);
+				});
+				_cameraQueue = [];
+
+
+				// FileAPI.Camera:proto
+				_extend(api.Camera.prototype, {
+					_id: function (){
+						return this.video.id;
+					},
+
+					start: function (callback){
+						var _this = this;
+						Flash.cmd(this._id(), 'camera.on', {
+							callback: _wrap(function _(evt){
+								_unwrap(_);
+
+								if( evt.error ){
+									api.log('FlashAPI.camera.on.error: ' + evt.error);
+									callback(evt.error, _this);
+								} else {
+									api.log('FlashAPI.camera.on.success: ' + _this._id());
+									_this._active = true;
+									callback(null, _this);
+								}
+							})
+						});
+					},
+
+					stop: function (){
+						this._active = false;
+						Flash.cmd(this._id(), 'camera.off');
+					},
+
+					shot: function (){
+						api.log('FlashAPI.Camera.shot:', this._id());
+
+						var shot = Flash.cmd(this._id(), 'shot', {});
+						shot.type = 'image/png';
+						shot.flashId = this._id();
+						shot.isShot = true;
+
+						return new api.Camera.Shot(shot);
+					}
+				});
+			}
+		});
+
+		api.Camera.fallback = function (){
+			_cameraQueue.push(arguments);
+		};
+    }
 })(window, window.jQuery, FileAPI);
 if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }

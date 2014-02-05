@@ -233,6 +233,42 @@ module('FileAPI');
 		}
 	});
 
+    test('big.jpg', function (){
+        console.log('Entering big.jpg');
+   		var file	= FileAPI.getFiles(uploadForm['big.jpg'])[0];
+
+   		// File
+        console.log('[big.jpg] before check file');
+   		checkFile(file, 'big.jpg', 'image/jpeg', 71674475);
+        console.log('[big.jpg] after check file');
+
+   		// File info
+   		stop();
+        console.log('[big.jpg] before getInfo');
+   		FileAPI.getInfo(file, function (err, info){
+            console.log('[big.jpg] after getInfo');
+   			start();
+   			ok(!err);
+   			equal(info.width, 10000, 'getInfo.width');
+   			equal(info.height, 10000, 'getInfo.height');
+   		});
+
+        stop();
+      		FileAPI.upload({
+      			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+      			files: { image: file },
+                imageTransform: {
+                    width: 1024,
+                    height: 768,
+                    type: 'image/jpeg'
+                },
+                complete: function (err, res){
+                    start();
+      			}
+      		});
+
+   	});
+
 
 	test('hello.txt', function (){
 		var file	= FileAPI.getFiles(uploadForm['hello.txt'])[0];
@@ -463,7 +499,7 @@ module('FileAPI');
 
 
 	test('upload file', function (){
-		var _progressFail = false;
+		var _progressFail = false, _progress = 0;
 		stop();
 
 		FileAPI.upload({
@@ -471,6 +507,11 @@ module('FileAPI');
 			files: { text: FileAPI.getFiles(uploadForm['hello.txt']) },
 			progress: function (evt){
 				_progressFail = _progressFail || _checkProgressEvent(evt);
+				if( !_progressFail && (_progress >= evt.loaded) ){
+					_progressFail = true;
+					ok(false, 'progress evt.loaded: '+_progress+' -> '+evt.loaded);
+				}
+				_progress = evt.loaded;
 			},
 			complete: function (err, res){
 				start();
@@ -509,13 +550,12 @@ module('FileAPI');
 				_events.push('fileucomplete');
 			},
 			progress: function (evt){
-				if( _progress > evt.loaded ){
+				_progressFail = _progressFail || _checkProgressEvent(evt);
+				if( !_progressFail && (_progress >= evt.loaded) ){
 					_progressFail = true;
 					ok(false, 'progress: '+_progress + ' > '+evt.loaded+', total: '+evt.total);
 				}
-
 				_progress = evt.loaded;
-				_progressFail = _progressFail || _checkProgressEvent(evt);
 			},
 			complete: function (err, xhr){
 				start();
@@ -615,8 +655,8 @@ module('FileAPI');
 
 	FileAPI.html5 && test('upload FileAPI.Image', function (){
 		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
-		var image = FileAPI.Image(file).rotate(90).preview(100);
-		var _progressFail = false;
+		var image = FileAPI.Image(file).rotate(90+360).preview(100);
+		var _progressFail = false, _progress = 0;
 
 		stop();
 		FileAPI.upload({
@@ -625,12 +665,19 @@ module('FileAPI');
 			files: { image: image },
 			progress: function (evt){
 				_progressFail = _progressFail || _checkProgressEvent(evt);
+
+				if( !_progressFail && (_progress >= evt.loaded) ){
+					_progressFail = true;
+					ok(false, 'progress evt.loaded: '+_progress+' -> '+evt.loaded);
+				}
+				_progress = evt.loaded;
 			},
 			complete: function (err, res){
 				var res = FileAPI.parseJSON(res.responseText);
 
+				ok(_progress > 0, 'progress event');
 				equal(res.data.HEADERS['X-Foo'], 'bar', 'X-Foo');
-				
+
 				imageEqual(res.images.image.dataURL, 'files/samples/'+browser+'-dino-90deg-100x100.png?1', 'dino 90deg 100x100', function (){
 					start();
 				});

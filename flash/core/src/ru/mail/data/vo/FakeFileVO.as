@@ -45,12 +45,12 @@ package ru.mail.data.vo
 		 * @return 
 		 * 
 		 */		
-		public function get imageData():BitmapData 
+		public function get imageData():BitmapData
 		{
 			return _imageData;
 		}
 
-		public function set imageData(bd:BitmapData):void 
+		public function set imageData(bd:BitmapData):void
 		{
 			_imageData = bd;
 		}
