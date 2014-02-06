@@ -1590,7 +1590,9 @@ Button like link.
 	<li>+ `FileAPI.upload(url, files[, opts])`</li>
 	<li>#134: + `FileAPI.getMimeType(file)`</li>
 	<li>+ `serial: true` upload option</li>
+	<li>+ `parallel: Number` upload option</li>
 	<li>+ `postName: 'files'` uplaod option</li>
+	<li>+ `FileAPI.saveAs(file, name)` uplaod option</li>
 </ul>
 
 ### 2.0.4
