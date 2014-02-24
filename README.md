@@ -1,9 +1,11 @@
 ﻿<a name="FileAPI"></a>
-## FileAPI
+## FileAPI <img src="https://api.travis-ci.org/mailru/FileAPI.png?branch=master"/>
 A set of javascript tools for working with files.
 
 <a name="started"></a>
 ### Get started
+
+Download the files from the [dist](https://github.com/mailru/FileAPI/tree/master/dist) directory, and then:
 
 ```html
 	<div>
@@ -280,7 +282,7 @@ FileAPI.readAsBinaryString(file, function (evt/**Object*/){
 ---
 
 <a name="FileAPI.readAsArrayBuffer"></a>
-### readAsBinaryString(file`:Object`, callback`:Function`)`:void`
+### readAsArrayBuffer(file`:Object`, callback`:Function`)`:void`
 Reading the contents of the specified `File` as `ArrayBuffer`.
 
 * file — file object
@@ -765,12 +767,12 @@ FileAPI.Image(imageFile)
 ---
 
 <a name="FileAPI.Image.resize"></a>
-### resize(width`:Number`, height`:Number`[, type`:String`])`:FileAPI.Image`
+### resize(width`:Number`, height`:Number`[, strategy`:String`])`:FileAPI.Image`
 Resize image.
 
 * width — new image width
 * height — new image height
-* type — enum: `min`, `max`, `preview`. By default `undefined`.
+* strategy — enum: `min`, `max`, `preview`. By default `undefined`.
 
 ```js
 FileAPI.Image(imageFile)
@@ -1165,10 +1167,16 @@ Submit Query
 <script>
 (function (ctx, jsonp){
 	'use strict';
-	if( ctx && ctx[jsonp] ){
-		ctx[jsonp](200/*http.status*/, 'OK' /*http.statusText*/, "response body");
+	var status = {{httpStatus}}, statusText = "{{httpStatusText}}", response = "{{responseBody}}";
+	try {
+		ctx[jsonp](status, statusText, response);
+	} catch (e){
+		var data = "{\"id\":\""+jsonp+"\",\"status\":"+status+",\"statusText\":\""+statusText+"\",\"response\":\""+response.replace(/\"/g, '\\\\\"')+"\"}";
+		try {
+			ctx.postMessage(data, document.referrer);
+		} catch (e){}
 	}
-})(window, '{{$request_param_callback}}');
+})(window.parent, '{{request_param_callback}}');
 </script>
 
 <!-- or -->
@@ -1377,6 +1385,43 @@ Button like link.
 
 <a name="Changelog"></a>
 ## Changelog
+
+<ul>
+	<li>+ #207: support EXIF.Orientation == 5</li>
+</ul>
+
+
+### 2.0.4
+<ul>
+	<li>+ #176: Add params to the beginning of form</li>
+	<li>+ #190: Add 204 as a successful response</li>
+	<li>+ #192: many bugfixes; + `retry` & `multipass` options; + QUnit-tests for BigSizeImage</li>
+</ul>
+
+### 2.0.3
+<ul>
+	<li>+ QUnit-tests for iframe-transport</li>
+	<li>+ `postMessage` for iframe-transport</li>
+	<li>+ `jsonp: "callback"` option</li>
+	<li>* resize: `imageTransform.type` rename to `imageTransform.strategy` (!!!)</li>
+	<li>+ https://github.com/mailru/FileAPI/pull/165 (#140: fix)</li>
+</ul>
+
+### 2.0.2
+<ul>
+	<li>+ test: upload headers</li>
+	<li>+ test: upload + camanjs</li>
+	<li>+ test: upload + autoOrientation</li>
+	<li>FileAPI.class.php: + HTTP header Content-Type: application/json</li>
+	<li>#143: + `FileAPI.flashWebcamUrl` option</li>
+	<li>* merge v1.2.7</li>
+	<li>+ `FileAPI.formData: true` option</li>
+</ul>
+
+### 2.0.1
+<ul>
+	<li>+ support 'filter' prop in imageTransform</li>
+</ul>
 
 ### 2.0.0
 <ul>

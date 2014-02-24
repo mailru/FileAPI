@@ -202,10 +202,13 @@ package ru.mail.data
 					trace ("bitmap created, isSuccess", event.isSuccess);
 					LoggerJS.log('ImageFactory bitmap created, success '+ event.isSuccess);
 					if (event.isSuccess) {
+                        file.imageData = event.decodedBitmap.bitmapData;
+/*
 						file.imageData = new BitmapData( event.decodedBitmap.width, event.decodedBitmap.height );
 						file.imageData.copyPixels( event.decodedBitmap.bitmapData
 							, new Rectangle( 0, 0, event.decodedBitmap.width, event.decodedBitmap.height ), new Point( 0, 0 ));
 						event.decodedBitmap.bitmapData.dispose();
+*/
 
 						createImageFromSource(imageTransform);
 					}

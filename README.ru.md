@@ -279,7 +279,7 @@ FileAPI.readAsBinaryString(file, function (evt/**Object*/){
 ---
 
 <a name="FileAPI.readAsArrayBuffer"></a>
-### readAsBinaryString(file`:Object`, callback`:Function`)`:void`
+### readAsArrayBuffer(file`:Object`, callback`:Function`)`:void`
 Чтение содержимого указанного файла как `ArrayBuffer`.
 
 * file — файл для чтения
@@ -747,12 +747,12 @@ FileAPI.Image(imageFile)
 ---
 
 <a name="FileAPI.Image.resize"></a>
-### resize(width`:Number`, height`:Number`[, type`:String`])`:FileAPI.Image`
+### resize(width`:Number`, height`:Number`[, strategy`:String`])`:FileAPI.Image`
 Ресайз.
 
 * width — новая ширина
 * height — новая высота
-* type — enum: `min`, `max`, `preview`. По умолчанию `undefined`.
+* strategy — enum: `min`, `max`, `preview`. По умолчанию `undefined`.
 
 ```js
 FileAPI.Image(imageFile)
@@ -1147,10 +1147,16 @@ Submit Query
 <script>
 (function (ctx, jsonp){
 	'use strict';
-	if( ctx && ctx[jsonp] ){
-		ctx[jsonp](200/*http.status*/, 'OK' /*http.statusText*/, "response body");
+	var status = {{httpStatus}}, statusText = "{{httpStatusText}}", response = "{{responseBody}}";
+	try {
+		ctx[jsonp](status, statusText, response);
+	} catch (e){
+		var data = "{\"id\":\""+jsonp+"\",\"status\":"+status+",\"statusText\":\""+statusText+"\",\"response\":\""+response.replace(/\"/g, '\\\\\"')+"\"}";
+		try {
+			ctx.postMessage(data, document.referrer);
+		} catch (e){}
 	}
-})(window, '{{$request_param_callback}}');
+})(window.parent, '{{request_param_callback}}');
 </script>
 
 <!-- or -->
