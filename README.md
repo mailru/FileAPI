@@ -5,6 +5,8 @@ A set of javascript tools for working with files.
 <a name="started"></a>
 ### Get started
 
+Download the files from the [dist](https://github.com/mailru/FileAPI/tree/master/dist) directory, and then:
+
 ```html
 	<div>
 		<!-- "js-fileapi-wrapper" -- required class -->
