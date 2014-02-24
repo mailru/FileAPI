@@ -1384,6 +1384,11 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+<ul>
+	<li>+ #207: support EXIF.Orientation == 5</li>
+</ul>
+
+
 ### 2.0.4
 <ul>
 	<li>+ #176: Add params to the beginning of form</li>
