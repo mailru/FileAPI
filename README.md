@@ -1387,7 +1387,7 @@ Button like link.
 ## Changelog
 
 <ul>
-	<li>+ #207: support EXIF.Orientation == 5</li>
+	<li>+ #207: support EXIF.Orientation == 4, 5 & 7 </li>
 </ul>
 
 
