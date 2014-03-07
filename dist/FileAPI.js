@@ -2738,7 +2738,7 @@
 		},
 
 		_send: function (options, data){
-			var _this = this, xhr, uid = _this.uid, url = options.url;
+			var _this = this, xhr, uid = _this.uid, onloadFuncName = _this.uid + "Load", url = options.url;
 
 			api.log('XHR._send:', data);
 
@@ -2755,29 +2755,6 @@
 
 				// legacy
 				options.upload(options, _this);
-
-				xhr = document.createElement('div');
-				xhr.innerHTML = '<form target="'+ uid +'" action="'+ url +'" method="POST" enctype="multipart/form-data" style="position: absolute; top: -1000px; overflow: hidden; width: 1px; height: 1px;">'
-							+ '<iframe name="'+ uid +'" src="javascript:false;"></iframe>'
-							+ (jsonp && (options.url.indexOf('=?') < 0) ? '<input value="'+ uid +'" name="'+jsonp+'" type="hidden"/>' : '')
-							+ '</form>'
-				;
-
-				// get form-data & transport
-				var
-					  form = xhr.getElementsByTagName('form')[0]
-					, transport = xhr.getElementsByTagName('iframe')[0]
-				;
-
-				form.appendChild(data);
-
-				api.log(form.parentNode.innerHTML);
-
-				// append to DOM
-				document.body.appendChild(xhr);
-
-				// keep a reference to node-transport
-				_this.xhr.node = xhr;
 
 				var
 					onPostMessage = function (evt){
@@ -2800,7 +2777,7 @@
 						_this.end(status, statusText);
 
 						api.event.off(window, 'message', onPostMessage);
-						window[uid] = xhr = transport = transport.onload = null;
+						window[uid] = xhr = transport = window[onloadFuncName] = null;
 					}
 				;
 
@@ -2816,7 +2793,7 @@
 
 				api.event.on(window, 'message', onPostMessage);
 
-				transport.onload = function (){
+				window[onloadFuncName] = function (){
 					try {
 						var
 							  win = transport.contentWindow
@@ -2828,6 +2805,29 @@
 						api.log('[transport.onload]', e);
 					}
 				};
+
+				xhr = document.createElement('div');
+				xhr.innerHTML = '<form target="'+ uid +'" action="'+ url +'" method="POST" enctype="multipart/form-data" style="position: absolute; top: -1000px; overflow: hidden; width: 1px; height: 1px;">'
+							+ '<iframe name="'+ uid +'" src="javascript:false;" onload="' + onloadFuncName + '()"></iframe>'
+							+ (jsonp && (options.url.indexOf('=?') < 0) ? '<input value="'+ uid +'" name="'+jsonp+'" type="hidden"/>' : '')
+							+ '</form>'
+				;
+
+				// get form-data & transport
+				var
+					  form = xhr.getElementsByTagName('form')[0]
+					, transport = xhr.getElementsByTagName('iframe')[0]
+				;
+
+				form.appendChild(data);
+
+				api.log(form.parentNode.innerHTML);
+
+				// append to DOM
+				document.body.appendChild(xhr);
+
+				// keep a reference to node-transport
+				_this.xhr.node = xhr;
 
 				// send
 				_this.readyState = 2; // loaded
@@ -3033,7 +3033,7 @@
 
 						}
 					} else {
-						// FormData 
+						// FormData
 						xhr.send(data);
 					}
 				}
