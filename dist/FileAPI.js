@@ -526,7 +526,7 @@
 
 						doneList =
 						failList = null;
-						
+
 						progressList = [];
 
 						for( ; i < n; i++ ){
@@ -1611,7 +1611,7 @@
 			, type: api.getMimeType(name)
 		};
 	}
-	
+
 
 	function _isRegularFile(file, callback){
 		// http://stackoverflow.com/questions/8856628/detecting-folders-directories-in-javascript-filelist-objects
@@ -1784,7 +1784,7 @@
 
 					if( isOrignTrans ){
 						// Convert to array for transform function
-						trans = [trans];
+						trans = [].concat(trans);
 					}
 
 					api.Image.transform(file, trans, options.imageAutoOrientation, function (err, images){
@@ -3351,7 +3351,7 @@
 
 						}
 					} else {
-						// FormData 
+						// FormData
 						xhr.send(data);
 					}
 				}
