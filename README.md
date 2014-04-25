@@ -20,6 +20,7 @@ Download the files from the [dist](https://github.com/mailru/FileAPI/tree/master
 	<script>window.FileAPI = { staticPath: '/js/FileAPI/dist/' };</script>
 	<script src="/js/FileAPI/dist/FileAPI.min.js"></script>
 	<script>
+		var choose = document.getElementById('choose');
 		FileAPI.event.on(choose, 'change', function (evt){
 			var files = FileAPI.getFiles(evt); // Retrieve file list
 
@@ -1387,7 +1388,7 @@ Button like link.
 ## Changelog
 
 <ul>
-	<li>+ #207: support EXIF.Orientation == 5</li>
+	<li>+ #207: support EXIF.Orientation == 4, 5 & 7 </li>
 </ul>
 
 
