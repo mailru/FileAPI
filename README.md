@@ -10,9 +10,9 @@ Download the files from the [dist](https://github.com/mailru/FileAPI/tree/master
 ```html
 	<div>
 		<!-- "js-fileapi-wrapper" -- required class -->
-		<div class="js-fileapi-wrapper upload-btn" id="choose">
+		<div class="js-fileapi-wrapper upload-btn">
 			<div class="upload-btn__txt">Choose files</div>
-			<input name="files" type="file" multiple />
+			<input id="choose" name="files" type="file" multiple />
 		</div>
 		<div id="images"><!-- previews --></div>
 	</div>
