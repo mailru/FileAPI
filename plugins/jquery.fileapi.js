@@ -541,8 +541,6 @@
 				this._$fileprogress = $progress = this.$elem('file.progress', $file);
 			}
 
-			console.log(uid, ui, $file);
-
 			if( type == 'progress' ){
 				$progress.stop().animate({ width: ui.loaded/ui.total*100 + '%' }, 300);
 			}
