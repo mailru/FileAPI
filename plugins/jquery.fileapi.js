@@ -541,8 +541,6 @@
 				this._$fileprogress = $progress = this.$elem('file.progress', $file);
 			}
 
-			console.log(uid, ui, $file);
-
 			if( type == 'progress' ){
 				$progress.stop().animate({ width: ui.loaded/ui.total*100 + '%' }, 300);
 			}
@@ -1177,7 +1175,7 @@
 	};
 
 
-	$.fn.fileapi.version = '0.4.0';
+	$.fn.fileapi.version = '0.4.1';
 	$.fn.fileapi.tpl = function (text){
 		var index = 0;
 		var source = "__b+='";
