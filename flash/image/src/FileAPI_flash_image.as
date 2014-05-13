@@ -56,8 +56,10 @@ package{
 		private function callReady():Boolean{
 			var isReady:Boolean = false;
 			try {
-				var r:* = ExternalInterface.call(callback);
-				isReady = ( r != null );
+				if ( callback.match(/^FileAPI\.Flash\.(onEvent|_fn\.fileapi\d+)$/) ) {
+					var r:* = ExternalInterface.call(callback);
+					isReady = ( r != null );
+				}
 			}
 			catch ( e:Error ) {}
 			return isReady;

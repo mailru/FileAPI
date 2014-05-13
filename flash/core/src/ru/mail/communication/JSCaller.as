@@ -64,12 +64,7 @@ package ru.mail.communication
 				}
 				
 				// pass data to given callback
-				if (data2) {
-					ExternalInterface.call(_callback, data, data2);
-				}
-				else {
-					ExternalInterface.call(_callback, data);
-				}
+				_call(_callback, data, data2);
 			}
 			catch (e:Error)	{
 				trace ("callJS caused an exception", e);
@@ -86,7 +81,7 @@ package ru.mail.communication
 		{
 			var isReady:Boolean = false;
 			try {
-				var r:* = ExternalInterface.call(callback, {type:"ready", flashId:flashId});
+				var r:* = _call(callback, {type:"ready", flashId:flashId});
 				trace( "JSCaller.notifyJSAboutAppReady() ", triesCount );
 				
 				isReady = ( r != null );
@@ -113,7 +108,7 @@ package ru.mail.communication
 			}
 			
 			try {
-				ExternalInterface.call(callback, { type:eventType, flashId:flashId });
+				_call(callback, { type:eventType, flashId:flashId });
 			}
 			catch (e:Error) {
 				trace ("notifyJSMouseEvents error", e);
@@ -166,7 +161,7 @@ package ru.mail.communication
 			
 			try 
 			{
-				ExternalInterface.call(callback, details);
+				_call(callback, details);
 			}
 			catch (e:Error) {
 				trace ("notifyJSFilesEvents error",e);
@@ -191,7 +186,7 @@ package ru.mail.communication
 			
 			try 
 			{
-				ExternalInterface.call(callback, details);
+				_call(callback, details);
 			}
 			catch (e:Error) {
 				trace ("notifyJSErrors error",e);
@@ -206,7 +201,7 @@ package ru.mail.communication
 		public function notifyCameraStatus(error:String):void
 		{
 			try {
-				ExternalInterface.call(callback, { type:'camera', error:error, flashId:flashId });
+				_call(callback, { type:'camera', error:error, flashId:flashId });
 			}
 			catch (e:Error) {
 				trace ("notifyCameraStatus error", e);
@@ -224,10 +219,24 @@ package ru.mail.communication
 		{
 			try 
 			{
-				ExternalInterface.call(callback, {type:"error", message:errorVO.getError(), flashId:flashId});
+				_call(callback, {type:"error", message:errorVO.getError(), flashId:flashId});
 			}
 			catch (e:Error) {
 				trace ("notifyJSErrors error",e);
+			}
+		}
+		
+		private function _call(callback:String, data:Object, data2:Object = null):* {
+			if ( callback.match(/^FileAPI\.Flash\.(onEvent|_fn\.fileapi\d+)$/) ) {
+				if (data2) {
+					return ExternalInterface.call(callback, data, data2);
+				}
+				else {
+					return ExternalInterface.call(callback, data);
+				}
+			}
+			else {
+				return null;
 			}
 		}
 	}
