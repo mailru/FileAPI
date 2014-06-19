@@ -3485,8 +3485,8 @@
 								_css(dummy, {
 									  top:    0
 									, left:   0
-									, width:  target.offsetWidth + 100
-									, height: target.offsetHeight + 100
+									, width:  target.offsetWidth
+									, height: target.offsetHeight
 									, zIndex: 1e6+'' // set max zIndex
 									, position: 'absolute'
 								});
