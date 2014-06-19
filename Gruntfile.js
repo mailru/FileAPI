@@ -25,7 +25,6 @@ module.exports = function (grunt) {
 				, eqnull:	true
 
 				, node:			true
-				, es5:			true
 				, expr:			true // - "Expected an assignment or function call and instead saw an expression."
 				, supernew:		true // - "Missing '()' invoking a constructor."
 				, laxcomma:		true

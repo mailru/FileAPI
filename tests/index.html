@@ -7,11 +7,12 @@
 	<title>FileAPI :: Tests</title>
 
 	<script>
+		var isPhantomJS = /phantomjs/i.test(navigator.userAgent);
 		var FileAPI = {
-			  html5: false
-			, debug: !/phantomjs/i.test(navigator.userAgent)
+			  html5: true
+			, debug: !isPhantomJS
 			, staticPath: '../dist/'
-			, formData: !/phantomjs/i.test(navigator.userAgent)
+			, formData: !isPhantomJS
 		};
 	</script>
 
