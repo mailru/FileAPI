@@ -1,4 +1,10 @@
-(function (){
+(function (exec) {
+	if( typeof define === 'function' && define.amd ){
+		define('FileAPI.id3', [], exec);
+	} else {
+		exec();
+	}
+})(function (){
 /**
  * JavaScript ID3 Reader
  * https://github.com/aadsm/JavaScript-ID3-Reader
@@ -64,4 +70,4 @@ FileAPI.addInfoReader(/^audio/i, function (file, callback){
 
 	file.__id3.then(callback);
 });
-})();
+});

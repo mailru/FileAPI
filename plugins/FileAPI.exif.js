@@ -1,4 +1,10 @@
-(function (){
+(function (exec) {
+	if( typeof define === 'function' && define.amd ){
+		define('FileAPI.exif', [], exec);
+	} else {
+		exec();
+	}
+})(function (){
 /**!
  * Binary Ajax 0.1.10
  * Copyright (c) 2008 Jacob Seidelin, cupboy@gmail.com, http://blog.nihilogic.dk/
@@ -66,4 +72,4 @@ FileAPI.addInfoReader(/^image/, function (file/**File*/, callback/**Function*/){
 
 	file.__exif.then(callback);
 });
-})();
+});

@@ -1388,6 +1388,8 @@ Button like link.
 ## Changelog
 
 <ul>
+	<li>+ Improved support RequireJS</li>
+	<li>+ #228: Fixed XSS in Flash.callback</li>
 	<li>+ #207: support EXIF.Orientation == 4, 5 & 7 </li>
 </ul>
 
