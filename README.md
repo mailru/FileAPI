@@ -1387,7 +1387,10 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.5
 <ul>
+	<li>+ #228: check callbacks with regexp</li>
+	<li>* Updated devDepending</li>
 	<li>+ #207: support EXIF.Orientation == 4, 5 & 7 </li>
 </ul>
 
