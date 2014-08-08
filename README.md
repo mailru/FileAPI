@@ -94,7 +94,7 @@ Retrieve file list from `input` element or `event` object, also support `jQuery`
 
 ```js
 var el = document.getElement('my-input');
-FileAPI.event.on(el, function (evt/**Event*/){
+FileAPI.event.on(el, 'change', function (evt/**Event*/){
 	// Retrieve file list
 	var files = FileAPI.getFiles(el);
 
