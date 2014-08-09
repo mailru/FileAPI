@@ -1685,7 +1685,8 @@
 		}
 
 		if( FileReader ){
-			_on(el, 'dragenter dragleave dragover', function (evt){
+			// Hover
+			_on(el, 'dragenter dragleave dragover', onHover.ff = onHover.ff || function (evt){
 				var
 					  types = _getDataTransfer(evt).types
 					, i = types && types.length
@@ -1718,7 +1719,9 @@
 				}
 			});
 
-			_on(el, 'drop', function (evt){
+
+			// Drop
+			_on(el, 'drop', onDrop.ff = onDrop.ff || function (evt){
 				evt[preventDefault]();
 
 				_type = 0;
@@ -1742,8 +1745,8 @@
 	 * @param	{Function}		onDrop
 	 */
 	api.event.dnd.off = function (el, onHover, onDrop){
-		_off(el, 'dragenter dragleave dragover', onHover);
-		_off(el, 'drop', onDrop);
+		_off(el, 'dragenter dragleave dragover', onHover.ff);
+		_off(el, 'drop', onDrop.ff);
 	};
 
 
