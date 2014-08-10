@@ -1387,6 +1387,12 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.6
+<ul>
+	<li>#240: Fixed `FileAPI.event.dnd.off`</li>
+</ul>
+
+
 ### 2.0.5
 <ul>
 	<li>+ #228: check callbacks with regexp</li>

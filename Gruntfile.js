@@ -175,6 +175,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-mxmlc');
 	grunt.loadNpmTasks('grunt-curl');
+
 	// Load custom QUnit task, based on grunt-contrib-qunit, but support "files" option.
 	grunt.loadTasks('./tests/grunt-task/');
 	grunt.loadTasks('./custom-tasks/');
@@ -185,7 +186,9 @@ module.exports = function (grunt) {
 			grunt.task.run('curl');
 		}
 	});
+
 	grunt.registerTask('tests', ['jshint', 'concat', 'connect:server','prepare-test-files',  'qunit']);
-	grunt.registerTask('build', ['version', 'concat', 'uglify', 'mxmlc']);
+	grunt.registerTask('build', ['version', 'concat', 'uglify']);
+	grunt.registerTask('build-all', ['build', 'mxmlc']);
 	grunt.registerTask('default', ['tests', 'build']);
 };
