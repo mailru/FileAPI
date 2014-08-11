@@ -437,7 +437,12 @@ module('FileAPI');
 	FileAPI.html5 && test('upload FileAPI.Image', function (){
 		var file = FileAPI.getFiles(uploadForm['dino.png'])[0];
 		var image = FileAPI.Image(file).rotate(90+360).preview(100);
-		var _progressFail = false, _progress = 0;
+		var _progressFail = false,
+			_progress = 0,
+			_fileprogress = 0,
+			_filecomplete,
+			_filecompleteErr
+		;
 
 		stop();
 		FileAPI.upload({
@@ -453,13 +458,27 @@ module('FileAPI');
 				}
 				_progress = evt.loaded;
 			},
+			fileprogress: function (evt) {
+				if (_fileprogress < evt.loaded) {
+					_fileprogress = evt.loaded;
+				}
+			},
+			filecomplete: function (err, res){
+				_filecomplete = res.responseText;
+				_filecompleteErr = err;
+			},
 			complete: function (err, res){
-				var res = FileAPI.parseJSON(res.responseText);
+				var json = FileAPI.parseJSON(res.responseText);
 
 				ok(_progress > 0, 'progress event');
-				equal(res.data.HEADERS['X-Foo'], 'bar', 'X-Foo');
+				ok(_fileprogress > 0, 'fileprogress event');
 
-				imageEqual(res.images.image.dataURL, 'files/samples/'+browser+'-dino-90deg-100x100.png?1', 'dino 90deg 100x100', function (){
+				equal(err, _filecompleteErr, 'filecomplete.err');
+				equal(res.responseText, _filecomplete, 'filecomplete.response');
+
+				equal(json.data.HEADERS['X-Foo'], 'bar', 'X-Foo');
+
+				imageEqual(json.images.image.dataURL, 'files/samples/'+browser+'-dino-90deg-100x100.png?1', 'dino 90deg 100x100', function (){
 					start();
 				});
 			}
