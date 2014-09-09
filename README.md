@@ -1390,6 +1390,7 @@ Button like link.
 ### 2.0.6
 <ul>
 	<li>#240: Fixed `FileAPI.event.dnd.off`</li>
+	<li>Fixed iframe-transport (remove `disabled`-attr for input)</li>
 </ul>
 
 
