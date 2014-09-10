@@ -1387,10 +1387,17 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+
+### 2.0.7
+<ul>
+	<li>#214: iframe transport under IE8</li>
+	<li>Fixed iframe-transport (remove `disabled`-attr for input)</li>
+</ul>
+
+
 ### 2.0.6
 <ul>
 	<li>#240: Fixed `FileAPI.event.dnd.off`</li>
-	<li>Fixed iframe-transport (remove `disabled`-attr for input)</li>
 </ul>
 
 
