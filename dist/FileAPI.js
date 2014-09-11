@@ -2133,9 +2133,9 @@
 			if( !err ){
 				api.each(transform, function (params, name){
 					if( !queue.isFail() ){
-						var ImgTrans = new Image(img.nodeType ? img : file);
+						var ImgTrans = new Image(img.nodeType ? img : file), isFn = typeof params == 'function';
 
-						if( typeof params == 'function' ){
+						if( isFn ){
 							params(img, ImgTrans);
 						}
 						else if( params.width ){
@@ -2156,13 +2156,15 @@
 							params.rotate = 'auto';
 						}
 
-						ImgTrans.set({
-							  deg: params.rotate
-							, type: params.type || file.type || 'image/png'
-							, quality: params.quality || 1
-							, overlay: params.overlay
-							, filter: params.filter
-						});
+						if( !isFn ){
+							ImgTrans.set({
+								  deg: params.rotate
+								, type: params.type || file.type || 'image/png'
+								, quality: params.quality || 1
+								, overlay: params.overlay
+								, filter: params.filter
+							});
+						}
 
 						queue.inc();
 						ImgTrans.toData(function (err, image){
@@ -3491,8 +3493,8 @@
 								_css(dummy, {
 									  top:    0
 									, left:   0
-									, width:  target.offsetWidth + 100
-									, height: target.offsetHeight + 100
+									, width:  target.offsetWidth
+									, height: target.offsetHeight
 									, zIndex: 1e6+'' // set max zIndex
 									, position: 'absolute'
 								});

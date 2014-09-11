@@ -2133,9 +2133,9 @@
 			if( !err ){
 				api.each(transform, function (params, name){
 					if( !queue.isFail() ){
-						var ImgTrans = new Image(img.nodeType ? img : file);
+						var ImgTrans = new Image(img.nodeType ? img : file), isFn = typeof params == 'function';
 
-						if( typeof params == 'function' ){
+						if( isFn ){
 							params(img, ImgTrans);
 						}
 						else if( params.width ){
@@ -2156,13 +2156,15 @@
 							params.rotate = 'auto';
 						}
 
-						ImgTrans.set({
-							  deg: params.rotate
-							, type: params.type || file.type || 'image/png'
-							, quality: params.quality || 1
-							, overlay: params.overlay
-							, filter: params.filter
-						});
+						if( !isFn ){
+							ImgTrans.set({
+								  deg: params.rotate
+								, type: params.type || file.type || 'image/png'
+								, quality: params.quality || 1
+								, overlay: params.overlay
+								, filter: params.filter
+							});
+						}
 
 						queue.inc();
 						ImgTrans.toData(function (err, image){
