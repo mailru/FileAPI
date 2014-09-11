@@ -2156,13 +2156,14 @@
 							params.rotate = 'auto';
 						}
 
+						ImgTrans.set({ type: ImgTrans.matrix.type || params.type || file.type || 'image/png' });
+
 						if( !isFn ){
 							ImgTrans.set({
 								  deg: params.rotate
-								, type: params.type || file.type || 'image/png'
-								, quality: params.quality || 1
 								, overlay: params.overlay
 								, filter: params.filter
+								, quality: params.quality || 1
 							});
 						}
 
