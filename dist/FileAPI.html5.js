@@ -135,6 +135,8 @@
 		_rinput = /input/i,
 		_rdata = /^data:[^,]+,/,
 
+		_toString = {}.toString,
+
 
 		Math = window.Math,
 
@@ -556,18 +558,24 @@
 
 
 			/**
-			 * Is file instance
-			 *
+			 * Is file?
 			 * @param  {File}  file
 			 * @return {Boolean}
 			 */
 			isFile: function (file){
-				return	html5 && file && (file instanceof File);
+				return _toString.call(file) === '[object File]';
 			},
 
+
+			/**
+			 * Is blob?
+			 * @param   {Blob}  blob
+			 * @returns {Boolean}
+			 */
 			isBlob: function (blob) {
-				return    html5 && blob && (blob instanceof Blob);
+				return this.isFile(blob) || (_toString.call(blob) === '[object Blob]');
 			},
+
 
 			/**
 			 * Is canvas element
