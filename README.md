@@ -773,7 +773,7 @@ Resize image.
 
 * width — new image width
 * height — new image height
-* strategy — enum: `min`, `max`, `preview`. By default `undefined`.
+* strategy — enum: `min`, `max`, `preview`, `width`, `height`. By default `undefined`.
 
 ```js
 FileAPI.Image(imageFile)
@@ -786,6 +786,14 @@ FileAPI.Image(imageFile)
 // Resize image on by max side.
 FileAPI.Image(imageFile)
 	.resize(320, 240, 'max')
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+
+// Resize image on by fixed height.
+FileAPI.Image(imageFile)
+	.resize(240, 'height')
 	.get(function (err/**String*/, img/**HTMLElement*/){
 
 	})
