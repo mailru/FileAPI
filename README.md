@@ -1396,6 +1396,11 @@ Button like link.
 ## Changelog
 
 
+### 2.0.8 
+<ul>
+	<li>Two new resize strategies `width` and `height`</li>
+</ul>
+
 ### 2.0.7
 <ul>
 	<li>#214: iframe transport under IE8</li>
