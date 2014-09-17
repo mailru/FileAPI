@@ -521,6 +521,34 @@ module('FileAPI');
 			}
 		});
 
+		// strategy: 'height'
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: { width: 100, height: 100, strategy: 'height' },
+			complete: function (err, res){
+				queue.next();
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images['image'].width,  141, 'height.width');
+				equal(res.images['image'].height, 100, 'height.height');
+			}
+		});
+
+		// strategy: 'width'
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: { width: 100, height: 100, strategy: 'width' },
+			complete: function (err, res){
+				queue.next();
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images['image'].width, 100, 'width.width');
+				equal(res.images['image'].height, 70, 'width.height');
+			}
+		});
+
 		// preview
 		queue.inc();
 		FileAPI.upload({
