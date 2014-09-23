@@ -3473,7 +3473,7 @@
 				mouseover: function (evt){
 					var target = api.event.fix(evt).target;
 
-					if( /input/i.test(target.nodeName) && target.type == 'file' ){
+					if( /input/i.test(target.nodeName) && target.type == 'file' && !target.disabled ){
 						var
 							  state = target.getAttribute(_attr)
 							, wrapper = flash.getWrapper(target)
