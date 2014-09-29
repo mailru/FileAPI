@@ -1136,7 +1136,7 @@
 										options.progress({
 											  type:   'progress'
 											, total:  _total
-											, loaded: proxyXHR.loaded = (_loaded + data.size * (evt.loaded/evt.total))|0
+											, loaded: proxyXHR.loaded = (_loaded + data.size * (evt.loaded/evt.total)) || 0
 										}, _file, xhr, _fileOptions);
 									}
 								} : noop,
