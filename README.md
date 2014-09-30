@@ -1396,10 +1396,18 @@ Button like link.
 ## Changelog
 
 
+### 2.0.9
+<ul>
+	<li>#253: fixed `proxyXHR.loaded`</li>
+	<li>#250: + check `disabled`-attr</li>
+</ul>
+
+
 ### 2.0.8 
 <ul>
 	<li>Two new resize strategies `width` and `height`</li>
 </ul>
+
 
 ### 2.0.7
 <ul>

@@ -1,4 +1,4 @@
-/*! FileAPI 2.0.8 - BSD | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.0.9 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -134,6 +134,8 @@
 		_rimgcanvas = /img|canvas/i,
 		_rinput = /input/i,
 		_rdata = /^data:[^,]+,/,
+
+		_toString = {}.toString,
 
 
 		Math = window.Math,
@@ -278,7 +280,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.8',
+			version: '2.0.9',
 
 			cors: false,
 			html5: true,
@@ -556,18 +558,24 @@
 
 
 			/**
-			 * Is file instance
-			 *
+			 * Is file?
 			 * @param  {File}  file
 			 * @return {Boolean}
 			 */
 			isFile: function (file){
-				return	html5 && file && (file instanceof File);
+				return _toString.call(file) === '[object File]';
 			},
 
+
+			/**
+			 * Is blob?
+			 * @param   {Blob}  blob
+			 * @returns {Boolean}
+			 */
 			isBlob: function (blob) {
-				return    html5 && blob && (blob instanceof Blob);
+				return this.isFile(blob) || (_toString.call(blob) === '[object Blob]');
 			},
+
 
 			/**
 			 * Is canvas element
@@ -1128,7 +1136,7 @@
 										options.progress({
 											  type:   'progress'
 											, total:  _total
-											, loaded: proxyXHR.loaded = (_loaded + data.size * (evt.loaded/evt.total))|0
+											, loaded: proxyXHR.loaded = (_loaded + data.size * (evt.loaded/evt.total)) || 0
 										}, _file, xhr, _fileOptions);
 									}
 								} : noop,
@@ -2139,9 +2147,9 @@
 			if( !err ){
 				api.each(transform, function (params, name){
 					if( !queue.isFail() ){
-						var ImgTrans = new Image(img.nodeType ? img : file);
+						var ImgTrans = new Image(img.nodeType ? img : file), isFn = typeof params == 'function';
 
-						if( typeof params == 'function' ){
+						if( isFn ){
 							params(img, ImgTrans);
 						}
 						else if( params.width ){
@@ -2162,13 +2170,16 @@
 							params.rotate = 'auto';
 						}
 
-						ImgTrans.set({
-							  deg: params.rotate
-							, type: params.type || file.type || 'image/png'
-							, quality: params.quality || 1
-							, overlay: params.overlay
-							, filter: params.filter
-						});
+						ImgTrans.set({ type: ImgTrans.matrix.type || params.type || file.type || 'image/png' });
+
+						if( !isFn ){
+							ImgTrans.set({
+								  deg: params.rotate
+								, overlay: params.overlay
+								, filter: params.filter
+								, quality: params.quality || 1
+							});
+						}
 
 						queue.inc();
 						ImgTrans.toData(function (err, image){
@@ -3468,7 +3479,7 @@
 				mouseover: function (evt){
 					var target = api.event.fix(evt).target;
 
-					if( /input/i.test(target.nodeName) && target.type == 'file' ){
+					if( /input/i.test(target.nodeName) && target.type == 'file' && !target.disabled ){
 						var
 							  state = target.getAttribute(_attr)
 							, wrapper = flash.getWrapper(target)
