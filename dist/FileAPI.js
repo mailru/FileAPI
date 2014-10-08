@@ -2757,7 +2757,7 @@
 		},
 
 		_send: function (options, data){
-			var _this = this, xhr, uid = _this.uid, onloadFuncName = _this.uid + "Load", url = options.url;
+			var _this = this, xhr, uid = _this.uid, onLoadFnName = _this.uid + "Load", url = options.url;
 
 			api.log('XHR._send:', data);
 
@@ -2796,7 +2796,7 @@
 						_this.end(status, statusText);
 
 						api.event.off(window, 'message', onPostMessage);
-						window[uid] = xhr = transport = window[onloadFuncName] = null;
+						window[uid] = xhr = transport = window[onLoadFnName] = null;
 					}
 				;
 
@@ -2812,7 +2812,7 @@
 
 				api.event.on(window, 'message', onPostMessage);
 
-				window[onloadFuncName] = function (){
+				window[onLoadFnName] = function (){
 					try {
 						var
 							  win = transport.contentWindow
@@ -2827,7 +2827,7 @@
 
 				xhr = document.createElement('div');
 				xhr.innerHTML = '<form target="'+ uid +'" action="'+ url +'" method="POST" enctype="multipart/form-data" style="position: absolute; top: -1000px; overflow: hidden; width: 1px; height: 1px;">'
-							+ '<iframe name="'+ uid +'" src="javascript:false;" onload="' + onloadFuncName + '()"></iframe>'
+							+ '<iframe name="'+ uid +'" src="javascript:false;" onload="window.' + onLoadFnName + ' && ' + onLoadFnName + '();"></iframe>'
 							+ (jsonp && (options.url.indexOf('=?') < 0) ? '<input value="'+ uid +'" name="'+jsonp+'" type="hidden"/>' : '')
 							+ '</form>'
 				;
