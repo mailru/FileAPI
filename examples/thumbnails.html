@@ -57,6 +57,20 @@
 				right: 0;
 				position: absolute;
 			}
+
+		.js-fileapi-wrapper { position: relative }
+		.js-fileapi-wrapper input {
+			top: -10px;
+			right: -40px;
+			z-index: 2;
+			position: absolute;
+			cursor: pointer;
+			opacity: 0;
+			width: auto;
+			height: auto;
+			filter: alpha(opacity=0);
+			font-size: 50px;
+		}
 	</style>
 
 </head>
@@ -78,8 +92,8 @@
 
 		<div style="text-align: center">
 			<div class="js-fileapi-wrapper">
-				<label for="browse" class="btn">Select photo (min 480x320)</label>
 				<input id="browse" type="file" accept="image/*"/>
+				<label for="browse" class="btn">Select photo (min 480x320)</label>
 			</div>
 
 			<div id="loading" class="loader" style="display: none; position: absolute; left: 45%; top: 30%"></div>
@@ -110,11 +124,17 @@
 				}
 
 				image.get(function (err, img){
-					var el = document.createElement('div');
-					el.innerHTML = '<label>'+label+'</label>';
-					el.className = 'thumb';
-					el.appendChild(img);
-					thumbnails.appendChild(el);
+					if (err) {
+						alert(width + 'x' + height + ' — fail');
+					}
+					else {
+						var el = document.createElement('div');
+						el.innerHTML = '<label>'+label+'</label>';
+						el.className = 'thumb';
+						el.appendChild(img);
+						thumbnails.appendChild(el);
+					}
+
 					callback && callback();
 				});
 
