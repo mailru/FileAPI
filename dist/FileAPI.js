@@ -285,6 +285,7 @@
 			cors: false,
 			html5: true,
 			media: false,
+      entry: true,
 			formData: true,
 			multiPassResize: true,
 
@@ -1567,9 +1568,10 @@
 
 	function _getAsEntry(item){
 		var entry;
+    if( !api.entry ){ return false }
 		if( item.getAsEntry ){ entry = item.getAsEntry(); }
 		else if( item.webkitGetAsEntry ){ entry = item.webkitGetAsEntry(); }
-		return	entry;
+		return entry;
 	}
 
 
