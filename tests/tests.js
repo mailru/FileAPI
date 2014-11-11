@@ -290,10 +290,11 @@ module('FileAPI');
 			data: { str: 'foo', num: 1, array: [1, 2, 3], object: { foo: 'bar' } },
 			headers: { 'x-foo': 'bar' },
 			complete: function (err, xhr){
-				var res = FileAPI.parseJSON(xhr.responseText).data._REQUEST;
-				var headers = FileAPI.parseJSON(xhr.responseText).data.HEADERS;
+				var res = err ? {} : FileAPI.parseJSON(xhr.responseText).data._REQUEST;
+				var headers = err ? err : FileAPI.parseJSON(xhr.responseText).data.HEADERS;
 
 				start();
+				ok(!err, 'upload done')
 				equal(res.str, 'foo', 'string');
 				equal(res.num, '1', 'number');
 				equal(headers['X-Foo'], 'bar', 'headers.X-Foo');
@@ -518,6 +519,34 @@ module('FileAPI');
 				var res = FileAPI.parseJSON(res.responseText);
 				equal(res.images['image'].width, 100, 'max.width');
 				equal(res.images['image'].height, 71, 'max.height');
+			}
+		});
+
+		// strategy: 'height'
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: { width: 100, height: 100, strategy: 'height' },
+			complete: function (err, res){
+				queue.next();
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images['image'].width,  141, 'height.width');
+				equal(res.images['image'].height, 100, 'height.height');
+			}
+		});
+
+		// strategy: 'width'
+		queue.inc();
+		FileAPI.upload({
+			url: 'http://rubaxa.org/FileAPI/server/ctrl.php',
+			files: { image: file },
+			imageTransform: { width: 100, height: 100, strategy: 'width' },
+			complete: function (err, res){
+				queue.next();
+				var res = FileAPI.parseJSON(res.responseText);
+				equal(res.images['image'].width, 100, 'width.width');
+				equal(res.images['image'].height, 70, 'width.height');
 			}
 		});
 
