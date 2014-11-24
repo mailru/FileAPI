@@ -1,14 +1,14 @@
 package
 {
-	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
-	import flash.events.*;
+	import flash.events.Event;
+	import flash.events.StatusEvent;
 	import flash.media.Camera;
 	import flash.media.Video;
-	import flash.text.TextField;
+	import flash.utils.setTimeout;
 	
 	public class FileAPI_flash_camera extends Sprite
 	{
@@ -39,38 +39,20 @@ package
 				// we need to show settings dialog, so we attach camera to a video
 				video = new Video();
 				video.attachCamera(camera);
+				if (!camera.muted) {
+					onCameraStatus(new StatusEvent(StatusEvent.STATUS, false, false, 'Camera.Unmuted'));
+				}
+				else {
+					setTimeout(function ():void {
+						if (securityPanelIsClosed()) {
+							onCameraStatus(new StatusEvent(StatusEvent.STATUS, false, false, 'Camera.Muted'));
+						}
+					}, 1000);
+				}
+				
 			} else {
 				// callback with error
 			}
-			
-			
-			// test
-			/*var tf:TextField = new TextField();
-			tf.text = 'on';
-			tf.x = 10;
-			tf.width = 30;
-			tf.addEventListener(MouseEvent.CLICK, function(event:MouseEvent):void {
-				toggleCamera(true);
-			});
-			addChild(tf);
-			
-			tf = new TextField();
-			tf.text = 'off';
-			tf.x = 50;
-			tf.width = 30;
-			tf.addEventListener(MouseEvent.CLICK, function(event:MouseEvent):void {
-				toggleCamera(false);
-			});
-			addChild(tf);
-			
-			tf = new TextField();
-			tf.text = 'photo';
-			tf.x = 100;
-			tf.width = 30;
-			tf.addEventListener(MouseEvent.CLICK, function(event:MouseEvent):void {
-				shot();
-			});
-			addChild(tf);*/
 		}
 		
 		public function toggleCamera(on:Boolean):void {
@@ -120,6 +102,32 @@ package
 			video = null; // turn off video
 			// redispatch
 			dispatchEvent(event.clone());
+		}
+		
+		/**
+		 * This code checks one time if the security panel is closed.
+		 * When you open the security panel, you should run this test
+		 * repeatedly with a timer (every 500ms seems to work well).
+		 * If the security panel is closed, you can then clean up your timers
+		 */
+		private function securityPanelIsClosed():Boolean
+		{
+			// Why not just wait for an event from the SettingsPanel to know that it's closed?  Because there isn't one.
+			// See http://bugs.adobe.com/jira/browse/FP-41
+			var closed:Boolean = true;
+			var hack:BitmapData = new BitmapData(1,1);
+			try
+			{
+				// Trying to capture the stage triggers a Security error when the settings dialog box is open. 
+				hack.draw(stage);
+			}
+			catch (error:Error)
+			{
+				closed = false;
+			}
+			hack.dispose();
+			hack = null;
+			return (closed);
 		}
 	}
 }
