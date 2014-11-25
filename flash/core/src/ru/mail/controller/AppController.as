@@ -514,11 +514,9 @@ package ru.mail.controller
 		 */		
 		public function getFileInfo(fileID:String, callback:String):void 
 		{
-			trace ("getFileInfo");
 			LoggerJS.log('getFileInfo, fileID: '+fileID+', callback: '+callback );
 			var file:BaseFileVO = _model.filesBuilder.getFileByID(fileID);
 			if (!file) {
-				trace ("file with id "+ fileID +" doen't exist"); 
 				LoggerJS.log("getFileInfo, file with id "+ fileID +" doen't exist" );
 				return;
 			}
@@ -526,7 +524,6 @@ package ru.mail.controller
 			var imageFactory:IImageFactory = file.imageFactory;
 			(imageFactory as EventDispatcher).addEventListener(ImageTransformCompleteEvent.TYPE,function (event:ImageTransformCompleteEvent):void {
 				event.currentTarget.removeEventListener(event.type, arguments.callee);
-				trace("getfileinfo complete", event.isSuccess);
 				LoggerJS.log("getFileInfo complete, success = "+ event.isSuccess );
 				if (event.isSuccess && (file as IFileVO).imageData) 
 				{

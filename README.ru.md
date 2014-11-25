@@ -752,7 +752,7 @@ FileAPI.Image(imageFile)
 
 * width — новая ширина
 * height — новая высота
-* strategy — enum: `min`, `max`, `preview`. По умолчанию `undefined`.
+* strategy — enum: `min`, `max`, `preview`, `width`, `height`. По умолчанию `undefined`.
 
 ```js
 FileAPI.Image(imageFile)
@@ -765,6 +765,14 @@ FileAPI.Image(imageFile)
 // По большей стороне
 FileAPI.Image(imageFile)
 	.resize(320, 240, 'max')
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+
+// По заданной высоте.
+FileAPI.Image(imageFile)
+	.resize(240, 'height')
 	.get(function (err/**String*/, img/**HTMLElement*/){
 
 	})

@@ -773,7 +773,7 @@ Resize image.
 
 * width — new image width
 * height — new image height
-* strategy — enum: `min`, `max`, `preview`. By default `undefined`.
+* strategy — enum: `min`, `max`, `preview`, `width`, `height`. By default `undefined`.
 
 ```js
 FileAPI.Image(imageFile)
@@ -786,6 +786,14 @@ FileAPI.Image(imageFile)
 // Resize image on by max side.
 FileAPI.Image(imageFile)
 	.resize(320, 240, 'max')
+	.get(function (err/**String*/, img/**HTMLElement*/){
+
+	})
+;
+
+// Resize image on by fixed height.
+FileAPI.Image(imageFile)
+	.resize(240, 'height')
 	.get(function (err/**String*/, img/**HTMLElement*/){
 
 	})
@@ -1386,6 +1394,19 @@ Button like link.
 
 <a name="Changelog"></a>
 ## Changelog
+
+
+### 2.0.9
+<ul>
+	<li>#253: fixed `proxyXHR.loaded`</li>
+	<li>#250: + check `disabled`-attr</li>
+</ul>
+
+
+### 2.0.8 
+<ul>
+	<li>Two new resize strategies `width` and `height`</li>
+</ul>
 
 
 ### 2.0.7
