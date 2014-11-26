@@ -1396,6 +1396,11 @@ Button like link.
 ## Changelog
 
 
+### 2.0.10
+<ul>
+	<li>#272: fixed `entry.createReader().readEntries`</li>
+</ul>
+
 ### 2.0.9
 <ul>
 	<li>#253: fixed `proxyXHR.loaded`</li>
