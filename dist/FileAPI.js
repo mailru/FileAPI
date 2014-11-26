@@ -1592,29 +1592,34 @@
 		else if( entry.isDirectory ){
 			var reader = entry.createReader(), result = [];
 
-			reader.readEntries(function(entries){
-				// success
-				api.afor(entries, function (next, entry){
-					_readEntryAsFiles(entry, function (err, files){
-						if( err ){
-							api.log(err);
-						}
-						else {
-							result = result.concat(files);
-						}
-
-						if( next ){
-							next();
-						}
-						else {
-							callback(false, result);
-						}
-					});
-				});
-			}, function (err){
+			var onerror = function() {
 				// error
-				callback('directory_reader: ' + err);
-			});
+				callback('directory_reader');
+			};
+			var ondone = function ondone(entries) {
+				// success
+				if ( entries.length ) {
+					api.afor(entries, function (next, entry){
+						_readEntryAsFiles(entry, function (err, files){
+							if( !err ){
+								result = result.concat(files);
+							}
+
+							if( next ){
+								next();
+							}
+							else {
+								reader.readEntries(ondone, onerror);
+							}
+						});
+					});
+				}
+				else {
+					callback(false, result);
+				}
+			};
+
+			reader.readEntries(ondone, onerror);
 		}
 		else {
 			_readEntryAsFiles(_getAsEntry(entry), callback);
