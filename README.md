@@ -1048,7 +1048,7 @@ Creates a new array with all elements that pass the test implemented by the prov
 	<li>Chunked file upload (HTML5)</li>
 	<li>Upload one file: all browsers</li>
 	<li>
-		Working with Images: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 5.4+
+		Working with Images: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 6+
 		<ul>
 			<li>crop, resize, preview & rotate (HTML5 or Flash)</li>
 			<li>auto orientation by exif (HTML5, if include FileAPI.exif.js or Flash)</li>
