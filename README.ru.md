@@ -1185,7 +1185,7 @@ Submit Query
 		FileAPI::makeResponse(array(
 			  'status' => FileAPI::OK
 			, 'statusText' => 'OK'
-			, 'body' => array('count' => sizeof($files)
+			, 'body' => array('count' => sizeof($files))
 		), $jsonp);
 		exit;
 	}
