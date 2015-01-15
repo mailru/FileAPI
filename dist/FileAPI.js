@@ -3492,7 +3492,7 @@
 
 						if( api.multiFlash ){
 							// check state:
-							//   i — published
+							//   p — published
 							//   i — initialization
 							//   r — ready
 							if( state == 'i' || state == 'r' ){
