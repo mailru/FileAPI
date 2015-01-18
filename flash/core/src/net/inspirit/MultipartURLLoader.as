@@ -481,6 +481,7 @@
 
 		private function removeListener(): void
 		{
+			if (!_loader) return;
 			_loader.removeEventListener( Event.COMPLETE, onComplete );
 			_loader.removeEventListener( ProgressEvent.PROGRESS, onProgress );
 			_loader.removeEventListener( IOErrorEvent.IO_ERROR, onIOError );
@@ -562,16 +563,17 @@
 
 	}
 }
+import flash.utils.ByteArray;
 
 internal class FilePart
 {
 
-	public var fileContent:flash.utils.ByteArray;
+	public var fileContent:ByteArray;
 	public var fileName:String;
 	public var dataField:String;
 	public var contentType:String;
 
-	public function FilePart(fileContent:flash.utils.ByteArray, fileName:String, dataField:String = 'Filedata', contentType:String = 'application/octet-stream')
+	public function FilePart(fileContent:ByteArray, fileName:String, dataField:String = 'Filedata', contentType:String = 'application/octet-stream')
 	{
 		this.fileContent = fileContent;
 		this.fileName = fileName;

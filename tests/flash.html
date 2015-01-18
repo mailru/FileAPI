@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<title>FileAPI :: Tests</title>
+
+	<script>
+		var FileAPI = {
+			  html5: false
+			, debug: true
+			, staticPath: '../dist/'
+		};
+	</script>
+
+	<script src="../dist/FileAPI.js"></script>
+	<script src="../plugins/FileAPI.id3.js"></script>
+	<script src="../plugins/FileAPI.exif.js"></script>
+
+	<link rel="stylesheet" href="./qunit/qunit.css"/>
+</head>
+</body>
+
+	<div id="qunit"></div>
+
+	<input id="startBtn" type="button" value="  START  " style="font-size: 20px;" />
+
+	<div style="margin: 30px;">
+		<div id="web-cam" style="width: 320px; height: 240px; float: right;"></div>
+
+		<div class="js-fileapi-wrapper">
+			<input id="inpEl" name="file" type="file" />
+		</div>
+
+		<pre id="logEl" style="font-size: 12px">
+			<!---->
+		</pre>
+	</div>
+
+
+	<script src="./qunit/qunit.js"></script>
+	<script>
+		(function () {
+			if (!window.console) {
+				FileAPI.log = function () {
+					logEl.insertBefore(document.createTextNode([].join.call(arguments, ' ') + '\n'), logEl.firstChild);
+				};
+			}
+
+			startBtn.onclick = function () {
+				QUnit.start();
+			};
+
+			QUnit.config.autostart = false;
+
+			asyncTest('2015', function () {
+				var opts = {
+					minSize: {width: 0, height: 0},
+					maxSize: {width: 3000, height: 2000},
+					previewSize: {width: 128, height: 128},
+					uploadUrl: '',
+					typeFilter: 'image/*'
+
+				};
+
+				var filter = function (f, i) {
+					if (/^image/.test(f.type)) {
+						if (i === false || (i.width >= opts.minSize.width && i.height >= opts.minSize.height)) {
+							return true;
+						}
+					}
+
+					return false;
+				};
+
+
+				var files = FileAPI.getFiles(inpEl);
+
+
+				FileAPI.filterFiles(files, filter, function (files, rejected) {
+					if (files.length < 1) {
+						return;
+					}
+
+
+					FileAPI.each(files, function (file) {
+						FileAPI.Image(file)
+								.resize(opts.previewSize.width, opts.previewSize.height, 'max')
+								.get(function (err, img) {
+									ok(!err, 'preview');
+								});
+					});
+
+
+					FileAPI.upload({
+						url: opts.uploadUrl,
+						files: {images: files},
+						imageTransform: {
+							maxWidth: opts.maxSize.width,
+							maxHeight: opts.maxSize.height
+						},
+						complete: function (err) {
+							ok(!/2015/.test(err), 'without 2015');
+							start();
+						}
+					});
+				});
+			});
+		})();
+	</script>
+
+</body>
+</html>

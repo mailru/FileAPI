@@ -1491,13 +1491,13 @@
 	}
 
 
-	function _hasSupportReadAs(as){
-		return	FileReader && !!FileReader.prototype['readAs'+as];
+	function _hasSupportReadAs(method){
+		return	FileReader && !!FileReader.prototype['readAs' + method];
 	}
 
 
-	function _readAs(file, fn, as, encoding){
-		if( api.isBlob(file) && _hasSupportReadAs(as) ){
+	function _readAs(file, fn, method, encoding){
+		if( api.isBlob(file) && _hasSupportReadAs(method) ){
 			var Reader = new FileReader;
 
 			// Add event listener
@@ -1519,10 +1519,10 @@
 			try {
 				// ReadAs ...
 				if( encoding ){
-					Reader['readAs'+as](file, encoding);
+					Reader['readAs' + method](file, encoding);
 				}
 				else {
-					Reader['readAs'+as](file);
+					Reader['readAs' + method](file);
 				}
 			}
 			catch (err){
@@ -1530,7 +1530,7 @@
 			}
 		}
 		else {
-			_emit(file, fn, 'error', undef, { error: 'filreader_not_support_'+as });
+			_emit(file, fn, 'error', undef, { error: 'filreader_not_support_' + method });
 		}
 	}
 
@@ -2763,7 +2763,7 @@
 		},
 
 		_send: function (options, data){
-			var _this = this, xhr, uid = _this.uid, onloadFuncName = _this.uid + "Load", url = options.url;
+			var _this = this, xhr, uid = _this.uid, onLoadFnName = _this.uid + "Load", url = options.url;
 
 			api.log('XHR._send:', data);
 
@@ -2802,7 +2802,7 @@
 						_this.end(status, statusText);
 
 						api.event.off(window, 'message', onPostMessage);
-						window[uid] = xhr = transport = window[onloadFuncName] = null;
+						window[uid] = xhr = transport = window[onLoadFnName] = null;
 					}
 				;
 
@@ -2818,7 +2818,7 @@
 
 				api.event.on(window, 'message', onPostMessage);
 
-				window[onloadFuncName] = function (){
+				window[onLoadFnName] = function (){
 					try {
 						var
 							  win = transport.contentWindow
@@ -2833,7 +2833,7 @@
 
 				xhr = document.createElement('div');
 				xhr.innerHTML = '<form target="'+ uid +'" action="'+ url +'" method="POST" enctype="multipart/form-data" style="position: absolute; top: -1000px; overflow: hidden; width: 1px; height: 1px;">'
-							+ '<iframe name="'+ uid +'" src="javascript:false;" onload="' + onloadFuncName + '()"></iframe>'
+							+ '<iframe name="'+ uid +'" src="javascript:false;" onload="window.' + onLoadFnName + ' && ' + onLoadFnName + '();"></iframe>'
 							+ (jsonp && (options.url.indexOf('=?') < 0) ? '<input value="'+ uid +'" name="'+jsonp+'" type="hidden"/>' : '')
 							+ '</form>'
 				;

@@ -1395,9 +1395,13 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+
 ### 2.0.10
 <ul>
 	<li>#289: * WebCam & html5 == false</li>
+	<li>#199, #265: flash fix 2015 error with BitmapData</li>
+	<li>#177: IE9, IE11 flash.camera remembered settigns</li>
+	<li>#254: check 'onLoadFnName' before call</li>
 </ul>
 
 

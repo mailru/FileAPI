@@ -130,8 +130,8 @@ package ru.mail.commands
 				}
 				else 
 				{
-//					currentImageMap = fullImageMap.clone();
-                    currentImageMap = fullImageMap;
+					currentImageMap = fullImageMap.clone();
+//                    currentImageMap = fullImageMap; // #199 #265 вернул обратно clone(), т.к. ниже есть currentImageMap.dispose() 
 				}
 				
 				// ==============

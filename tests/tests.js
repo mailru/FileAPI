@@ -290,10 +290,11 @@ module('FileAPI');
 			data: { str: 'foo', num: 1, array: [1, 2, 3], object: { foo: 'bar' } },
 			headers: { 'x-foo': 'bar' },
 			complete: function (err, xhr){
-				var res = FileAPI.parseJSON(xhr.responseText).data._REQUEST;
-				var headers = FileAPI.parseJSON(xhr.responseText).data.HEADERS;
+				var res = err ? {} : FileAPI.parseJSON(xhr.responseText).data._REQUEST;
+				var headers = err ? err : FileAPI.parseJSON(xhr.responseText).data.HEADERS;
 
 				start();
+				ok(!err, 'upload done')
 				equal(res.str, 'foo', 'string');
 				equal(res.num, '1', 'number');
 				equal(headers['X-Foo'], 'bar', 'headers.X-Foo');
