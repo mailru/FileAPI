@@ -1395,6 +1395,11 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.10
+<ul>
+	<li>#289: * WebCam & html5 == false</li>
+</ul>
+
 
 ### 2.0.9
 <ul>
