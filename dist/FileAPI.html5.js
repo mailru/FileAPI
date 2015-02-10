@@ -2861,7 +2861,11 @@
 
 				// send
 				_this.readyState = 2; // loaded
-				form.submit();
+				try {
+					form.submit();
+				} catch (err) {
+					api.log('iframe.error: ' + err);
+				}
 				form = null;
 			}
 			else {
