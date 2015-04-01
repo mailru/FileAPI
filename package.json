@@ -3,20 +3,22 @@
   "exportName": "FileAPI",
   "version": "2.0.10",
   "devDependencies": {
+    "connect-busboy": "~0.0.2",
+    "eventemitter2": "~0.4.13",
+    "express": "~4.12.3",
     "grunt": "~0.4.5",
-    "grunt-version": "~0.3.0",
-    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-compress": "~0.9.1",
     "grunt-contrib-concat": "~0.4.0",
+    "grunt-contrib-connect": "~0.8.0",
+    "grunt-contrib-jshint": "~0.10.0",
     "grunt-contrib-uglify": "~0.5.0",
     "grunt-contrib-watch": "~0.6.1",
-    "grunt-contrib-connect": "~0.8.0",
-    "eventemitter2": "~0.4.13",
-    "semver": "~2.3.1 ",
-    "temporary": "~0.0.8",
-    "phantomjs": "~1.9.7-9",
-	"grunt-curl": "~2.0.2",
+    "grunt-curl": "~2.0.2",
     "grunt-mxmlc": "~0.5.1",
-    "grunt-contrib-compress": "~0.9.1"
+    "grunt-version": "~0.3.0",
+    "phantomjs": "~1.9.7-9",
+    "semver": "~2.3.1 ",
+    "temporary": "~0.0.8"
   },
   "description": "FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.",
   "main": "dist/FileAPI.js",
@@ -38,7 +40,7 @@
   "contributors": [
     "Vladimir Demidov <v.demidov@corp.mail.ru>",
     "Ilya Lebedev <ilya@lebedev.net>",
-	"Mikhail Bezoyan <mbezoyan@gmail.com>"
+    "Mikhail Bezoyan <mbezoyan@gmail.com>"
   ],
   "license": "BSD"
 }
