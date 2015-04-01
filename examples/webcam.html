@@ -114,7 +114,7 @@
 							;
 
 							FileAPI.upload({
-								  url: 'http://rubaxa.org/FileAPI/server/ctrl.php'
+								  url: '/upload'
 								, files: { shot: file }
 								, complete: function (err, xhr){
 									var res = JSON.parse(xhr.responseText);

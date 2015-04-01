@@ -486,7 +486,7 @@
 				_upload: function (file){
 					if( file ){
 						file.xhr = FileAPI.upload({
-							url: 'http://www.rubaxa.org/index.php',
+							url: '/upload',
 							files: { file: file },
 							upload: function (){
 								FU._getEl(file).addClass('b-file_upload');
