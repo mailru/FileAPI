@@ -6,7 +6,6 @@
     "./dist/FileAPI.flash.image.swf",
     "./dist/FileAPI.flash.swf",
     "./dist/FileAPI.html5.js",
-    "./dist/FileAPI.html5.min.js",
     "./dist/FileAPI.js",
     "./dist/jquery.fileapi.min.js"
   ],
