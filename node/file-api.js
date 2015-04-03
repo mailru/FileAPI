@@ -5,8 +5,8 @@ function convertToBase64(buffer, mimetype) {
 
 function fileApi() {
   return function (req, res, next) {
-    req.body = req.body || {};
-    req.body.images = {};
+    req.body = {};
+    req.files = {};
 
     req.busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
       var buffersArray = [];
@@ -17,12 +17,16 @@ function fileApi() {
 
       file.on('end', function () {
         var bufferResult = Buffer.concat(buffersArray);
-        req.body.images[fieldname] = {
+        req.body.files[fieldname] = {
           dataURL: convertToBase64(bufferResult, mimetype),
           mime: mimetype,
           size: bufferResult.length
         };
       });
+    });
+
+    req.busboy.on('field', function (key, value, keyTruncated, valueTruncated) {
+      req.body[key] = value;
     });
 
     req.busboy.on('finish', function () {

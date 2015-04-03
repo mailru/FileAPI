@@ -188,7 +188,7 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask('dev', ['concat', 'watch']);
-	grunt.registerTask('tests', ['jshint', 'concat', 'connect:server','prepare-test-files',  'qunit']);
+	grunt.registerTask('tests', ['jshint', 'concat', 'connect:server', 'prepare-test-files', 'qunit']);
 	grunt.registerTask('build', ['version', 'concat', 'uglify']);
 	grunt.registerTask('build-all', ['build', 'mxmlc']);
 	grunt.registerTask('default', ['tests', 'build']);

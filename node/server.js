@@ -8,11 +8,12 @@ app.use(express.static('.', {index: 'index.html'}));
 app.use(function (req, res, next) {
   // Enable CORS for non static files
   var origin = req.get('Origin');
+
   if (origin) {
     res.set({
       'Access-Control-Allow-Origin':      origin,
       'Access-Control-Allow-Methods':     'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers':     'Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type',
+      'Access-Control-Allow-Headers':     'Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, X-Foo, X-Rnd',
       'Access-Control-Allow-Credentials': 'true'
     });
   }
@@ -27,10 +28,16 @@ app.options(uploadPath, function (req, res) {
 
 app.post(uploadPath, busboy({immediate: true}), fileApi(), function (req, res) {
   var jsonp = req.query.callback || null;
+
   res[jsonp ? 'jsonp' : 'json']({
     status:     200,
     statusText: 'OK',
-    images:     req.body.images
+    images:     req.files,
+    data: {
+		HEADERS: req.headers,
+		_REQUEST: req.body,
+		_FILES: req.files
+	}
   });
 });
 
