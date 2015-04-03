@@ -32,7 +32,7 @@ app.post(uploadPath, busboy({immediate: true}), fileApi(), function (req, res) {
   res[jsonp ? 'jsonp' : 'json']({
     status:     200,
     statusText: 'OK',
-    images:     req.files,
+    images:     req.images,
     data: {
 		HEADERS: req.headers,
 		_REQUEST: req.body,

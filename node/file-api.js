@@ -7,6 +7,7 @@ function fileApi() {
   return function (req, res, next) {
     req.body = {};
     req.files = {};
+    req.images = {};
 
     req.busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
       var buffersArray = [];
@@ -17,11 +18,15 @@ function fileApi() {
 
       file.on('end', function () {
         var bufferResult = Buffer.concat(buffersArray);
-        req.body.files[fieldname] = {
+        var fileObj = {
           dataURL: convertToBase64(bufferResult, mimetype),
           mime: mimetype,
           size: bufferResult.length
         };
+        req.files[fieldname] = fileObj;
+        if (mimetype.indexOf('image/') === 0) {
+          req.images[fieldname] = fileObj;
+        }
       });
     });
 
