@@ -28,8 +28,8 @@ app.options(uploadPath, function (req, res) {
 
 app.post(
 	uploadPath,
-	busboy({immediate: true}), 					// parse post data
-	fileApi(),									// prepare req.body, req.files and req.images
+	busboy({immediate: true}),	// parse post data
+	fileApi(),					// prepare req.body, req.files and req.images
 	function (req, res) {
 		var jsonp = req.query.callback || null;
 

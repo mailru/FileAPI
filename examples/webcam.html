@@ -116,11 +116,6 @@
 							FileAPI.upload({
 								  url: '/upload'
 								, files: { shot: file }
-								, data: {
-									x: 1,
-									arr: [1, {y: 1}],
-									y: "xxxxxx"
-								}
 								, complete: function (err, xhr){
 									var res = JSON.parse(xhr.responseText);
 									var img = new Image;

@@ -17,6 +17,7 @@
     "grunt-mxmlc": "~0.5.1",
     "grunt-version": "~0.3.0",
     "phantomjs": "~1.9.7-9",
+    "qs": "~2.4.1",
     "semver": "~2.3.1 ",
     "temporary": "~0.0.8"
   },

@@ -1,13 +1,16 @@
 
+var qs = require('qs');
+
 function convertToBase64(buffer, mimetype) {
 	return 'data:' + mimetype + ';base64,' + buffer.toString('base64');
 }
 
 function fileApi() {
 	return function (req, res, next) {
-		req.body = {};
 		req.files = {};
 		req.images = {};
+
+		var queryString = '';
 
 		req.busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
 			var buffersArray = [];
@@ -30,12 +33,12 @@ function fileApi() {
 			});
 		});
 
-		req.busboy.on('field', function (key, value, keyTruncated, valueTruncated) {
-			req.body[key] = value;
-			console.log(arguments);
+		req.busboy.on('field', function (key, value) {
+			queryString += encodeURIComponent(key) + '=' + encodeURIComponent(value) + '&';
 		});
 
 		req.busboy.on('finish', function () {
+			req.body = qs.parse(queryString);
 			next();
 		});
 	};
