@@ -57,6 +57,20 @@
 				right: 0;
 				position: absolute;
 			}
+		/* IE9/IE8 required */
+		.js-fileapi-wrapper { position: relative; }
+		.js-fileapi-wrapper input {
+			top: -10px;
+			right: -40px;
+			z-index: 2;
+			position: absolute;
+			cursor: pointer;
+			opacity: 0;
+			width: auto;
+			height: auto;
+			filter: alpha(opacity=0);
+			font-size: 50px;
+		}
 	</style>
 
 </head>
