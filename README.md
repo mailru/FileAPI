@@ -1,6 +1,6 @@
 ﻿<a name="FileAPI"></a>
 ## FileAPI <img src="https://api.travis-ci.org/mailru/FileAPI.png?branch=master"/>
-A set of javascript tools for working with files.
+A set of JavaScript tools for working with files.
 
 <a name="started"></a>
 ### Get started
@@ -1058,7 +1058,7 @@ Creates a new array with all elements that pass the test implemented by the prov
 
 <a name="FileAPI.support.html5"></a>
 ### FileAPI.support.html5`:Boolean`
-HTML5 borwser support
+HTML5 browser support
 
 <a name="FileAPI.support.cors"></a>
 ### FileAPI.support.cors`:Boolean`
@@ -1266,7 +1266,7 @@ Response headers:
 <ul>
 	<li>X-Last-Known-Byte: int, library tries to resend chunk from the given offset. Applicable to response codes 200 and 416</li>
 </ul>
-All the other codes - fatal error, user's involvement is recommend.
+All the other codes - fatal error, user's involvement is recommended.
 
 ---
 
