@@ -1,4 +1,3 @@
-
 var qs = require('qs');
 
 function convertToBase64(buffer, mimetype) {
@@ -7,10 +6,11 @@ function convertToBase64(buffer, mimetype) {
 
 function fileApi() {
 	return function (req, res, next) {
+		var queryString = '';
+		
 		req.files = {};
 		req.images = {};
 
-		var queryString = '';
 
 		req.busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
 			var buffersArray = [];
@@ -26,7 +26,9 @@ function fileApi() {
 					mime: mimetype,
 					size: bufferResult.length
 				};
+
 				req.files[fieldname] = fileObj;
+
 				if (mimetype.indexOf('image/') === 0) {
 					req.images[fieldname] = fileObj;
 				}
