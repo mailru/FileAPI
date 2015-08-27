@@ -1,5 +1,7 @@
 package
 {
+	import com.github.im_saxo.FilterFlashVars;
+	
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageQuality;
@@ -55,15 +57,14 @@ package
 		}
 		
 		/**
-		 * parse all flashvars into object
+		 * Use only parameters from FlashVars and ignore parameters from URL query string.
+		 * Query string parameters can lead to XSS, and since we use only FlashVars, 
+		 * we can ignore query completely.
+		 * 
 		 */		
 		private function parseFlashVars():Object
 		{
-			var options:Object = new Object();
-			for (var s:String in loaderInfo.parameters) {
-				options[s] = loaderInfo.parameters[s];
-			}
-			return options;
+			return FilterFlashVars.filterFlashVars(loaderInfo.parameters, loaderInfo.url);
 		}
 	}
 }
