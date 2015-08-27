@@ -1,4 +1,6 @@
+var fs = require('fs');
 var qs = require('qs');
+var imageSize = require('image-size');
 
 function convertToBase64(buffer, mimetype) {
 	return 'data:' + mimetype + ';base64,' + buffer.toString('base64');
@@ -11,7 +13,6 @@ function fileApi() {
 		req.files = {};
 		req.images = {};
 
-
 		req.busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
 			var buffersArray = [];
 
@@ -22,15 +23,26 @@ function fileApi() {
 			file.on('end', function () {
 				var bufferResult = Buffer.concat(buffersArray);
 				var fileObj = {
-					dataURL: convertToBase64(bufferResult, mimetype),
+					name: filename,
+					type: mimetype,
 					mime: mimetype,
-					size: bufferResult.length
+					size: bufferResult.length,
+					dataURL: convertToBase64(bufferResult, mimetype)
 				};
 
 				req.files[fieldname] = fileObj;
 
 				if (mimetype.indexOf('image/') === 0) {
+					fs.writeFileSync(filename, bufferResult);
+
+					var size = imageSize(filename);
+
+					fileObj.width = size.width;
+					fileObj.height = size.height;
+
 					req.images[fieldname] = fileObj;
+
+					fs.unlinkSync(filename);
 				}
 			});
 		});
@@ -41,6 +53,7 @@ function fileApi() {
 
 		req.busboy.on('finish', function () {
 			req.body = qs.parse(queryString);
+
 			next();
 		});
 	};

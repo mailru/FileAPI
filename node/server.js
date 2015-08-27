@@ -46,10 +46,14 @@ app.post(
 	}
 );
 
-var server = app.listen(8000, function () {
+// Export
+module.exports.createServer = function (port, callback) {
+	var server = app.listen(port, function () {
+		var host = server.address().address;
+		var port = server.address().port;
 
-	var host = server.address().address;
-	var port = server.address().port;
+		console.log('Test server listening at http://%s:%s', host, port);
 
-	console.log('Test server listening at http://%s:%s', host, port)
-});
+		callback(server);
+	});
+};
