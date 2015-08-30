@@ -10,6 +10,7 @@ module.exports = function (grunt) {
 				  'Gruntfile.js'
 				, 'lib/**/*.js'
 				, 'plugins/jquery.fileapi.js'
+				, 'node/**/*.js'
 			],
 
 			options: {
