@@ -131,7 +131,7 @@ module.exports = function (grunt) {
 		mxmlc: {
 			core: {
 				options: {
-					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=true' +
+					rawConfig: '-target-player=10.1  -static-link-runtime-shared-libraries=true -compiler.debug=true' +
 						' -library-path+=flash/core/lib/blooddy_crypto.swc -library-path+=flash/core/lib/EnginesLibrary.swc'
 				},
 				files: {
