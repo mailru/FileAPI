@@ -1,6 +1,7 @@
 package ru.mail.communication
 {
 	import flash.external.ExternalInterface;
+	import flash.utils.ByteArray;
 	
 	import ru.mail.data.vo.ErrorVO;
 	import ru.mail.data.vo.FileVO;
@@ -67,7 +68,6 @@ package ru.mail.communication
 				_call(_callback, data, data2);
 			}
 			catch (e:Error)	{
-				trace ("callJS caused an exception", e);
 			}
 		}
 		
@@ -82,12 +82,10 @@ package ru.mail.communication
 			var isReady:Boolean = false;
 			try {
 				var r:* = _call(callback, {type:"ready", flashId:flashId});
-				trace( "JSCaller.notifyJSAboutAppReady() ", triesCount );
 				
 				isReady = ( r != null );
 			}
 			catch ( e:Error ) {
-				trace ("notifyJSAboutAppReady error", e);
 			}
 			
 			return isReady;
@@ -111,7 +109,6 @@ package ru.mail.communication
 				_call(callback, { type:eventType, flashId:flashId });
 			}
 			catch (e:Error) {
-				trace ("notifyJSMouseEvents error", e);
 			}
 		}
 		
@@ -126,8 +123,6 @@ package ru.mail.communication
 		 */		
 		public function notifyJSFilesEvents(eventType:String, filesVector:Vector.<FileVO> = null):void
 		{
-			trace ("{JSCaller} - notifyJSFilesEvents, eventType", eventType)
-			
 			var details:Object = new Object();
 			details.type = eventType;
 			
@@ -164,7 +159,6 @@ package ru.mail.communication
 				_call(callback, details);
 			}
 			catch (e:Error) {
-				trace ("notifyJSFilesEvents error",e);
 			}
 		}
 		
@@ -189,7 +183,6 @@ package ru.mail.communication
 				_call(callback, details);
 			}
 			catch (e:Error) {
-				trace ("notifyJSErrors error",e);
 			}
 		}
 		
@@ -204,7 +197,6 @@ package ru.mail.communication
 				_call(callback, { type:'camera', error:error, flashId:flashId });
 			}
 			catch (e:Error) {
-				trace ("notifyCameraStatus error", e);
 			}
 		}
 		
@@ -222,13 +214,34 @@ package ru.mail.communication
 				_call(callback, {type:"error", message:errorVO.getError(), flashId:flashId});
 			}
 			catch (e:Error) {
-				trace ("notifyJSErrors error",e);
 			}
 		}
-		
+
+		private function clone(source:Object):* {
+			var myBA:ByteArray = new ByteArray();
+			myBA.writeObject(source);
+			myBA.position = 0;
+			return(myBA.readObject());
+		}
+
+		private function _escape(data:*):* {
+			if (typeof data === 'string') {
+				return data.replace(/\\/g, '\\\\');
+			} else if (typeof data === 'object') {
+				var ret:* = clone(data);
+				for (var i:String in data) {
+					ret[i] = _escape(data[i]);
+				}
+				return ret;
+			}
+			return data;
+		}
+
 		private function _call(callback:String, data:Object, data2:Object = null):* {
+			data = _escape(data);
 			if ( callback.match(/^FileAPI\.Flash\.(onEvent|_fn\.fileapi\d+)$/) ) {
 				if (data2) {
+					data2 = _escape(data2);
 					return ExternalInterface.call(callback, data, data2);
 				}
 				else {

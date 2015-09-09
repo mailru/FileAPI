@@ -1,7 +1,5 @@
 package
 {
-	import com.github.im_saxo.FilterFlashVars;
-	
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageQuality;
@@ -13,7 +11,7 @@ package
 	
 	/**
 	 * 
-	 * @author v.demidov
+	 * @author v.demidov <v.demidov@gmail.com> https://github.com/im-saxo
 	 * 
 	 */	
 	public class FileAPI_flash extends Sprite
@@ -38,7 +36,6 @@ package
 		 */		
 		protected function init(event:Event = null):void
 		{
-			trace ("{FlashFileAPI} - init");
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			
 			// config stage
@@ -50,21 +47,10 @@ package
 			addChild(_graphicContext);
 			
 			// initiate controller
-			_controller = new AppController(_graphicContext, parseFlashVars());
+			_controller = new AppController(_graphicContext, loaderInfo.parameters);
 			// add some global listeners
 			stage.addEventListener(Event.RESIZE, _controller.onStageResize);
 			loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, _controller.onUncaughtError);
-		}
-		
-		/**
-		 * Use only parameters from FlashVars and ignore parameters from URL query string.
-		 * Query string parameters can lead to XSS, and since we use only FlashVars, 
-		 * we can ignore query completely.
-		 * 
-		 */		
-		private function parseFlashVars():Object
-		{
-			return FilterFlashVars.filterFlashVars(loaderInfo.parameters, loaderInfo.url);
 		}
 	}
 }
