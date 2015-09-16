@@ -1,6 +1,6 @@
 ﻿<a name="FileAPI"></a>
 ## FileAPI <img src="https://api.travis-ci.org/mailru/FileAPI.png?branch=master"/>
-A set of javascript tools for working with files.
+A set of JavaScript tools for working with files.
 
 <a name="started"></a>
 ### Get started
@@ -1048,7 +1048,7 @@ Creates a new array with all elements that pass the test implemented by the prov
 	<li>Chunked file upload (HTML5)</li>
 	<li>Upload one file: all browsers</li>
 	<li>
-		Working with Images: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 5.4+
+		Working with Images: IE6+, FF 3.6+, Chrome 10+, Opera 11.1+, Safari 6+
 		<ul>
 			<li>crop, resize, preview & rotate (HTML5 or Flash)</li>
 			<li>auto orientation by exif (HTML5, if include FileAPI.exif.js or Flash)</li>
@@ -1058,7 +1058,7 @@ Creates a new array with all elements that pass the test implemented by the prov
 
 <a name="FileAPI.support.html5"></a>
 ### FileAPI.support.html5`:Boolean`
-HTML5 borwser support
+HTML5 browser support
 
 <a name="FileAPI.support.cors"></a>
 ### FileAPI.support.cors`:Boolean`
@@ -1206,7 +1206,7 @@ Submit Query
 		FileAPI::makeResponse(array(
 			  'status' => FileAPI::OK
 			, 'statusText' => 'OK'
-			, 'body' => array('count' => sizeof($files)
+			, 'body' => array('count' => sizeof($files))
 		), $jsonp);
 		exit;
 	}
@@ -1266,7 +1266,7 @@ Response headers:
 <ul>
 	<li>X-Last-Known-Byte: int, library tries to resend chunk from the given offset. Applicable to response codes 200 and 416</li>
 </ul>
-All the other codes - fatal error, user's involvement is recommend.
+All the other codes - fatal error, user's involvement is recommended.
 
 ---
 
@@ -1394,6 +1394,16 @@ Button like link.
 
 <a name="Changelog"></a>
 ## Changelog
+
+
+### 2.0.10
+<ul>
+	<li>#289: * WebCam & html5 == false</li>
+	<li>#199, #265: flash fix 2015 error with BitmapData</li>
+	<li>#177: IE9, IE11 flash.camera remembered settigns</li>
+	<li>#254: check 'onLoadFnName' before call</li>
+	<li>#272: fixed `entry.createReader().readEntries`</li>
+</ul>
 
 
 ### 2.0.9

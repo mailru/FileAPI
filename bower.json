@@ -1,0 +1,27 @@
+{
+  "name": "fileapi",
+  "main": [
+    "./dist/FileAPI.flash.camera.swf",
+    "./dist/FileAPI.flash.image.swf",
+    "./dist/FileAPI.flash.swf",
+    "./dist/FileAPI.html5.js",
+    "./dist/FileAPI.js",
+    "./dist/jquery.fileapi.min.js"
+  ],
+  "dependencies": {
+    "jquery":">=1.8.2"
+  },
+  "ignore": [
+    "custom-tasks/",
+    "flash/",
+    "lib/",
+    "plugins/",
+    "server/",
+    "statics/",
+    "tests/",
+    "package.json",
+    "bower.json",
+    "README.md",
+    ".*"
+  ]
+}

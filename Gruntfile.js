@@ -10,6 +10,7 @@ module.exports = function (grunt) {
 				  'Gruntfile.js'
 				, 'lib/**/*.js'
 				, 'plugins/jquery.fileapi.js'
+				, 'node/**/*.js'
 			],
 
 			options: {
@@ -66,7 +67,7 @@ module.exports = function (grunt) {
 				options: {
 					timeout: 5 * 60 * 1000, // 5min
 					files: {
-						  '1px.gif':	['tests/files/1px.gif']
+						  '1px_gif':	['tests/files/1px.gif']
 						, 'big.jpg':	['tests/files/big.jpg']
 						, 'hello.txt':	['tests/files/hello.txt']
 						, 'image.jpg':	['tests/files/image.jpg']
@@ -130,7 +131,7 @@ module.exports = function (grunt) {
 		mxmlc: {
 			core: {
 				options: {
-					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=true' +
+					rawConfig: '-target-player=10.1  -static-link-runtime-shared-libraries=true -compiler.debug=true' +
 						' -library-path+=flash/core/lib/blooddy_crypto.swc -library-path+=flash/core/lib/EnginesLibrary.swc'
 				},
 				files: {
@@ -187,7 +188,17 @@ module.exports = function (grunt) {
 		}
 	});
 
-	grunt.registerTask('tests', ['jshint', 'concat', 'connect:server','prepare-test-files',  'qunit']);
+	grunt.registerTask('express', 'Start a custom web server.', function() {
+		var done = this.async();
+
+		require('./node/server.js').createServer(8000, function () {
+			done();
+		});
+	});
+
+	grunt.registerTask('server', ['connect:server', 'express']);
+	grunt.registerTask('dev', ['concat', 'server', 'watch']);
+	grunt.registerTask('tests', ['jshint', 'concat', 'server', 'prepare-test-files', 'qunit']);
 	grunt.registerTask('build', ['version', 'concat', 'uglify']);
 	grunt.registerTask('build-all', ['build', 'mxmlc']);
 	grunt.registerTask('default', ['tests', 'build']);

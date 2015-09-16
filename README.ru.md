@@ -129,7 +129,7 @@ FileAPI.getInfo(file, function (err/**String*/, info/**Object*/){
 
 <a name="FileAPI.filterFiles"></a>
 ### filterFiles(files`:Array`, filter`:Function`, callback`:Function`)`:void`
-Отфильтровать список файлов, используя  дополнительную информацию о них.
+Отфильтровать список файлов, используя дополнительную информацию о них.
 см. FileAPI.getInfo или FileAPI.addInfoReader.
 
 * files — оригинальный список файлов
@@ -161,7 +161,7 @@ FileAPI.filterFiles(files, function (file/**Object*/, info/**Object*/){
 Получить весь список файлов, включая директории.
 
 * evt — `drop` event
-* callback — фнукция, принимает один аргумент — список файлов
+* callback — функция, принимает один аргумент — список файлов
 
 ```js
 FileAPI.event.on(document, 'drop', function (evt/**Event*/){
@@ -182,7 +182,7 @@ FileAPI.event.on(document, 'drop', function (evt/**Event*/){
 Помните, для корректной работы flash-транспорта, тело ответа сервера не должно быть пустым,
 например можно ответить простым текстом "ok".
 
-* opts — объект настрое, см. раздел [Upload options](#options)
+* opts — объект настроек, см. раздел [Upload options](#options)
 
 ```js
 var el = document.getElementById('my-input');
@@ -383,7 +383,7 @@ var xhr = FileAPI.upload({
 
 <a name="options.chunkSize"></a>
 ### chunkSize`:Number`
-Размер части файла в байта, только HTML5.
+Размер части файла в байтах, только HTML5.
 
 ```js
 var xhr = FileAPI.upload({
@@ -1185,7 +1185,7 @@ Submit Query
 		FileAPI::makeResponse(array(
 			  'status' => FileAPI::OK
 			, 'statusText' => 'OK'
-			, 'body' => array('count' => sizeof($files)
+			, 'body' => array('count' => sizeof($files))
 		), $jsonp);
 		exit;
 	}

@@ -11,7 +11,7 @@ package
 	
 	/**
 	 * 
-	 * @author v.demidov
+	 * @author v.demidov <v.demidov@gmail.com> https://github.com/im-saxo
 	 * 
 	 */	
 	public class FileAPI_flash extends Sprite
@@ -36,7 +36,6 @@ package
 		 */		
 		protected function init(event:Event = null):void
 		{
-			trace ("{FlashFileAPI} - init");
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			
 			// config stage
@@ -48,22 +47,10 @@ package
 			addChild(_graphicContext);
 			
 			// initiate controller
-			_controller = new AppController(_graphicContext, parseFlashVars());
+			_controller = new AppController(_graphicContext, loaderInfo.parameters);
 			// add some global listeners
 			stage.addEventListener(Event.RESIZE, _controller.onStageResize);
 			loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, _controller.onUncaughtError);
-		}
-		
-		/**
-		 * parse all flashvars into object
-		 */		
-		private function parseFlashVars():Object
-		{
-			var options:Object = new Object();
-			for (var s:String in loaderInfo.parameters) {
-				options[s] = loaderInfo.parameters[s];
-			}
-			return options;
 		}
 	}
 }
