@@ -1369,6 +1369,7 @@
 							// @todo: требует рефакторинга и обработки ошибки
 							if (file.file) {
 								image.type = file.file.type;
+								image.quality = file.matrix.quality;
 								filename = file.file && file.file.name;
 							}
 
