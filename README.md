@@ -1397,7 +1397,7 @@ Button like link.
 
 ### 2.0.12-2.0.15 (!)
 <ul>
-	<li>#346, #342, #344: fixes for XSS into Flash-transport<li>
+	<li>#346, #342, #344: fixes for XSS into Flash-transport</li>
 </ul>
 
 
