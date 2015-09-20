@@ -1395,6 +1395,20 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.12-2.0.15 (!)
+<ul>
+	<li>#346, #342, #344: fixes for XSS into Flash-transport<li>
+</ul>
+
+
+### 2.0.11
+<ul>
+	<li>#322, #308: dnd & safari + $.fn.dnd (store all dropped items)</li>
+	<li>#319: NodeJS tesing</li>
+	<li>#317, #313: fixed "malformed entry.name (OSX Unicode NFD)"</li>
+	<li>#311: fixed "Arithmetic result exceeded 32 bits"</li>
+</ul>
+
 
 ### 2.0.10
 <ul>
