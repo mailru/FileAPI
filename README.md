@@ -1395,6 +1395,13 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.16-2.0.17
+<ul>
+	<li>#353: debug mode vs. IE</li>
+	<li>#352: correct filename via flash-uploading</li>
+</ul>
+
+
 ### 2.0.12-2.0.15 (!)
 <ul>
 	<li>#346, #342, #344: fixes for XSS into Flash-transport</li>
