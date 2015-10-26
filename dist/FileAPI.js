@@ -1369,6 +1369,10 @@
 
 						file.toData(function (err, image){
 							// @todo: требует рефакторинга и обработки ошибки
+							if( err ){
+								options.invalidImage(image);
+								return;
+							}
 							if (file.file) {
 								image.type = file.file.type;
 								image.quality = file.matrix.quality;
