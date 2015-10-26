@@ -1349,7 +1349,7 @@
 					, queue = api.queue(function (){ fn(Form); })
 					, isOrignTrans = trans && _isOriginTransform(trans)
 					, postNameConcat = api.postNameConcat
-					, invalidImage = options.invalidImage || api.F
+					, invalidImage = options.complete || api.F
 				;
 
 				// Append data
@@ -1371,7 +1371,7 @@
 						file.toData(function (err, image){
 							// @todo: требует рефакторинга и обработки ошибки
 							if( err ){
-								invalidImage(image);
+								invalidImage("Unable to process Image",{}, file, options);
 								return;
 							}
 							if (file.file) {
