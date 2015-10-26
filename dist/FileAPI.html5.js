@@ -1349,6 +1349,7 @@
 					, queue = api.queue(function (){ fn(Form); })
 					, isOrignTrans = trans && _isOriginTransform(trans)
 					, postNameConcat = api.postNameConcat
+					, invalidImage = options.invalidImage || api.F
 				;
 
 				// Append data
@@ -1369,6 +1370,10 @@
 
 						file.toData(function (err, image){
 							// @todo: требует рефакторинга и обработки ошибки
+							if( err ){
+								invalidImage(image);
+								return;
+							}
 							if (file.file) {
 								image.type = file.file.type;
 								image.quality = file.matrix.quality;
