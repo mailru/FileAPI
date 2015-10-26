@@ -2735,6 +2735,9 @@
 		toMultipartData: function (fn){
 			this._to([], fn, function (file, data, queue, boundary){
 				queue.inc();
+				if(!file.name || file.name == "undefined"){
+					file.name = "file"
+				}
 				_convertFile(file, function (file, blob){
 					data.push(
 						  '--_' + boundary + ('\r\nContent-Disposition: form-data; name="'+ file.name +'"'+ (file.file ? '; filename="'+ encodeURIComponent(file.file) +'"' : '')
