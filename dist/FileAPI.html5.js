@@ -139,6 +139,8 @@
 		_rdata = /^data:[^,]+,/,
 
 		_toString = {}.toString,
+		_supportConsoleLog,
+		_supportConsoleLogApply,
 
 
 		Math = window.Math,
@@ -343,8 +345,8 @@
 			},
 
 			log: function (){
-				if( api.debug && window.console && console.log ){
-					if( console.log.apply ){
+				if( api.debug && _supportConsoleLog ){
+					if( _supportConsoleLogApply ){
 						console.log.apply(console, arguments);
 					}
 					else {
@@ -1610,7 +1612,9 @@
 					_one(reader, _readerEvents, function (evt){
 						var isFile = evt.type != 'error';
 						if( isFile ){
-							reader.abort();
+							if ( reader.readyState == void 0 || reader.readyState === 1 /*LOADING*/ ) {
+								reader.abort();
+							}
 							callback(isFile);
 						}
 						else {
@@ -1887,7 +1891,13 @@
 	});
 
 
-	// @configuration
+	// Configuration
+	try {
+		_supportConsoleLog = !!console.log;
+		_supportConsoleLogApply = !!console.log.apply;
+	}
+	catch (err) {}
+
 	if( !api.flashUrl ){ api.flashUrl = api.staticPath + 'FileAPI.flash.swf'; }
 	if( !api.flashImageUrl ){ api.flashImageUrl = api.staticPath + 'FileAPI.flash.image.swf'; }
 	if( !api.flashWebcamUrl ){ api.flashWebcamUrl = api.staticPath + 'FileAPI.flash.camera.swf'; }
