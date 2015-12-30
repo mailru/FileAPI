@@ -567,9 +567,8 @@
 			 * @param  {File}  file
 			 * @return {Boolean}
 			 */
-			isFile: function (file) {
-				var type = _toString.call(file);
-				return type === '[object File]' || type === '[object Blob]';
+			isFile: function (file){
+				return _toString.call(file) === '[object File]';
 			},
 
 
@@ -708,7 +707,7 @@
 			 * @param	{Boolean}		[progress]
 			 */
 			readAsImage: function (file, fn, progress){
-				if( api.isFile(file) ){
+				if( api.isBlob(file) ){
 					if( apiURL ){
 						/** @namespace apiURL.createObjectURL */
 						var data = apiURL.createObjectURL(file);
@@ -989,7 +988,7 @@
 			getInfo: function (file, fn){
 				var info = {}, readers = _infoReader.concat();
 
-				if( api.isFile(file) ){
+				if( api.isBlob(file) ){
 					(function _next(){
 						var reader = readers.shift();
 						if( reader ){
