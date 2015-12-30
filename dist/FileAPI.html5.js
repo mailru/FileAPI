@@ -1613,7 +1613,9 @@
 					_one(reader, _readerEvents, function (evt){
 						var isFile = evt.type != 'error';
 						if( isFile ){
-							reader.abort();
+							if ( reader.readyState == void 0 || reader.readyState === 1 /*LOADING*/ ) {
+								reader.abort();
+							}
 							callback(isFile);
 						}
 						else {
