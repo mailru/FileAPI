@@ -1,4 +1,4 @@
-/*! FileAPI 2.0.15 - BSD | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.0.17 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -139,6 +139,8 @@
 		_rdata = /^data:[^,]+,/,
 
 		_toString = {}.toString,
+		_supportConsoleLog,
+		_supportConsoleLogApply,
 
 
 		Math = window.Math,
@@ -283,7 +285,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.15',
+			version: '2.0.17',
 
 			cors: false,
 			html5: true,
@@ -343,8 +345,8 @@
 			},
 
 			log: function (){
-				if( api.debug && window.console && console.log ){
-					if( console.log.apply ){
+				if( api.debug && _supportConsoleLog ){
+					if( _supportConsoleLogApply ){
 						console.log.apply(console, arguments);
 					}
 					else {
@@ -705,7 +707,7 @@
 			 * @param	{Boolean}		[progress]
 			 */
 			readAsImage: function (file, fn, progress){
-				if( api.isFile(file) ){
+				if( api.isBlob(file) ){
 					if( apiURL ){
 						/** @namespace apiURL.createObjectURL */
 						var data = apiURL.createObjectURL(file);
@@ -986,7 +988,7 @@
 			getInfo: function (file, fn){
 				var info = {}, readers = _infoReader.concat();
 
-				if( api.isFile(file) ){
+				if( api.isBlob(file) ){
 					(function _next(){
 						var reader = readers.shift();
 						if( reader ){
@@ -1366,7 +1368,13 @@
 						queue.inc();
 
 						file.toData(function (err, image){
-							// @todo: error
+							// @todo: требует рефакторинга и обработки ошибки
+							if (file.file) {
+								image.type = file.file.type;
+								image.quality = file.matrix.quality;
+								filename = file.file && file.file.name;
+							}
+
 							filename = filename || (new Date).getTime()+'.png';
 
 							_addFile(image);
@@ -1604,7 +1612,9 @@
 					_one(reader, _readerEvents, function (evt){
 						var isFile = evt.type != 'error';
 						if( isFile ){
-							reader.abort();
+							if ( reader.readyState == null || reader.readyState === reader.LOADING ) {
+								reader.abort();
+							}
 							callback(isFile);
 						}
 						else {
@@ -1881,7 +1891,13 @@
 	});
 
 
-	// @configuration
+	// Configuration
+	try {
+		_supportConsoleLog = !!console.log;
+		_supportConsoleLogApply = !!console.log.apply;
+	}
+	catch (err) {}
+
 	if( !api.flashUrl ){ api.flashUrl = api.staticPath + 'FileAPI.flash.swf'; }
 	if( !api.flashImageUrl ){ api.flashImageUrl = api.staticPath + 'FileAPI.flash.image.swf'; }
 	if( !api.flashWebcamUrl ){ api.flashWebcamUrl = api.staticPath + 'FileAPI.flash.camera.swf'; }
@@ -3269,8 +3285,19 @@
 			try {
 				this._active = false;
 				this.video.pause();
-				this.stream.stop();
-			} catch( err ){ }
+
+				try {
+					this.stream.stop();
+				} catch (err) {
+					api.each(this.stream.getTracks(), function (track) {
+						track.stop();
+					});
+				}
+
+				this.stream = null;
+			} catch( err ){
+				api.log('[FileAPI.Camera] stop:', err);
+			}
 		},
 
 
@@ -3415,7 +3442,9 @@
 			ctx.drawImage(video, 0, 0, 1, 1);
 			res = ctx.getImageData(0, 0, 1, 1).data[4] != 255;
 		}
-		catch( e ){}
+		catch( err ){
+			api.log('[FileAPI.Camera] detectVideoSignal:', err);
+		}
 		return	res;
 	}
 
