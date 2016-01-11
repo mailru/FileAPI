@@ -3285,8 +3285,19 @@
 			try {
 				this._active = false;
 				this.video.pause();
-				this.stream.stop();
-			} catch( err ){ }
+
+				try {
+					this.stream.stop();
+				} catch (err) {
+					api.each(this.stream.getTracks(), function (track) {
+						track.stop();
+					});
+				}
+
+				this.stream = null;
+			} catch( err ){
+				api.log('[FileAPI.Camera] stop:', err);
+			}
 		},
 
 
@@ -3431,7 +3442,9 @@
 			ctx.drawImage(video, 0, 0, 1, 1);
 			res = ctx.getImageData(0, 0, 1, 1).data[4] != 255;
 		}
-		catch( e ){}
+		catch( err ){
+			api.log('[FileAPI.Camera] detectVideoSignal:', err);
+		}
 		return	res;
 	}
 
