@@ -1395,6 +1395,14 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.18
+<ul>
+	<li>#364: * Camera#stop</li>
+	<li>#363: * support `Blob` in `FileAPI.getInfo`</li>
+	<li>#361: + upload zero-files</li>
+</ul>
+
+
 ### 2.0.16-2.0.17
 <ul>
 	<li>#353: debug mode vs. IE</li>
