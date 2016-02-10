@@ -1013,7 +1013,7 @@ FileAPI.Camera.publish(el, function (err, cam/**FileAPI.Camera*/){
 
 <a name="FileAPI.each"></a>
 ### FileAPI.each(obj`:Object|Array`, callback`:Function`[, thisObject`:Mixed`])`:void`
-Iterate over a object or array, executing a function for each matched element.
+Iterate over an object or array, executing a function for each matched element.
 
 * obj — array or object
 * callback — a function to execute for each element.
@@ -1082,7 +1082,7 @@ Support dataURI as src for image.
 
 <a name="FileAPI.support.chunked"></a>
 ### FileAPI.support.chunked`:Boolean`
-Support chuncked upload.
+Support chunked upload.
 
 ---
 
