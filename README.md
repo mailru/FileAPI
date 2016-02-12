@@ -1395,6 +1395,12 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.19
+<ul>
+	<li>#367: * [flash] allow gif and bmp to resize</li>
+</ul>
+
+
 ### 2.0.18
 <ul>
 	<li>#364: * Camera#stop</li>
