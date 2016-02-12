@@ -131,7 +131,7 @@ module.exports = function (grunt) {
 		mxmlc: {
 			core: {
 				options: {
-					rawConfig: '-target-player=10.1  -static-link-runtime-shared-libraries=true -compiler.debug=true' +
+					rawConfig: '-target-player=10.1  -static-link-runtime-shared-libraries=true -compiler.debug=false' +
 						' -library-path+=flash/core/lib/blooddy_crypto.swc -library-path+=flash/core/lib/EnginesLibrary.swc'
 				},
 				files: {
@@ -140,7 +140,7 @@ module.exports = function (grunt) {
 			},
 			image: {
 				options: {
-					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=true' +
+					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=false' +
 						' -library-path+=flash/image/lib/blooddy_crypto.swc'
 				},
 				files: {
@@ -149,7 +149,7 @@ module.exports = function (grunt) {
 			},
 			camera: {
 				options: {
-					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=true'
+					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=false'
 				},
 				files: {
 					'dist/<%= pkg.exportName %>.flash.camera.swf': ['flash/camera/src/FileAPI_flash_camera.as']

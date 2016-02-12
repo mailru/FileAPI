@@ -22,8 +22,8 @@ package ru.mail.commands
 	 * 
 	 * file must be loaded before transforming. 
 	 *
-	 * Only JPG or PNG images. 
-	 * Performing transform on gif or bmp will result in returning the original image data.
+	 * JPG and PNG will keep their extensions after transform.
+	 * GIF and BMP will be encoded as PNG, so uploaded filename will be .png
 	 * 
 	 * The possible solution is to transform them but save as PNG, but we also have to change the uploaded file extension to png. 
 	 * 
@@ -47,18 +47,16 @@ package ru.mail.commands
 		{
 			if( !file.imageData ) {
 				complete(false, null, new ErrorVO("ResizeImageCommand - cannot resize file because it has not been succesfully loaded") );
+				return;
 			}
 			
 			if (!needResize()) {
 				LoggerJS.log('ResizeImageCommand no need to resize');
 				complete(true, file.fileData);
+				return;
 			}
 			
 			var fileType:String = file.fileType;
-			if (fileType == "gif" || fileType == "bmp") {
-				// TODO: scale but save jpg
-				complete(true, file.fileData)
-			}
 			
 			checkTransform();
 			
@@ -143,15 +141,12 @@ package ru.mail.commands
 				
 				if (imageTransform.multiPassResize && maxScale < 0.5) {
 					
-					trace ("multi-step ");
-					
 					var curWidth:Number = currentImageMap.width;
 					var curHeight:Number = currentImageMap.height;
 					var mapToScale:BitmapData; 
 					// multi-step 
 					while(maxScale < 0.5)
 					{
-						trace ("step ", maxScale);
 						// series if x2 scalings
 						
 						// temp bitmapdata
