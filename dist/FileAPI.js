@@ -1,4 +1,4 @@
-/*! FileAPI 2.0.18 - BSD | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.0.19 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -106,6 +106,7 @@
 		doctype = document.doctype || {},
 		userAgent = window.navigator.userAgent,
 		safari = /safari\//i.test(userAgent) && !/chrome\//i.test(userAgent),
+		iemobile = /iemobile\//i.test(userAgent),
 
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
 		apiURL = (window.createObjectURL && window) || (window.URL && URL.revokeObjectURL && URL) || (window.webkitURL && webkitURL),
@@ -120,7 +121,7 @@
 		jQuery = window.jQuery,
 
 		html5 =    !!(File && (FileReader && (window.Uint8Array || FormData || XMLHttpRequest.prototype.sendAsBinary)))
-				&& !(safari && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
+				&& !(safari && /windows/i.test(userAgent) && !iemobile), // BugFix: https://github.com/mailru/FileAPI/issues/25
 
 		cors = html5 && ('withCredentials' in (new XMLHttpRequest)),
 
@@ -285,7 +286,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.18',
+			version: '2.0.19',
 
 			cors: false,
 			html5: true,
