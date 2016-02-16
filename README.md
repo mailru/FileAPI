@@ -1395,6 +1395,12 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.20
+<ul>
+	<li>#369: * IEMobile</li>
+</ul>
+
+
 ### 2.0.19
 <ul>
 	<li>#367: * [flash] allow gif and bmp to resize</li>
