@@ -1145,6 +1145,14 @@ Submit Query
 
 ---
 
+<a name="flash.security"></a>
+### Security
+По умолчанию `FileAPI.flash.swf` разрешает доступ с любых доменов `Security.allowDomain("*")`.
+Это может привести к уязвимости same origin bypass, если flash лежит на том же домене, что и критичные данные.
+Чтобы этого избежать, нужно разрешить доступ только к своим доменам [здесь](https://github.com/mailru/FileAPI/blob/master/flash/core/src/ru/mail/communication/JSCallbackPresenter.as#L25) и пересобрать flash.
+
+---
+
 <a name="server"></a>
 ## Server settings
 
