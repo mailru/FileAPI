@@ -1166,6 +1166,14 @@ Submit Query
 
 ---
 
+<a name="flash.security"></a>
+### Security
+By default `FileAPI.flash.swf` allows access from any domain via `Security.allowDomain("*")`.
+This can lead to same origin bypass vulnerability if swf is loaded from the same domain as your critical data.
+To prevent this, allow only your domains [here](https://github.com/mailru/FileAPI/blob/master/flash/core/src/ru/mail/communication/JSCallbackPresenter.as#L25) and rebuild flash.
+
+---
+
 <a name="server"></a>
 ## Server settings
 
