@@ -1,7 +1,7 @@
 package ru.mail.controller
 {
 	import by.blooddy.crypto.Base64;
-	
+
 	import flash.display.Graphics;
 	import flash.display.Sprite;
 	import flash.display.Stage;
@@ -16,7 +16,9 @@ package ru.mail.controller
 	import flash.system.Security;
 	import flash.utils.Timer;
 	import flash.utils.setTimeout;
-	
+
+	import net.inspirit.MultipartURLLoader;
+
 	import ru.mail.commands.LoadFileCommand;
 	import ru.mail.commands.UploadCommand;
 	import ru.mail.commands.textloader.SimpleTextLoader;
@@ -93,6 +95,22 @@ package ru.mail.controller
 			initView(graphicContext);
 			
 			// parse flashvars
+			setupOptions(options);
+
+			setupChain();
+			configureListeners();
+			
+			// check ping and complete initialisation
+			completeInitialization(options);
+		}
+		
+		//===================================================
+		//
+		//                 Initialization
+		//
+		//===================================================
+
+		private function setupOptions(options):void {
 			_options = options;
 			JSCaller.callback = getJsFunctionName(options, JSCaller.callback);
 			// logger
@@ -107,7 +125,7 @@ package ru.mail.controller
 				JSCaller.flashId = options["flashId"];
 			}
 
-			// use camera 
+			// use camera
 			// options["useCamera"], if not false, contains url to camera swf
 			_model.useCamera = options["useCamera"];
 			if (_model.useCamera && _model.useCamera !== 'false') {
@@ -118,18 +136,12 @@ package ru.mail.controller
 			_model.timeout = options["timeout"];
 			LoggerJS.log("timeout="+_model.timeout);
 
-			setupChain();
-			configureListeners();
-			
-			// check ping and complete initialisation
-			completeInitialization(options);
+			if (options["multipartTrailingLinebreak"] && options["multipartTrailingLinebreak"] !== 'false') {
+				// set option to add linebreak at the end of multipart upload
+				MultipartURLLoader.addTrailingLineBreak = true;
+			}
+			LoggerJS.log("MultipartURLLoader.addTrailingLineBreak is " + MultipartURLLoader.addTrailingLineBreak);
 		}
-		
-		//===================================================
-		//
-		//                 Initialization
-		//
-		//===================================================
 		
 		/**
 		 * We need transparent sprite to listen to mouseEvents

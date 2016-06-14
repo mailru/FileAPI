@@ -1,4 +1,4 @@
-/*! FileAPI 2.0.19 - BSD | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.0.20 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -286,7 +286,7 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.19',
+			version: '2.0.20',
 
 			cors: false,
 			html5: true,
@@ -3403,6 +3403,38 @@
 	Camera.fallback = function (el, options, callback){
 		callback('not_support_camera');
 	};
+
+	Camera.checkAlreadyCaptured = (function () {
+		var	mediaDevices = navigator.mediaDevices,
+			MediaStreamTrack = window.MediaStreamTrack,
+			navigatorEnumerateDevices = navigator.enumerateDevices,
+			enumerateDevices;
+
+		if (mediaDevices && mediaDevices.enumerateDevices) {
+			enumerateDevices = function (callback) {
+				mediaDevices.enumerateDevices().then(callback);
+			};
+		} else if (MediaStreamTrack && MediaStreamTrack.getSources) {
+			enumerateDevices = MediaStreamTrack.getSources.bind(MediaStreamTrack);
+		} else if (navigatorEnumerateDevices) {
+			enumerateDevices = navigatorEnumerateDevices.bind(navigator);
+		} else {
+			enumerateDevices = function (fn) {
+				fn([]);
+			};
+		}
+
+		return function (callback) {
+			enumerateDevices(function (devices) {
+				var deviceExists = devices.some(function (device) {
+					return (device.kind === 'videoinput' || device.kind === 'video') && device.label;
+				});
+
+				callback(deviceExists);
+			});
+		};
+
+	})();
 
 
 	/**

@@ -62,6 +62,7 @@
 	public class  MultipartURLLoader extends EventDispatcher
 	{
 		public static var BLOCK_SIZE:uint = 64 * 1024;
+		public static var addTrailingLineBreak:Boolean = false;
 
 		private var _loader:URLLoader;
 		private var _boundary:String;
@@ -328,6 +329,9 @@
 		{
 			postData = BOUNDARY(postData);
 			postData = DOUBLEDASH(postData);
+			if (addTrailingLineBreak) {
+				postData = LINEBREAK(postData);
+			}
 			return postData;
 		}
 
