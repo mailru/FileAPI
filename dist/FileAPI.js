@@ -1,4 +1,4 @@
-/*! FileAPI 2.0.19 - BSD | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.0.20 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -107,6 +107,7 @@
 		userAgent = window.navigator.userAgent,
 		safari = /safari\//i.test(userAgent) && !/chrome\//i.test(userAgent),
 		iemobile = /iemobile\//i.test(userAgent),
+		insecureChrome = /chrome\//i.test(userAgent) && window.location.protocol === 'http:',
 
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
 		apiURL = (window.createObjectURL && window) || (window.URL && URL.revokeObjectURL && URL) || (window.webkitURL && webkitURL),
@@ -286,13 +287,14 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.19',
+			version: '2.0.20',
 
 			cors: false,
 			html5: true,
 			media: false,
 			formData: true,
 			multiPassResize: true,
+			insecureChrome: insecureChrome,
 
 			debug: false,
 			pingUrl: false,
@@ -3373,7 +3375,7 @@
 		el.style.height	= _px(options.height);
 
 
-		if( api.html5 && html5 ){
+		if( api.html5 && html5 && !api.insecureChrome ){
 			// Create video element
 			var video = document.createElement('video');
 
@@ -3403,6 +3405,38 @@
 	Camera.fallback = function (el, options, callback){
 		callback('not_support_camera');
 	};
+
+	Camera.checkAlreadyCaptured = (function () {
+		var	mediaDevices = navigator.mediaDevices,
+			MediaStreamTrack = window.MediaStreamTrack,
+			navigatorEnumerateDevices = navigator.enumerateDevices,
+			enumerateDevices;
+
+		if (mediaDevices && mediaDevices.enumerateDevices) {
+			enumerateDevices = function (callback) {
+				mediaDevices.enumerateDevices().then(callback);
+			};
+		} else if (MediaStreamTrack && MediaStreamTrack.getSources) {
+			enumerateDevices = MediaStreamTrack.getSources.bind(MediaStreamTrack);
+		} else if (navigatorEnumerateDevices) {
+			enumerateDevices = navigatorEnumerateDevices.bind(navigator);
+		} else {
+			enumerateDevices = function (fn) {
+				fn([]);
+			};
+		}
+
+		return function (callback) {
+			enumerateDevices(function (devices) {
+				var deviceExists = devices.some(function (device) {
+					return (device.kind === 'videoinput' || device.kind === 'video') && device.label;
+				});
+
+				callback(deviceExists);
+			});
+		};
+
+	})();
 
 
 	/**
@@ -3501,6 +3535,7 @@
 		|| !api.html5 || !api.support.html5
 		|| (api.cors && !api.support.cors)
 		|| (api.media && !api.support.media)
+		|| api.insecureChrome
 	)
 	&& (function (){
 		var
@@ -4260,7 +4295,7 @@
     var _each = api.each,
         _cameraQueue = [];
 
-    if (api.support.flash && (api.media && (!api.support.media || !api.html5))) {
+    if (api.support.flash && (api.media && (!api.support.media || !api.html5 || api.insecureChrome))) {
         (function () {
             function _wrap(fn) {
                 var id = fn.wid = api.uid();
