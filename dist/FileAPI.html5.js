@@ -1352,6 +1352,7 @@
 					, queue = api.queue(function (){ fn(Form); })
 					, isOrignTrans = trans && _isOriginTransform(trans)
 					, postNameConcat = api.postNameConcat
+					, invalidImage = options.complete || api.F
 				;
 
 				// Append data
@@ -1372,6 +1373,10 @@
 
 						file.toData(function (err, image){
 							// @todo: требует рефакторинга и обработки ошибки
+							if( err ){
+								invalidImage("Unable to process Image",{}, file, options);
+								return;
+							}
 							if (file.file) {
 								image.type = file.file.type;
 								image.quality = file.matrix.quality;
@@ -2736,6 +2741,9 @@
 		toMultipartData: function (fn){
 			this._to([], fn, function (file, data, queue, boundary){
 				queue.inc();
+				if(!file.name || file.name == "undefined"){
+					file.name = "file"
+				}
 				_convertFile(file, function (file, blob){
 					data.push(
 						  '--_' + boundary + ('\r\nContent-Disposition: form-data; name="'+ file.name +'"'+ (file.file ? '; filename="'+ encodeURIComponent(file.file) +'"' : '')
