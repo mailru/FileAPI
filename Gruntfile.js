@@ -57,7 +57,7 @@ module.exports = function (grunt) {
 
 		curl: {
 			jpg: {
-				src: 'https://dl.dropboxusercontent.com/u/49592745/BigJPG.jpg',
+				src: 'https://dl.dropboxusercontent.com/s/f5woqs15bjol1ic/BigJPG.jpg',
 				dest: 'tests/files/big.jpg'
 			}
 		},
@@ -184,7 +184,7 @@ module.exports = function (grunt) {
 	// "npm build" runs these tasks
 	grunt.registerTask('prepare-test-files', function (){
 		if (!grunt.file.exists('tests/files/big.jpg')) {
-			grunt.task.run('curl');
+			// grunt.task.run('curl');
 		}
 	});
 
