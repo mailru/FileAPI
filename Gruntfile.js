@@ -183,9 +183,10 @@ module.exports = function (grunt) {
 
 	// "npm build" runs these tasks
 	grunt.registerTask('prepare-test-files', function (){
-		if (!grunt.file.exists('tests/files/big.jpg')) {
+		// big.jpg added to git
+		/*if (!grunt.file.exists('tests/files/big.jpg')) {
 			grunt.task.run('curl');
-		}
+		}*/
 	});
 
 	grunt.registerTask('express', 'Start a custom web server.', function() {
