@@ -385,6 +385,12 @@ var xhr = FileAPI.upload({
 
 ---
 
+<a name="options.cache"></a>
+### cache`:Boolean`
+Setting to true removes the default timestamp URL parameter.
+
+---
+
 <a name="options.files"></a>
 ### files`:Object`
 Key-value object, `key` — post name, `value` — File or FileAPI.Image object.
@@ -1462,7 +1468,7 @@ Button like link.
 </ul>
 
 
-### 2.0.8 
+### 2.0.8
 <ul>
 	<li>Two new resize strategies `width` and `height`</li>
 </ul>
