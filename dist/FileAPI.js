@@ -4394,4 +4394,4 @@
         }());
     }
 }(window, window.jQuery, FileAPI));
-if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }
+if( typeof define === "function" && define.amd ){ define(" FileAPI", [], function (){ return FileAPI; }); }

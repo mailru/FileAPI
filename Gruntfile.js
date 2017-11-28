@@ -57,7 +57,7 @@ module.exports = function (grunt) {
 
 		curl: {
 			jpg: {
-				src: 'https://dl.dropboxusercontent.com/s/f5woqs15bjol1ic/BigJPG.jpg',
+				src: 'https://dl.dropboxusercontent.com/u/49592745/BigJPG.jpg',
 				dest: 'tests/files/big.jpg'
 			}
 		},
@@ -85,7 +85,7 @@ module.exports = function (grunt) {
 					' * <%= pkg.description %>\n' +
 					' */\n\n',
 
-				footer: 'if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }'
+				footer: 'if( typeof define === "function" && define.amd ){ define(" <%= pkg.jam.packageName %>", [], function (){ return FileAPI; }); }'
 			},
 
 			all: {
@@ -183,9 +183,10 @@ module.exports = function (grunt) {
 
 	// "npm build" runs these tasks
 	grunt.registerTask('prepare-test-files', function (){
-		if (!grunt.file.exists('tests/files/big.jpg')) {
-			// grunt.task.run('curl');
-		}
+		// big.jpg added to git
+		/*if (!grunt.file.exists('tests/files/big.jpg')) {
+			grunt.task.run('curl');
+		}*/
 	});
 
 	grunt.registerTask('express', 'Start a custom web server.', function() {
