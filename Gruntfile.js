@@ -85,7 +85,7 @@ module.exports = function (grunt) {
 					' * <%= pkg.description %>\n' +
 					' */\n\n',
 
-				footer: 'if( typeof define === "function" && define.amd ){ define(" <%= pkg.jam.packageName %>", [], function (){ return FileAPI; }); }'
+				footer: 'if( typeof define === "function" && define.amd ){ define("<%= pkg.jam.name %>", [], function (){ return FileAPI; }); }'
 			},
 
 			all: {
