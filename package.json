@@ -22,8 +22,7 @@
     "temporary": "~0.0.8",
     "image-size": "~0.3.5"
   },
-  "peerDependencies": {
-  },
+  "peerDependencies": {},
   "description": "FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.",
   "main": "dist/FileAPI.js",
   "files": [
