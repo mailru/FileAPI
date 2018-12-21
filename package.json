@@ -6,7 +6,7 @@
     "connect-busboy": "~0.0.2",
     "eventemitter2": "~0.4.13",
     "express": "~4.12.3",
-    "grunt": "~0.4.5",
+    "grunt": "^0.4.5",
     "grunt-contrib-compress": "~0.9.1",
     "grunt-contrib-concat": "~0.4.0",
     "grunt-contrib-connect": "~0.8.0",
@@ -16,14 +16,13 @@
     "grunt-curl": "~2.0.2",
     "grunt-mxmlc": "~0.5.2",
     "grunt-version": "~0.3.0",
+    "image-size": "~0.3.5",
     "phantomjs": "~1.9.7-9",
     "qs": "~2.4.1",
     "semver": "~5.0.0",
-    "temporary": "~0.0.8",
-    "image-size": "~0.3.5"
+    "temporary": "~0.0.8"
   },
-  "peerDependencies": {
-  },
+  "peerDependencies": {},
   "description": "FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.",
   "main": "dist/FileAPI.js",
   "files": [
@@ -35,7 +34,8 @@
     "name": "FileAPI"
   },
   "scripts": {
-    "test": "grunt tests --verbose"
+    "test": "grunt tests --verbose",
+    "build": "grunt build"
   },
   "repository": {
     "type": "git",
@@ -54,5 +54,8 @@
     "Ilya Lebedev <ilya@lebedev.net>",
     "Mikhail Bezoyan <mbezoyan@gmail.com>"
   ],
-  "license": "BSD"
+  "license": "BSD",
+  "dependencies": {
+    "grunt-cli": "^1.3.2"
+  }
 }
