@@ -385,6 +385,12 @@ var xhr = FileAPI.upload({
 
 ---
 
+<a name="options.cache"></a>
+### cache`:Boolean`
+Setting to true removes the default timestamp URL parameter.
+
+---
+
 <a name="options.files"></a>
 ### files`:Object`
 Key-value object, `key` — post name, `value` — File or FileAPI.Image object.
@@ -1013,7 +1019,7 @@ FileAPI.Camera.publish(el, function (err, cam/**FileAPI.Camera*/){
 
 <a name="FileAPI.each"></a>
 ### FileAPI.each(obj`:Object|Array`, callback`:Function`[, thisObject`:Mixed`])`:void`
-Iterate over a object or array, executing a function for each matched element.
+Iterate over an object or array, executing a function for each matched element.
 
 * obj — array or object
 * callback — a function to execute for each element.
@@ -1082,7 +1088,7 @@ Support dataURI as src for image.
 
 <a name="FileAPI.support.chunked"></a>
 ### FileAPI.support.chunked`:Boolean`
-Support chuncked upload.
+Support chunked upload.
 
 ---
 
@@ -1163,6 +1169,14 @@ Content-Disposition: form-data; name="Upload"
 Submit Query
 ------------Ij5GI3GI3ei4GI3ei4KM7GI3KM7KM7--
 ```
+
+---
+
+<a name="flash.security"></a>
+### Security
+By default `FileAPI.flash.swf` allows access from any domain via `Security.allowDomain("*")`.
+This can lead to same origin bypass vulnerability if swf is loaded from the same domain as your critical data.
+To prevent this, allow only your domains [here](https://github.com/mailru/FileAPI/blob/master/flash/core/src/ru/mail/communication/JSCallbackPresenter.as#L25) and rebuild flash.
 
 ---
 
@@ -1395,6 +1409,26 @@ Button like link.
 <a name="Changelog"></a>
 ## Changelog
 
+### 2.0.20
+<ul>
+	<li>#369: * IEMobile</li>
+</ul>
+
+
+### 2.0.19
+<ul>
+	<li>#367: * [flash] allow gif and bmp to resize</li>
+</ul>
+
+
+### 2.0.18
+<ul>
+	<li>#364: * Camera#stop</li>
+	<li>#363: * support `Blob` in `FileAPI.getInfo`</li>
+	<li>#361: + upload zero-files</li>
+</ul>
+
+
 ### 2.0.16-2.0.17
 <ul>
 	<li>#353: debug mode vs. IE</li>
@@ -1434,7 +1468,7 @@ Button like link.
 </ul>
 
 
-### 2.0.8 
+### 2.0.8
 <ul>
 	<li>Two new resize strategies `width` and `height`</li>
 </ul>

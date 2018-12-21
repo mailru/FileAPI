@@ -1,4 +1,4 @@
-/*! FileAPI 2.0.17 - BSD | git://github.com/mailru/FileAPI.git
+/*! FileAPI 2.0.25 - BSD | git://github.com/mailru/FileAPI.git
  * FileAPI — a set of  javascript tools for working with files. Multiupload, drag'n'drop and chunked file upload. Images: crop, resize and auto orientation by EXIF.
  */
 
@@ -106,6 +106,8 @@
 		doctype = document.doctype || {},
 		userAgent = window.navigator.userAgent,
 		safari = /safari\//i.test(userAgent) && !/chrome\//i.test(userAgent),
+		iemobile = /iemobile\//i.test(userAgent),
+		insecureChrome = !safari && /chrome\//i.test(userAgent) && window.location.protocol === 'http:',
 
 		// https://github.com/blueimp/JavaScript-Load-Image/blob/master/load-image.js#L48
 		apiURL = (window.createObjectURL && window) || (window.URL && URL.revokeObjectURL && URL) || (window.webkitURL && webkitURL),
@@ -120,7 +122,7 @@
 		jQuery = window.jQuery,
 
 		html5 =    !!(File && (FileReader && (window.Uint8Array || FormData || XMLHttpRequest.prototype.sendAsBinary)))
-				&& !(safari && /windows/i.test(userAgent)), // BugFix: https://github.com/mailru/FileAPI/issues/25
+				&& !(safari && /windows/i.test(userAgent) && !iemobile), // BugFix: https://github.com/mailru/FileAPI/issues/25
 
 		cors = html5 && ('withCredentials' in (new XMLHttpRequest)),
 
@@ -285,13 +287,14 @@
 		 * FileAPI (core object)
 		 */
 		api = {
-			version: '2.0.17',
+			version: '2.0.25',
 
 			cors: false,
 			html5: true,
 			media: false,
 			formData: true,
 			multiPassResize: true,
+			insecureChrome: insecureChrome,
 
 			debug: false,
 			pingUrl: false,
@@ -1833,11 +1836,12 @@
 				evt[preventDefault]();
 
 				_type = 0;
-				onHover.call(evt[currentTarget], false, evt);
 
 				api.getDropFiles(evt, function (files, all){
 					onDrop.call(evt[currentTarget], files, all, evt);
 				});
+				
+				onHover.call(evt[currentTarget], false, evt);
 			});
 		}
 		else {
@@ -3258,7 +3262,11 @@
 //				});
 
 				// Set camera stream
-				video.src = URL.createObjectURL(stream);
+				try {
+					video.src = URL.createObjectURL(stream);
+				} catch (err) {
+					video.srcObject = stream;
+				}
 
 				// Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
 				// See crbug.com/110938.
@@ -3372,7 +3380,7 @@
 		el.style.height	= _px(options.height);
 
 
-		if( api.html5 && html5 ){
+		if( api.html5 && html5 && !api.insecureChrome ){
 			// Create video element
 			var video = document.createElement('video');
 
@@ -3402,6 +3410,38 @@
 	Camera.fallback = function (el, options, callback){
 		callback('not_support_camera');
 	};
+
+	Camera.checkAlreadyCaptured = (function () {
+		var	mediaDevices = navigator.mediaDevices,
+			MediaStreamTrack = window.MediaStreamTrack,
+			navigatorEnumerateDevices = navigator.enumerateDevices,
+			enumerateDevices;
+
+		if (mediaDevices && mediaDevices.enumerateDevices) {
+			enumerateDevices = function (callback) {
+				mediaDevices.enumerateDevices().then(callback);
+			};
+		} else if (MediaStreamTrack && MediaStreamTrack.getSources) {
+			enumerateDevices = MediaStreamTrack.getSources.bind(MediaStreamTrack);
+		} else if (navigatorEnumerateDevices) {
+			enumerateDevices = navigatorEnumerateDevices.bind(navigator);
+		} else {
+			enumerateDevices = function (fn) {
+				fn([]);
+			};
+		}
+
+		return function (callback) {
+			enumerateDevices(function (devices) {
+				var deviceExists = devices.some(function (device) {
+					return (device.kind === 'videoinput' || device.kind === 'video') && device.label;
+				});
+
+				callback(deviceExists);
+			});
+		};
+
+	})();
 
 
 	/**
@@ -3467,7 +3507,7 @@
     var _each = api.each,
         _cameraQueue = [];
 
-    if (api.support.flash && (api.media && (!api.support.media || !api.html5))) {
+    if (api.support.flash && (api.media && (!api.support.media || !api.html5 || api.insecureChrome))) {
         (function () {
             function _wrap(fn) {
                 var id = fn.wid = api.uid();

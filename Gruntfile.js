@@ -85,7 +85,7 @@ module.exports = function (grunt) {
 					' * <%= pkg.description %>\n' +
 					' */\n\n',
 
-				footer: 'if( typeof define === "function" && define.amd ){ define("FileAPI", [], function (){ return FileAPI; }); }'
+				footer: 'if( typeof define === "function" && define.amd ){ define("<%= pkg.jam.name %>", [], function (){ return FileAPI; }); }'
 			},
 
 			all: {
@@ -131,7 +131,7 @@ module.exports = function (grunt) {
 		mxmlc: {
 			core: {
 				options: {
-					rawConfig: '-target-player=10.1  -static-link-runtime-shared-libraries=true -compiler.debug=true' +
+					rawConfig: '-target-player=10.1  -static-link-runtime-shared-libraries=true -compiler.debug=false' +
 						' -library-path+=flash/core/lib/blooddy_crypto.swc -library-path+=flash/core/lib/EnginesLibrary.swc'
 				},
 				files: {
@@ -140,7 +140,7 @@ module.exports = function (grunt) {
 			},
 			image: {
 				options: {
-					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=true' +
+					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=false' +
 						' -library-path+=flash/image/lib/blooddy_crypto.swc'
 				},
 				files: {
@@ -149,7 +149,7 @@ module.exports = function (grunt) {
 			},
 			camera: {
 				options: {
-					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=true'
+					rawConfig: '-static-link-runtime-shared-libraries=true -compiler.debug=false'
 				},
 				files: {
 					'dist/<%= pkg.exportName %>.flash.camera.swf': ['flash/camera/src/FileAPI_flash_camera.as']
@@ -183,9 +183,10 @@ module.exports = function (grunt) {
 
 	// "npm build" runs these tasks
 	grunt.registerTask('prepare-test-files', function (){
-		if (!grunt.file.exists('tests/files/big.jpg')) {
+		// big.jpg added to git
+		/*if (!grunt.file.exists('tests/files/big.jpg')) {
 			grunt.task.run('curl');
-		}
+		}*/
 	});
 
 	grunt.registerTask('express', 'Start a custom web server.', function() {
