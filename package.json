@@ -28,7 +28,7 @@
   "files": [
     "dist",
     "plugins",
-    "*.*"
+    "*.js"
   ],
   "jam": {
     "name": "FileAPI"
