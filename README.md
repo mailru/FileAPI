@@ -385,6 +385,20 @@ var xhr = FileAPI.upload({
 
 ---
 
+<a name="options.uploadCredentials"></a>
+### uploadCredentials`:Boolean`
+Pass credentials to upload request, HTML5 only.
+
+```js
+var xhr = FileAPI.upload({
+	url: '...',
+	uploadCredentials: false,
+	files: { .. },
+});
+```
+
+---
+
 <a name="options.headers"></a>
 ### headers`:Object`
 Additional request headers, HTML5 only.
