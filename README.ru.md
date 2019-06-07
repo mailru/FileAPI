@@ -366,6 +366,19 @@ var xhr = FileAPI.upload({
 ```
 
 ---
+<a name="options.uploadMethod"></a>
+### uploadMethod`:String`
+Метод запроса, только HTML5.
+
+```js
+var xhr = FileAPI.upload({
+	url: '...',
+	uploadMethod: 'PUT',
+	files: { ... },
+});
+```
+
+---
 
 <a name="options.headers"></a>
 ### headers`:Object`

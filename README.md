@@ -371,6 +371,20 @@ var xhr = FileAPI.upload({
 
 ---
 
+<a name="options.uploadMethod"></a>
+### uploadMethod`:String`
+Request method, HTML5 only.
+
+```js
+var xhr = FileAPI.upload({
+	url: '...',
+	uploadMethod: 'PUT',
+	files: { .. },
+});
+```
+
+---
+
 <a name="options.headers"></a>
 ### headers`:Object`
 Additional request headers, HTML5 only.
