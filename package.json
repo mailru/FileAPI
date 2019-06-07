@@ -6,6 +6,7 @@
     "connect-busboy": "~0.0.2",
     "eventemitter2": "~0.4.13",
     "express": "~4.12.3",
+    "flex-sdk": "^4.6.0-0",
     "grunt": "^0.4.5",
     "grunt-contrib-compress": "~0.9.1",
     "grunt-contrib-concat": "~0.4.0",
