@@ -1021,8 +1021,8 @@ FileAPI.Camera.publish(el, function (err, cam/**FileAPI.Camera*/){
 
 ---
 
-<a name="const" data-name="Сonst"></a>
-## Сonstants
+<a name="const" data-name="Const"></a>
+## Constants
 
 <a name="FileAPI.KB"></a>
 ### FileAPI.KB`:Number`
