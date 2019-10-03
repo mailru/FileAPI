@@ -2084,6 +2084,9 @@
 				, (deg == 90 || deg == 180 ? -dh : 0)
 				, dw, dh
 			);
+			//To correct the issue #427
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			
 			dw = canvas.width;
 			dh = canvas.height;
 
