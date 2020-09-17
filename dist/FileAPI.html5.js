@@ -2440,7 +2440,7 @@
     loadImage.detectSubsampling = function (img) {
         var canvas,
             context;
-        if (img.width * img.height > 1024 * 1024) { // only consider mexapixel images
+        if (img.width * img.height > 1024 * 1024) { // only consider megapixel images
             canvas = document.createElement('canvas');
             canvas.width = canvas.height = 1;
             context = canvas.getContext('2d');
