@@ -1483,7 +1483,7 @@ Button like link.
 <ul>
 	<li>#289: * WebCam & html5 == false</li>
 	<li>#199, #265: flash fix 2015 error with BitmapData</li>
-	<li>#177: IE9, IE11 flash.camera remembered settigns</li>
+	<li>#177: IE9, IE11 flash.camera remembered settings</li>
 	<li>#254: check 'onLoadFnName' before call</li>
 	<li>#272: fixed `entry.createReader().readEntries`</li>
 </ul>
